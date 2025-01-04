@@ -1,0 +1,63 @@
+---
+import type { Paper } from "../shared/types/paper";
+import { OrganizationsStore } from "../shared/stores/organizations-store";
+
+interface Props {
+  paper: Paper;
+}
+
+const { paper } = Astro.props;
+
+const organizations = await Promise.all(
+  (paper.underDirectionOf || []).map(async (organizationId) => {
+    return OrganizationsStore.getInstance().getOrganizationById(organizationId);
+  }),
+);
+---
+
+<section class="info">
+  <table>
+    <tbody>
+      <tr>
+        <th>Vorlage:</th>
+        <td>{paper.reference}</td>
+      </tr>
+      <tr>
+        <th>Art:</th>
+        <td>{paper.paperType}</td>
+      </tr>
+      <tr>
+        <th>Datum:</th>
+        <td>{new Date(paper.date).toLocaleDateString("de-DE")}</td>
+      </tr>
+      <tr>
+        <th>Letzte Änderung:</th>
+        <td>{new Date(paper.modified).toLocaleDateString("de-DE")}</td>
+      </tr>
+      <tr>
+        <th>Unter Leitung von:</th>
+        <td
+          >{
+            organizations?.map((item) => item?.name).join(", ") ||
+              "Keine Angaben"
+          }</td
+        >
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<style>
+  .info {
+    margin-top: 20px;
+    padding: 20px;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+  }
+
+  table th {
+    text-align: right;
+    padding-right: 10px; /* Optional - adds space between the aligned text and the td */
+  }
+</style>

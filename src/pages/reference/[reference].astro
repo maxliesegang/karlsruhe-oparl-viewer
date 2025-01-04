@@ -1,0 +1,46 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import KeyInfo from "../../components/KeyInfo.astro";
+import Consultations from "../../components/Consultations.astro";
+import AuxiliaryFiles from "../../components/AuxiliaryFiles.astro";
+import { PapersStore } from "../../shared/stores/papers-store";
+
+interface Props {
+  reference: string;
+}
+
+const { reference } = Astro.params;
+
+export async function getStaticPaths() {
+  const papers = await PapersStore.getInstance().getAllPapers();
+
+  return papers.map((paper) => ({
+    params: { reference: paper.internalReference },
+  }));
+}
+
+// Fetch paper and meetings data
+const paper =
+  await PapersStore.getInstance().getPaperByInternalReference(reference);
+if (!paper) {
+  throw new Error(`Paper with reference ${reference} not found`);
+}
+---
+
+<Layout>
+  <div class="details-container">
+    <!-- Header Section -->
+    <header class="header">
+      <h1 class="title">{paper.name}</h1>
+    </header>
+
+    <!-- Key Information Section -->
+    <KeyInfo paper={paper} />
+
+    <!-- Consultations Section -->
+    <Consultations paper={paper} />
+
+    <!-- Auxiliary Files Section -->
+    <AuxiliaryFiles auxiliaryFiles={paper.auxiliaryFile} />
+  </div>
+</Layout>

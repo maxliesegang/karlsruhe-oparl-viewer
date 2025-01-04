@@ -1,0 +1,101 @@
+---
+import { MeetingsStore } from "../shared/stores/meetings-store";
+import type { Paper } from "../shared/types/paper";
+
+interface Props {
+  paper: Paper;
+}
+
+const { paper } = Astro.props;
+
+const consultations = paper.consultation || [];
+const meetings = await Promise.all(
+  consultations.map(async (consultation) => {
+    return MeetingsStore.getInstance().getMeetingById(consultation.meeting);
+  }),
+);
+---
+
+<section class="consultations">
+  <h2 class="section-heading">Beratungen</h2>
+  {
+    consultations.length > 0 ? (
+      <ul class="consultation-list">
+        {consultations.map((consultation) => {
+          const meeting = meetings.find((m) => m?.id === consultation.meeting);
+          if (!meeting) return;
+
+          const agendaItem = meeting.agendaItem.find(
+            (item) => item.id === consultation.agendaItem,
+          );
+          return (
+            <li
+              class={`consultation-item ${new Date(meeting.start).getTime() < Date.now() ? "past-meeting" : "upcoming-meeting"}`}
+            >
+              <div class="consultation-info">
+                <strong>{meeting.name}</strong>
+                <p>
+                  Datum: {new Date(meeting.start).toLocaleDateString("de-DE")}
+                </p>
+                <p>TOP: {agendaItem?.number || "Keine Angabe"}</p>
+                <p>Rolle: {consultation.role || "Nicht verfügbar"}</p>
+                <p>Ergebnis: {agendaItem?.result || "Keine Angabe"}</p>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+    ) : (
+      <p class="no-consultations-msg">Keine Beratungen verfügbar.</p>
+    )
+  }
+</section>
+
+<style>
+  .consultations {
+    margin-top: 20px;
+    padding: 20px;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+  }
+
+  .section-heading {
+    font-size: 1.5rem;
+    margin-bottom: 15px;
+    font-weight: bold;
+    color: #333;
+  }
+
+  .consultation-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .consultation-item {
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: #f9f9f9;
+  }
+
+  .consultation-item.past-meeting {
+    opacity: 0.7;
+  }
+
+  .consultation-item.upcoming-meeting {
+    border-color: #2d89ef;
+  }
+
+  .consultation-info {
+    font-size: 0.95rem;
+    color: #555;
+  }
+
+  .no-consultations-msg {
+    color: #888;
+    font-style: italic;
+  }
+</style>

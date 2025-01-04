@@ -1,0 +1,21 @@
+{
+  "name": "karlsruhe-oparl-viewer",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "format": "npx prettier . --write"
+  },
+  "dependencies": {
+    "astro": "^5.1.8",
+    "astro-pagefind": "^1.7.0"
+  },
+  "devDependencies": {
+    "prettier": "^3.4.2",
+    "prettier-plugin-astro": "^0.14.1"
+  }
+}

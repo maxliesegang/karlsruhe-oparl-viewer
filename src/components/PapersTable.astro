@@ -1,0 +1,117 @@
+---
+import type { Paper } from "../shared/types/paper";
+
+interface Props {
+  papers: Paper[];
+}
+
+const { papers = [] } = Astro.props;
+
+const formatDate = (dateString: string | undefined): string => {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+  return new Intl.DateTimeFormat("de-DE", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(date);
+};
+---
+
+<style>
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: Arial, sans-serif;
+    color: #333;
+  }
+
+  thead {
+    background-color: #f0f0f0;
+  }
+
+  thead th {
+    text-align: left;
+    padding: 10px;
+    font-weight: 500;
+    color: #000;
+    border-bottom: 1px solid #ccc;
+    cursor: pointer; /* Add cursor pointer to indicate sortability */
+  }
+
+  tbody tr:nth-child(odd) {
+    background-color: #f9f9f9;
+  }
+
+  tbody tr:nth-child(even) {
+    background-color: #fff;
+  }
+
+  tbody tr:hover {
+    background-color: #e0e0e0;
+  }
+
+  td {
+    padding: 10px;
+    border-bottom: 1px solid #ccc;
+  }
+
+  th,
+  td {
+    border-right: 1px solid #ddd;
+  }
+
+  th:last-child,
+  td:last-child {
+    border-right: none;
+  }
+
+  p {
+    color: #555;
+    font-style: italic;
+  }
+</style>
+
+{
+  papers.length > 0 ? (
+    <table>
+      <thead>
+        <tr>
+          <th>Aktenzeichen</th>
+          <th>Titel</th>
+          <th style="width: fit-content;">Letzte Änderung</th>
+          <th>Art</th>
+        </tr>
+      </thead>
+      <tbody>
+        {papers.map((paper) => (
+          <tr
+            class="clickable"
+            id={paper.internalReference}
+            style="cursor: pointer;"
+          >
+            <td>{paper.reference}</td>
+            <td>{paper.name}</td>
+            <td>{formatDate(paper.modified)}</td>
+            <td>{paper.paperType}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  ) : (
+    <p>Loading data or no papers available...</p>
+  )
+}
+
+<script>
+  const buttons = document.querySelectorAll("tr.clickable");
+
+  buttons.forEach((button) => {
+    button.addEventListener("click", (event: Event) => {
+      const parent = (event.target as HTMLElement)
+        ?.parentElement as HTMLElement;
+
+      window.location.href = `reference/${parent.id}`;
+    });
+  });
+</script>

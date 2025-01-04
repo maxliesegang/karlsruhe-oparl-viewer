@@ -1,0 +1,92 @@
+---
+import type { AuxiliaryFile } from "../shared/types/auxiliary-file";
+import { correctUrl } from "../shared/utils";
+
+interface Props {
+  auxiliaryFiles: Array<AuxiliaryFile>;
+}
+
+const { auxiliaryFiles } = Astro.props;
+---
+
+<section class="files-section">
+  <h2 class="section-heading">Zusätzliche Dateien</h2>
+  {
+    auxiliaryFiles?.length > 0 ? (
+      <ul class="file-list">
+        {auxiliaryFiles.map((file) => (
+          <li class="file-item">
+            <a
+              href={correctUrl(file.accessUrl)}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={`Download ${file.name}`}
+            >
+              <svg
+                width="20"
+                height="20"
+                fill="currentColor"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path d="M12.707 11.293l-2 2a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L11 11.586V5a1 1 0 112 0v6.586l1.293-1.293a1 1 0 111.414 1.414z" />
+                <path d="M5 18a1 1 0 01-1-1v-1a1 1 0 012 0v1h10v-1a1 1 0 112 0v1a1 1 0 01-1 1H5z" />
+              </svg>
+              {file.name}
+            </a>
+          </li>
+        ))}
+      </ul>
+    ) : (
+      <p class="no-files-msg">Keine zusätzlichen Dateien verfügbar.</p>
+    )
+  }
+</section>
+
+<style>
+  .files-section {
+    margin-top: 20px;
+    padding: 20px;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+  }
+
+  .section-heading {
+    font-size: 1.5rem;
+    margin-bottom: 15px;
+    font-weight: bold;
+    color: #333;
+  }
+
+  .file-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .file-item {
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .file-item a {
+    text-decoration: none;
+    color: #0066cc;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: color 0.2s;
+  }
+
+  .file-item a:hover {
+    color: #004999;
+  }
+
+  .no-files-msg {
+    color: #888;
+    font-style: italic;
+  }
+</style>
