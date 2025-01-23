@@ -33,6 +33,21 @@ const { auxiliaryFiles } = Astro.props;
               </svg>
               {file.name}
             </a>
+            <span class="file-dates">
+              Erstellt:{" "}
+              {new Date(file.created).toLocaleDateString("de-DE", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })}
+              <br />
+              Zuletzt geändert:{" "}
+              {new Date(file.modified).toLocaleDateString("de-DE", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })}
+            </span>
           </li>
         ))}
       </ul>
@@ -65,10 +80,17 @@ const { auxiliaryFiles } = Astro.props;
   }
 
   .file-item {
-    margin-bottom: 10px;
+    margin-bottom: 12px;
     display: flex;
-    align-items: center;
-    gap: 8px;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .file-dates {
+    font-size: 0.875rem;
+    color: #555;
+    font-style: italic;
+    line-height: 1.4;
   }
 
   .file-item a {
