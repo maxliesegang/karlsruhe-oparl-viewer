@@ -28,6 +28,12 @@ const meetings = await Promise.all(
           const agendaItem = meeting.agendaItem.find(
             (item) => item.id === consultation.agendaItem,
           );
+
+          if (!agendaItem) return;
+
+          const meetingServerId = meeting.id.split("/").pop();
+          const itemLink = `https://sitzungskalender.karlsruhe.de/db/ratsinformation/termin-${meetingServerId}#top${agendaItem.number}`;
+
           return (
             <li
               class={`consultation-item ${new Date(meeting.start).getTime() < Date.now() ? "past-meeting" : "upcoming-meeting"}`}
@@ -37,7 +43,9 @@ const meetings = await Promise.all(
                 <p>
                   Datum: {new Date(meeting.start).toLocaleDateString("de-DE")}
                 </p>
-                <p>TOP: {agendaItem?.number || "Keine Angabe"}</p>
+                <a href={itemLink} target="_blank" rel="noopener noreferrer">
+                  <p>TOP: {agendaItem?.number || "Keine Angabe"}</p>
+                </a>
                 <p>Rolle: {consultation.role || "Nicht verfügbar"}</p>
                 <p>Ergebnis: {agendaItem?.result || "Keine Angabe"}</p>
               </div>
@@ -92,6 +100,10 @@ const meetings = await Promise.all(
   .consultation-info {
     font-size: 0.95rem;
     color: #555;
+  }
+
+  .consultation-info p {
+    margin: 5px 0;
   }
 
   .no-consultations-msg {

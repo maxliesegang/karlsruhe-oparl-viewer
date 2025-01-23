@@ -6,7 +6,7 @@ const dataUrl =
 export class PapersStore {
   private static instance: PapersStore | null = null;
   private papers: Map<string, Paper> = new Map();
-  private initialized: Promise<void>;
+  private readonly initialized: Promise<void>;
 
   private constructor() {
     this.initialized = this.initialize();

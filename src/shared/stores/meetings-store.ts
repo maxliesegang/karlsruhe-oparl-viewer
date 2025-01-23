@@ -6,7 +6,7 @@ const dataUrl =
 export class MeetingsStore {
   private static instance: MeetingsStore | null = null;
   private meetings: Map<string, Meeting> = new Map();
-  private initialized: Promise<void>;
+  private readonly initialized: Promise<void>;
 
   private constructor() {
     this.initialized = this.initialize();

@@ -7,7 +7,7 @@ on:
     branches: [main]
   # Runs at 03:00 UTC every day
   schedule:
-    - cron: '0 3 * * *'
+    - cron: "0 3 * * *"
   # Allows you to run this workflow manually from the Actions tab on GitHub.
   workflow_dispatch:
 
