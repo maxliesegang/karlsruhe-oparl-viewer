@@ -1,55 +1,80 @@
 ---
 import type { AuxiliaryFile } from "../shared/types/auxiliary-file";
 import { correctUrl } from "../shared/utils";
+import { FileContentStore } from "../shared/stores/file-content-store";
 
 interface Props {
   auxiliaryFiles: Array<AuxiliaryFile>;
 }
 
 const { auxiliaryFiles } = Astro.props;
+
+const fileContents = auxiliaryFiles
+  ? await Promise.all(
+      auxiliaryFiles.map(async (file) => {
+        return FileContentStore.getInstance().getFileContentById(file.id);
+      }),
+    )
+  : [];
+
+const formattedDate = (date: string) => {
+  return new Date(date).toLocaleDateString("de-DE", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+};
 ---
 
 <section class="files-section">
   <h2 class="section-heading">Zusätzliche Dateien</h2>
+
   {
-    auxiliaryFiles?.length > 0 ? (
+    auxiliaryFiles.length > 0 ? (
       <ul class="file-list">
-        {auxiliaryFiles.map((file) => (
-          <li class="file-item">
-            <a
-              href={correctUrl(file.accessUrl)}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label={`Download ${file.name}`}
-            >
-              <svg
-                width="20"
-                height="20"
-                fill="currentColor"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path d="M12.707 11.293l-2 2a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L11 11.586V5a1 1 0 112 0v6.586l1.293-1.293a1 1 0 111.414 1.414z" />
-                <path d="M5 18a1 1 0 01-1-1v-1a1 1 0 012 0v1h10v-1a1 1 0 112 0v1a1 1 0 01-1 1H5z" />
-              </svg>
-              {file.name}
-            </a>
-            <span class="file-dates">
-              Erstellt:{" "}
-              {new Date(file.created).toLocaleDateString("de-DE", {
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-              })}
-              <br />
-              Zuletzt geändert:{" "}
-              {new Date(file.modified).toLocaleDateString("de-DE", {
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-              })}
-            </span>
-          </li>
-        ))}
+        {auxiliaryFiles.map((file) => {
+          const fileText =
+            fileContents.find((f) => f?.id === file.id)?.extractedText ||
+            "Kein Text verfügbar";
+
+          return (
+            <li class="file-item" data-id={file.id}>
+              <div class="file-details">
+                <a
+                  href={correctUrl(file.accessUrl)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="file-name"
+                  aria-label={`Download ${file.name}`}
+                >
+                  <svg
+                    class="download-icon"
+                    width="24"
+                    height="24"
+                    fill="currentColor"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path d="M12.707 11.293l-2 2a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L11 11.586V5a1 1 0 112 0v6.586l1.293-1.293a1 1 0 111.414 1.414z" />
+                    <path d="M5 18a1 1 0 01-1-1v-1a1 1 0 112 0v1h10v-1a1 1 0 112 0v1a1 1 0 01-1 1H5z" />
+                  </svg>
+                  {file.name}
+                </a>
+
+                <div class="file-metadata">
+                  <span>Erstellt: {formattedDate(file.created)}</span>
+                  <span>Zuletzt geändert: {formattedDate(file.modified)}</span>
+                </div>
+              </div>
+
+              <button class="toggle-btn" aria-expanded={false}>
+                Text anzeigen
+              </button>
+              <div class="file-text-wrapper" hidden>
+                <p class="file-text">{fileText}</p>
+              </div>
+            </li>
+          );
+        })}
       </ul>
     ) : (
       <p class="no-files-msg">Keine zusätzlichen Dateien verfügbar.</p>
@@ -59,17 +84,13 @@ const { auxiliaryFiles } = Astro.props;
 
 <style>
   .files-section {
-    margin-top: 20px;
     padding: 20px;
-    background: white;
-    border: 1px solid #ddd;
-    border-radius: 8px;
+    background-color: #fff;
   }
 
   .section-heading {
     font-size: 1.5rem;
-    margin-bottom: 15px;
-    font-weight: bold;
+    margin-bottom: 20px;
     color: #333;
   }
 
@@ -77,38 +98,100 @@ const { auxiliaryFiles } = Astro.props;
     list-style: none;
     padding: 0;
     margin: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
   }
 
   .file-item {
-    margin-bottom: 12px;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 15px;
+    background-color: #fff;
+    transition: box-shadow 0.2s;
   }
 
-  .file-dates {
-    font-size: 0.875rem;
-    color: #555;
-    font-style: italic;
-    line-height: 1.4;
+  .file-item:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   }
 
-  .file-item a {
-    text-decoration: none;
+  .file-name {
+    font-weight: bold;
+    font-size: 1.125rem;
     color: #0066cc;
-    font-size: 1rem;
+    text-decoration: none;
     display: flex;
     align-items: center;
-    gap: 5px;
-    transition: color 0.2s;
+    gap: 8px;
   }
 
-  .file-item a:hover {
-    color: #004999;
+  .file-name:hover {
+    text-decoration: underline;
   }
 
-  .no-files-msg {
-    color: #888;
-    font-style: italic;
+  .download-icon {
+    flex-shrink: 0;
+  }
+
+  .file-metadata {
+    margin-top: 10px;
+    font-size: 0.875rem;
+    color: #555;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Text Toggle Button */
+  .toggle-btn {
+    margin-top: 10px;
+    padding: 8px 12px;
+    font-size: 0.875rem;
+    color: #fff;
+    background-color: #0066cc;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+
+  .toggle-btn:hover {
+    background-color: #004999;
+  }
+
+  .file-text-wrapper {
+    margin-top: 10px;
+    padding: 10px;
+    background-color: #fff;
+    border-left: 3px solid #0066cc;
+    border-radius: 4px;
+    transition: max-height 0.3s ease-out;
+    font-size: 0.875rem;
+    color: #333;
   }
 </style>
+
+<script>
+  const toggleButtons = document.querySelectorAll(".toggle-btn");
+
+  toggleButtons.forEach((button) => {
+    button.addEventListener("click", (event) => {
+      const fileItem = (event.target as HTMLElement).closest(".file-item");
+      if (!fileItem) return;
+
+      const fileTextWrapper = fileItem.querySelector(".file-text-wrapper");
+      if (!fileTextWrapper) return;
+
+      const isHidden = fileTextWrapper.hasAttribute("hidden");
+
+      if (isHidden) {
+        fileTextWrapper.removeAttribute("hidden");
+        button.textContent = "Text ausblenden"; // Update button text
+        button.setAttribute("aria-expanded", "true"); // Update ARIA attribute
+      } else {
+        fileTextWrapper.setAttribute("hidden", ""); // Add the hidden attribute
+        button.textContent = "Text anzeigen"; // Update button text
+        button.setAttribute("aria-expanded", "false"); // Update ARIA attribute
+      }
+    });
+  });
+</script>
