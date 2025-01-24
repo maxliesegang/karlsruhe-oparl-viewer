@@ -30,7 +30,7 @@ const formattedDate = (date: string) => {
   <h2 class="section-heading">Zusätzliche Dateien</h2>
 
   {
-    auxiliaryFiles.length > 0 ? (
+    auxiliaryFiles?.length > 0 ? (
       <ul class="file-list">
         {auxiliaryFiles.map((file) => {
           const fileText =
