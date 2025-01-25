@@ -2,75 +2,32 @@
 <html lang="de">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="generator" content={Astro.generator} />
     <title>GemeinderatsRadar</title>
-    <style>
-      nav {
-        background-color: #fdcb00;
-        padding: 20px 30px;
-        font-family: Arial, sans-serif;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        position: sticky;
-        top: 0;
-        z-index: 1000;
-      }
-
-      nav ul {
-        list-style: none;
-        margin: 0;
-        padding: 0;
-        display: flex;
-        justify-content: left;
-        gap: 30px;
-      }
-
-      nav ul li {
-        display: inline;
-      }
-
-      nav ul li a {
-        text-decoration: none;
-        font-size: 18px;
-        color: black;
-        font-weight: bold;
-        padding: 10px 20px;
-        border-radius: 8px;
-        transition: all 0.3s ease-in-out;
-      }
-
-      nav ul li a:hover {
-        background-color: #f4a900;
-        color: white;
-        transform: scale(1.03);
-      }
-
-      body {
-        margin: 0;
-        padding: 0;
-      }
-
-      main {
-        padding: 20px;
-        font-family: Arial, sans-serif;
-      }
-    </style>
   </head>
   <body>
     <!-- Navigation -->
     <nav>
-      <ul>
-        <li><a href="/karlsruhe-oparl-viewer/">GemeinderatsRadar</a></li>
-        <li><a href="/karlsruhe-oparl-viewer/vorlagen2025">Vorlagen</a></li>
-        <li>
-          <a
-            href="https://sitzungskalender.karlsruhe.de/db/ratsinformation/start"
-            target="_blank"
-            rel="noopener noreferrer">Ratsinformationssystem</a
-          >
-        </li>
-      </ul>
+      <div class="nav-container">
+        <button class="burger" aria-label="Toggle navigation menu">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+        <ul id="nav-menu">
+          <li><a href="/karlsruhe-oparl-viewer/">GemeinderatsRadar</a></li>
+          <li><a href="/karlsruhe-oparl-viewer/vorlagen2025">Vorlagen</a></li>
+          <li>
+            <a
+              href="https://sitzungskalender.karlsruhe.de/db/ratsinformation/start"
+              target="_blank"
+              rel="noopener noreferrer">Ratsinformationssystem</a
+            >
+          </li>
+        </ul>
+      </div>
     </nav>
 
     <!-- Page Content -->
@@ -79,3 +36,186 @@
     </main>
   </body>
 </html>
+
+<style>
+  nav {
+    background-color: #fdcb00;
+    padding: 20px 30px;
+    font-family: Arial, sans-serif;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+  }
+
+  .nav-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    gap: 30px;
+  }
+
+  nav ul li {
+    display: inline;
+  }
+
+  nav ul li a {
+    text-decoration: none;
+    font-size: 18px;
+    color: black;
+    font-weight: bold;
+    padding: 10px 20px;
+    border-radius: 8px;
+    transition: all 0.3s ease-in-out;
+  }
+
+  nav ul li a:hover {
+    background-color: #f4a900;
+    color: white;
+    transform: scale(1.03);
+  }
+
+  .burger {
+    display: none;
+    flex-direction: column;
+    gap: 7px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    z-index: 1002;
+  }
+
+  .burger span {
+    width: 30px;
+    height: 3px;
+    background-color: black;
+    border-radius: 2px;
+    transition: all 0.3s ease-in-out;
+  }
+
+  .burger:hover span {
+    background-color: #f4a900;
+  }
+
+  #nav-menu {
+    display: flex;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+  }
+
+  main {
+    padding: 20px;
+    font-family: Arial, sans-serif;
+  }
+
+  @media (max-width: 768px) {
+    .burger {
+      display: flex;
+    }
+
+    #nav-menu {
+      display: none;
+      flex-direction: column;
+      position: absolute;
+      top: 65px;
+      left: 0;
+      right: 0;
+      background-color: #fdcb00;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      padding: 20px 0;
+      transform: translateY(-100%);
+      transition: transform 0.3s ease-in-out;
+      z-index: 1001;
+    }
+
+    #nav-menu.active {
+      display: flex;
+      transform: translateY(0%);
+    }
+
+    #nav-menu li {
+      margin-bottom: 15px;
+    }
+
+    #nav-menu li:last-child {
+      margin-bottom: 0;
+    }
+
+    #nav-menu li a {
+      font-size: 20px;
+      padding: 15px 10px;
+      text-decoration: none;
+      font-weight: bold;
+      color: black;
+      transition:
+        color 0.3s,
+        background-color 0.3s;
+      border-radius: 5px;
+    }
+
+    #nav-menu li a:hover {
+      color: white;
+      background-color: #f4a900;
+    }
+
+    body.menu-open {
+      overflow: hidden;
+    }
+
+    .menu-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      opacity: 0;
+      transition: opacity 0.3s ease-in-out;
+    }
+
+    .menu-overlay.active {
+      display: block;
+      opacity: 1;
+    }
+  }
+</style>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const burger = document.querySelector(".burger");
+    const navMenu = document.getElementById("nav-menu");
+    const body = document.body;
+    const overlay = document.createElement("div");
+
+    // Create the overlay element
+    overlay.classList.add("menu-overlay");
+    body.appendChild(overlay);
+
+    if (!burger || !navMenu) return;
+
+    burger.addEventListener("click", () => {
+      navMenu.classList.toggle("active");
+      overlay.classList.toggle("active");
+      body.classList.toggle("menu-open");
+    });
+
+    // Close the menu when overlay is clicked
+    overlay.addEventListener("click", () => {
+      navMenu.classList.remove("active");
+      overlay.classList.remove("active");
+      body.classList.remove("menu-open");
+    });
+  });
+</script>
