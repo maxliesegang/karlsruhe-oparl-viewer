@@ -20,42 +20,51 @@ const formatDate = (dateString: string | undefined): string => {
 
 {
   papers.length > 0 ? (
-    <table>
-      <thead>
-        <tr>
-          <th>Aktenzeichen</th>
-          <th>Titel</th>
-          <th style="width: fit-content;">Letzte Änderung</th>
-          <th>Art</th>
-        </tr>
-      </thead>
-      <tbody>
-        {papers.map((paper) => (
-          <tr
-            class="clickable"
-            id={paper.internalReference}
-            style="cursor: pointer;"
-          >
-            <td>{paper.reference}</td>
-            <td>{paper.name}</td>
-            <td>{formatDate(paper.modified)}</td>
-            <td>{paper.paperType}</td>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Aktenzeichen</th>
+            <th>Titel</th>
+            <th style="width: fit-content;">Letzte Änderung</th>
+            <th>Art</th>
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {papers.map((paper) => (
+            <tr
+              class="clickable"
+              id={paper.internalReference}
+              style="cursor: pointer;"
+            >
+              <td data-label="Vorlage">{paper.reference}</td>
+              <td data-label="Titel">{paper.name}</td>
+              <td data-label="Letzte Änderung">{formatDate(paper.modified)}</td>
+              <td data-label="Art">{paper.paperType}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   ) : (
     <p>Loading data or no papers available...</p>
   )
 }
 
 <style>
-  table {
+  /* Base styling for table wrapper */
+  .table-wrapper {
     width: 100%;
+    overflow-x: auto; /* Horizontal scroll for small screens */
+    margin: 20px auto;
+  }
+
+  table {
+    min-width: 600px;
     border-collapse: collapse;
     font-family: Arial, sans-serif;
     color: #222;
-    margin: 20px auto;
+    margin: 0 auto;
     background-color: #fff;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     border-radius: 8px;
@@ -112,6 +121,54 @@ const formatDate = (dateString: string | undefined): string => {
     font-style: italic;
     margin: 20px 0;
     text-align: center;
+  }
+
+  /* Mobile responsiveness: Add card style for rows */
+  @media screen and (max-width: 768px) {
+    .table-wrapper {
+      overflow-x: auto;
+    }
+
+    table {
+      border: 0;
+      min-width: 100%; /* Auto-adjust for smaller viewports */
+    }
+
+    thead {
+      display: none; /* Hide table headers for smaller screens */
+    }
+
+    tbody tr {
+      display: block;
+      margin-bottom: 20px; /* Add separation between rows */
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+      background-color: #f9f9f9;
+      padding: 10px;
+    }
+
+    tbody td {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px;
+      font-size: 0.9rem;
+      border: none; /* Remove row inner borders */
+      border-bottom: 1px solid #eee; /* Easy-to-follow cell separation */
+    }
+
+    tbody td:last-child {
+      border-bottom: none;
+    }
+
+    tbody td:before {
+      content: attr(data-label); /* Dynamically add column headers */
+      font-weight: bold;
+      text-transform: uppercase;
+      color: #555;
+      flex: 1; /* Consistent alignment */
+    }
   }
 </style>
 
