@@ -13,6 +13,9 @@ const organizations = await Promise.all(
     return OrganizationsStore.getInstance().getOrganizationById(organizationId);
   }),
 );
+
+const date = new Date(paper.date);
+const pagefindSortAtt = `date:${date.toISOString()}`;
 ---
 
 <section class="info">
@@ -28,7 +31,9 @@ const organizations = await Promise.all(
       </tr>
       <tr>
         <th>Datum:</th>
-        <td>{new Date(paper.date).toLocaleDateString("de-DE")}</td>
+        <td data-pagefind-sort={pagefindSortAtt}
+          >{new Date(paper.date).toLocaleDateString("de-DE")}</td
+        >
       </tr>
       <tr>
         <th>Letzte Änderung:</th>
