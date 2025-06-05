@@ -41,6 +41,6 @@ if (!paper) {
     <Consultations paper={paper} />
 
     <!-- Auxiliary Files Section -->
-    <AuxiliaryFiles auxiliaryFiles={paper.auxiliaryFile} />
+    <AuxiliaryFiles auxiliaryFiles={paper.auxiliaryFile || []} />
   </div>
 </Layout>
