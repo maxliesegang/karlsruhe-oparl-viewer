@@ -25,7 +25,7 @@ const meetings = await Promise.all(
           const meeting = meetings.find((m) => m?.id === consultation.meeting);
           if (!meeting) return;
 
-          const agendaItem = meeting.agendaItem.find(
+          const agendaItem = meeting.agendaItem?.find(
             (item) => item.id === consultation.agendaItem,
           );
 
