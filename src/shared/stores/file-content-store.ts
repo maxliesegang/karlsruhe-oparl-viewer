@@ -1,7 +1,9 @@
 import type { FileContentType } from "../types/file-content-type.ts";
 
-const dataUrl =
-  "https://raw.githubusercontent.com/maxliesegang/karlsruhe-oparl-syndication/refs/heads/main/docs/file-contents.json";
+const baseUrl =
+  "https://raw.githubusercontent.com/maxliesegang/karlsruhe-oparl-syndication/refs/heads/main/docs";
+const metadataUrl = `${baseUrl}/file-contents.json`;
+const contentBasePath = `${baseUrl}/file-contents`;
 
 export class FileContentStore {
   private static instance: FileContentStore | null = null;
@@ -14,25 +16,25 @@ export class FileContentStore {
 
   private async initialize(): Promise<void> {
     try {
-      const response = await fetch(dataUrl);
+      const response = await fetch(metadataUrl);
 
       if (response.ok) {
         const result: Array<FileContentType> = await response.json();
         this.fileContents = new Map(
           result
             .filter(
-              (meeting) =>
-                meeting.id !== "" &&
-                meeting.id !== undefined &&
-                meeting.id !== null,
+              (fileContent) =>
+                fileContent.id !== "" &&
+                fileContent.id !== undefined &&
+                fileContent.id !== null,
             )
-            .map((meeting) => [meeting.id, meeting]),
+            .map((fileContent) => [fileContent.id, fileContent]),
         );
       } else {
         console.error(`Failed to fetch data. Status: ${response.status}`);
       }
     } catch (error) {
-      console.error("Error fetching papers:", error);
+      console.error("Error fetching file contents:", error);
     }
   }
 
@@ -40,7 +42,29 @@ export class FileContentStore {
     id: string,
   ): Promise<FileContentType | undefined> {
     await this.initialized;
-    return this.fileContents.get(id);
+    const fileContent = this.fileContents.get(id);
+
+    if (fileContent && !fileContent.extractedText) {
+      try {
+        // Extract the last part of the ID to use as filename
+        const idParts = id.split("/");
+        const fileName = idParts[idParts.length - 1];
+        const textFileUrl = `${contentBasePath}/${fileName}.txt`;
+
+        const response = await fetch(textFileUrl);
+        if (response.ok) {
+          fileContent.extractedText = await response.text();
+        } else {
+          console.error(
+            `Failed to fetch text content for ${id}. Status: ${response.status}`,
+          );
+        }
+      } catch (error) {
+        console.error(`Error fetching text content for ${id}:`, error);
+      }
+    }
+
+    return fileContent;
   }
 
   public static getInstance(): FileContentStore {
