@@ -1,52 +1,29 @@
 import type { Organization } from "../types/organization.ts";
+import { BaseStore } from "./base-store";
+import { Singleton } from "../utils/singleton";
 
 const dataUrl =
   "https://raw.githubusercontent.com/maxliesegang/karlsruhe-oparl-syndication/refs/heads/main/docs/organizations.json";
 
-export class OrganizationsStore {
-  private static instance: OrganizationsStore | null = null;
-  private organizations: Map<string, Organization> = new Map();
-  private readonly initialized: Promise<void>;
-
-  private constructor() {
-    this.initialized = this.initialize();
+/**
+ * Store for managing Organization entities.
+ * Uses the Singleton pattern to ensure only one instance exists.
+ */
+export class OrganizationsStoreBase extends BaseStore<Organization> {
+  constructor() {
+    super(dataUrl);
   }
 
-  private async initialize(): Promise<void> {
-    try {
-      const response = await fetch(dataUrl);
-
-      if (response.ok) {
-        const result: Array<Organization> = await response.json();
-        this.organizations = new Map(
-          result
-            .filter(
-              (organization) =>
-                organization.id !== "" &&
-                organization.id !== undefined &&
-                organization.id !== null,
-            )
-            .map((organization) => [organization.id, organization]),
-        );
-      } else {
-        console.error(`Failed to fetch data. Status: ${response.status}`);
-      }
-    } catch (error) {
-      console.error("Error fetching papers:", error);
-    }
-  }
-
+  /**
+   * Gets an organization by its ID.
+   * @param id The ID of the organization to retrieve
+   * @returns The organization with the specified ID, or undefined if not found
+   */
   public async getOrganizationById(
     id: string,
   ): Promise<Organization | undefined> {
-    await this.initialized;
-    return this.organizations.get(id);
-  }
-
-  public static getInstance(): OrganizationsStore {
-    if (!OrganizationsStore.instance) {
-      OrganizationsStore.instance = new OrganizationsStore();
-    }
-    return OrganizationsStore.instance;
+    return this.getById(id);
   }
 }
+
+export const OrganizationsStore = Singleton(OrganizationsStoreBase);

@@ -1,63 +1,73 @@
 import type { Paper } from "../types/paper.ts";
+import { BaseStore } from "./base-store";
+import { Singleton } from "../utils/singleton";
 
 const dataUrl =
   "https://raw.githubusercontent.com/maxliesegang/karlsruhe-oparl-syndication/refs/heads/main/docs/papers.json";
 
-export class PapersStore {
-  private static instance: PapersStore | null = null;
-  private papers: Map<string, Paper> = new Map();
-  private readonly initialized: Promise<void>;
-
-  private constructor() {
-    this.initialized = this.initialize();
+/**
+ * Store for managing Paper entities.
+ * Uses the Singleton pattern to ensure only one instance exists.
+ */
+export class PapersStoreBase extends BaseStore<Paper> {
+  constructor() {
+    super(dataUrl);
   }
 
-  private async initialize(): Promise<void> {
-    try {
-      const response = await fetch(dataUrl);
+  /**
+   * Processes the fetched data by adding internalReference and storing in the data map.
+   * @override
+   */
+  protected processData(data: Array<Paper>): void {
+    // Add internalReference to each paper
+    data.forEach((paper) => {
+      paper.internalReference = paper.reference.replaceAll("/", "-");
+    });
 
-      if (response.ok) {
-        const result: Array<Paper> = await response.json();
-        result.forEach((paper) => {
-          paper.internalReference = paper.reference.replaceAll("/", "-");
-        });
-        this.papers = new Map(
-          result
-            .filter(
-              (paper) =>
-                paper.reference !== "" &&
-                paper.reference !== undefined &&
-                paper.reference !== null,
-            )
-
-            .map((paper) => [paper.internalReference, paper]),
-        );
-      } else {
-        console.error(`Failed to fetch data. Status: ${response.status}`);
-      }
-    } catch (error) {
-      console.error("Error fetching papers:", error);
-    }
+    // Filter and map papers using internalReference as the key
+    this.data = new Map(
+      data
+        .filter(
+          (paper) =>
+            paper.reference !== "" &&
+            paper.reference !== undefined &&
+            paper.reference !== null,
+        )
+        .map((paper) => [paper.internalReference, paper]),
+    );
   }
 
+  /**
+   * Gets the key to use for storing the paper in the data map.
+   * For papers, we use internalReference instead of id.
+   * @override
+   */
+  protected getItemKey(item: Paper): string {
+    return item.internalReference;
+  }
+
+  /**
+   * Gets a paper by its internal reference.
+   * @param reference The internal reference of the paper to retrieve
+   * @returns The paper with the specified reference, or undefined if not found
+   */
   public async getPaperByInternalReference(
     reference: string,
   ): Promise<Paper | undefined> {
-    await this.initialized;
-    return this.papers.get(reference);
+    return this.getById(reference);
   }
 
+  /**
+   * Gets all papers sorted by modification date (newest first).
+   * @returns Array of all papers sorted by modification date
+   * @override
+   */
   public async getAllPapers(): Promise<Paper[]> {
-    await this.initialized;
-    return Array.from(this.papers.values()).sort((a, b) => {
+    const papers = await this.getAll();
+    return papers.sort((a, b) => {
       return new Date(b.modified).getTime() - new Date(a.modified).getTime();
     });
   }
-
-  public static getInstance(): PapersStore {
-    if (!PapersStore.instance) {
-      PapersStore.instance = new PapersStore();
-    }
-    return PapersStore.instance;
-  }
 }
+
+export const PapersStore = Singleton(PapersStoreBase);

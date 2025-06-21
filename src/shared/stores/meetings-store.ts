@@ -1,50 +1,27 @@
 import type { Meeting } from "../types/meeting.ts";
+import { BaseStore } from "./base-store";
+import { Singleton } from "../utils/singleton";
 
 const dataUrl =
   "https://raw.githubusercontent.com/maxliesegang/karlsruhe-oparl-syndication/refs/heads/main/docs/meetings.json";
 
-export class MeetingsStore {
-  private static instance: MeetingsStore | null = null;
-  private meetings: Map<string, Meeting> = new Map();
-  private readonly initialized: Promise<void>;
-
-  private constructor() {
-    this.initialized = this.initialize();
+/**
+ * Store for managing Meeting entities.
+ * Uses the Singleton pattern to ensure only one instance exists.
+ */
+export class MeetingsStoreBase extends BaseStore<Meeting> {
+  constructor() {
+    super(dataUrl);
   }
 
-  private async initialize(): Promise<void> {
-    try {
-      const response = await fetch(dataUrl);
-
-      if (response.ok) {
-        const result: Array<Meeting> = await response.json();
-        this.meetings = new Map(
-          result
-            .filter(
-              (meeting) =>
-                meeting.id !== "" &&
-                meeting.id !== undefined &&
-                meeting.id !== null,
-            )
-            .map((meeting) => [meeting.id, meeting]),
-        );
-      } else {
-        console.error(`Failed to fetch data. Status: ${response.status}`);
-      }
-    } catch (error) {
-      console.error("Error fetching papers:", error);
-    }
-  }
-
+  /**
+   * Gets a meeting by its ID.
+   * @param id The ID of the meeting to retrieve
+   * @returns The meeting with the specified ID, or undefined if not found
+   */
   public async getMeetingById(id: string): Promise<Meeting | undefined> {
-    await this.initialized;
-    return this.meetings.get(id);
-  }
-
-  public static getInstance(): MeetingsStore {
-    if (!MeetingsStore.instance) {
-      MeetingsStore.instance = new MeetingsStore();
-    }
-    return MeetingsStore.instance;
+    return this.getById(id);
   }
 }
+
+export const MeetingsStore = Singleton(MeetingsStoreBase);
