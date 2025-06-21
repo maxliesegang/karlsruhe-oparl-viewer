@@ -3,5 +3,6 @@ export interface FileContentType {
   downloadUrl: string;
   fileModified: string;
   lastModifiedExtractedDate?: string;
+  hasExtractedText?: boolean;
   extractedText?: string;
 }

@@ -44,7 +44,7 @@ export class FileContentStore {
     await this.initialized;
     const fileContent = this.fileContents.get(id);
 
-    if (fileContent && !fileContent.extractedText) {
+    if (fileContent && !fileContent.extractedText && fileContent.hasExtractedText) {
       try {
         // Extract the last part of the ID to use as filename
         const idParts = id.split("/");
@@ -56,7 +56,7 @@ export class FileContentStore {
           fileContent.extractedText = await response.text();
         } else {
           console.error(
-            `Failed to fetch text content for ${id}. Status: ${response.status}`,
+            `Failed to fetch text content for ${id}. URL: ${textFileUrl} Status: ${response.status}`,
           );
         }
       } catch (error) {
