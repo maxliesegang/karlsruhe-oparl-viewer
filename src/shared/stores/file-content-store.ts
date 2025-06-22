@@ -6,6 +6,7 @@ const baseUrl =
   "https://raw.githubusercontent.com/maxliesegang/karlsruhe-oparl-syndication/refs/heads/main/docs";
 const metadataUrl = `${baseUrl}/file-contents.json`;
 const contentBasePath = `${baseUrl}/file-contents`;
+const chunksBasePath = `${baseUrl}/file-contents-chunks`;
 
 /**
  * Store for managing FileContent entities.
@@ -13,13 +14,61 @@ const contentBasePath = `${baseUrl}/file-contents`;
  * Supports lazy loading of text content.
  */
 export class FileContentStoreBase extends BaseStore<FileContentType> {
+  private chunksLoaded: boolean = false;
+
   constructor() {
     super(metadataUrl);
   }
 
   /**
+   * Initializes the store by fetching metadata and then loading content from chunks.
+   */
+  protected async initialize(): Promise<void> {
+    await super.initialize();
+    await this.loadContentFromChunks();
+  }
+
+  /**
+   * Loads content from chunk files to improve initial load performance.
+   */
+  private async loadContentFromChunks(): Promise<void> {
+    try {
+      // Start with chunk 0 and continue until a chunk is not found
+      let chunkIndex = 0;
+      let allChunksLoaded = false;
+
+      while (!allChunksLoaded) {
+        const chunkUrl = `${chunksBasePath}/chunk-${chunkIndex}.json`;
+        const response = await fetch(chunkUrl);
+
+        if (response.ok) {
+          const chunkData = await response.json();
+
+          // Process each file content in the chunk
+          for (const [fileId, extractedText] of Object.entries(chunkData)) {
+            const fileContent = this.data.get(fileId);
+            if (fileContent && fileContent.hasExtractedText) {
+              fileContent.extractedText = extractedText as string;
+            }
+          }
+
+          chunkIndex++;
+        } else {
+          // No more chunks found
+          allChunksLoaded = true;
+        }
+      }
+
+      this.chunksLoaded = true;
+    } catch (error) {
+      console.error("Error loading content from chunks:", error);
+      this.chunksLoaded = false;
+    }
+  }
+
+  /**
    * Gets a file content by its ID.
-   * If the file has extractable text that hasn't been loaded yet, it will be fetched.
+   * The content should have been loaded from chunks during initialization.
    * @param id The ID of the file content to retrieve
    * @returns The file content with the specified ID, or undefined if not found
    */
@@ -27,45 +76,24 @@ export class FileContentStoreBase extends BaseStore<FileContentType> {
     id: string,
   ): Promise<FileContentType | undefined> {
     await this.initialized;
-    const fileContent = this.data.get(id);
-
-    if (
-      fileContent &&
-      !fileContent.extractedText &&
-      fileContent.hasExtractedText
-    ) {
-      await this.loadExtractedText(id, fileContent);
-    }
-
-    return fileContent;
+    return this.data.get(id);
   }
 
   /**
-   * Loads the extracted text for a file content.
-   * @param id The ID of the file content
-   * @param fileContent The file content object to update
+   * Preloads all file contents from chunks.
+   * This can be called to ensure all contents are loaded before they are needed.
+   * @returns A promise that resolves when all contents are loaded
    */
-  private async loadExtractedText(
-    id: string,
-    fileContent: FileContentType,
-  ): Promise<void> {
-    try {
-      // Extract the last part of the ID to use as filename
-      const idParts = id.split("/");
-      const fileName = idParts[idParts.length - 1];
-      const textFileUrl = `${contentBasePath}/${fileName}.txt`;
+  public async preloadAllContents(): Promise<void> {
+    await this.initialized;
 
-      const response = await fetch(textFileUrl);
-      if (response.ok) {
-        fileContent.extractedText = await response.text();
-      } else {
-        console.error(
-          `Failed to fetch text content for ${id}. URL: ${textFileUrl} Status: ${response.status}`,
-        );
-      }
-    } catch (error) {
-      console.error(`Error fetching text content for ${id}:`, error);
+    // If chunks were already loaded successfully, no need to do anything
+    if (this.chunksLoaded) {
+      return;
     }
+
+    // Try to load content from chunks again
+    await this.loadContentFromChunks();
   }
 }
 

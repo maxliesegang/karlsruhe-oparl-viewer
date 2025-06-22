@@ -9,6 +9,9 @@ interface Props {
 
 const { auxiliaryFiles } = Astro.props;
 
+// Ensure all file contents are loaded from chunks
+await FileContentStore.getInstance().preloadAllContents();
+
 const fileContents = auxiliaryFiles
   ? await Promise.all(
       auxiliaryFiles.map(async (file) => {
