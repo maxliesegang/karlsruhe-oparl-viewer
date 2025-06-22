@@ -2,6 +2,18 @@
 
 GemeinderatsRadar is an Astro-powered web application designed to provide insights and structured information about local council agendas, documents, and consultations. The application fetches, organizes, and displays data from sources like the OParl standard, making it more accessible to interested citizens.
 
+## Live Demo
+
+Visit the live application: [https://maxliesegang.github.io/karlsruhe-oparl-viewer/](https://maxliesegang.github.io/karlsruhe-oparl-viewer/)
+
+## About OParl
+
+[OParl](https://oparl.org/) is an open standard for parliamentary information systems in Germany. It defines a standardized API for accessing information about local councils, their meetings, documents, and decisions, making government data more transparent and accessible.
+
+## Purpose
+
+This project specifically focuses on making the council data from Karlsruhe, Germany more accessible and user-friendly. It transforms the raw OParl data into an intuitive interface where citizens can easily browse, search, and understand local government activities and decisions.
+
 ---
 
 ## Features
@@ -59,6 +71,23 @@ npm run build
 
 Then upload the contents of the `dist` directory to your hosting provider.
 
+### Deploying to GitHub Pages
+
+This project is currently deployed on GitHub Pages. To deploy your own version:
+
+1. Fork the repository
+2. Enable GitHub Pages in your repository settings
+3. Configure GitHub Actions to build and deploy the project by creating a workflow file (e.g., `.github/workflows/deploy.yml`) with the appropriate build and deployment steps
+4. Alternatively, you can manually build the project and push the `dist` directory to the `gh-pages` branch:
+
+```bash
+npm run build
+# Install gh-pages if you haven't already
+npm install -g gh-pages
+# Deploy to GitHub Pages
+gh-pages -d dist
+```
+
 ## Data Sources
 
 The application fetches its data from external JSON resources that conform to the OParl standard. Below are the primary data sources loaded into the application:
@@ -83,7 +112,7 @@ The application fetches its data from external JSON resources that conform to th
 1. Clone the repository.
 
 ```bash
-git clone https://github.com/your-repo/karlsruhe-oparl-viewer.git
+git clone https://github.com/maxliesegang/karlsruhe-oparl-viewer.git
 cd karlsruhe-oparl-viewer
 ```
 
