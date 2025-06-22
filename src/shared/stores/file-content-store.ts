@@ -5,7 +5,6 @@ import { Singleton } from "../utils/singleton";
 const baseUrl =
   "https://raw.githubusercontent.com/maxliesegang/karlsruhe-oparl-syndication/refs/heads/main/docs";
 const metadataUrl = `${baseUrl}/file-contents.json`;
-const contentBasePath = `${baseUrl}/file-contents`;
 const chunksBasePath = `${baseUrl}/file-contents-chunks`;
 
 /**
@@ -42,11 +41,12 @@ export class FileContentStoreBase extends BaseStore<FileContentType> {
         const response = await fetch(chunkUrl);
 
         if (response.ok) {
-          const chunkData = await response.json();
+          const chunkData: Array<any> = await response.json();
 
           // Process each file content in the chunk
-          for (const [fileId, extractedText] of Object.entries(chunkData)) {
-            const fileContent = this.data.get(fileId);
+          for (const obj of chunkData) {
+            const { id, extractedText } = { ...obj };
+            const fileContent = this.data.get(id);
             if (fileContent && fileContent.hasExtractedText) {
               fileContent.extractedText = extractedText as string;
             }
