@@ -1,7 +1,7 @@
 ---
 import type { AuxiliaryFile } from "../shared/types/auxiliary-file";
 import { correctUrl } from "../shared/utils";
-import { FileContentStore } from "../shared/stores/file-content-store";
+import { fileContentStore } from "../shared/stores/file-content-store";
 
 interface Props {
   auxiliaryFiles: Array<AuxiliaryFile>;
@@ -9,14 +9,11 @@ interface Props {
 
 const { auxiliaryFiles } = Astro.props;
 
-// Ensure all file contents are loaded from chunks
-await FileContentStore.getInstance().preloadAllContents();
+await fileContentStore.preloadAllContents();
 
 const fileContents = auxiliaryFiles
   ? await Promise.all(
-      auxiliaryFiles.map(async (file) => {
-        return FileContentStore.getInstance().getFileContentById(file.id);
-      }),
+      auxiliaryFiles.map((file) => fileContentStore.getById(file.id)),
     )
   : [];
 

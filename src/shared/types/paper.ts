@@ -1,4 +1,4 @@
-import type { Consultation } from "./consultatation.ts";
+import type { Consultation } from "./consultation.ts";
 import type { AuxiliaryFile } from "./auxiliary-file.ts";
 
 export interface Paper {

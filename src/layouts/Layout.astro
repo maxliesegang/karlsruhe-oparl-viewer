@@ -1,3 +1,7 @@
+---
+const base = import.meta.env.BASE_URL;
+---
+
 <!doctype html>
 <html lang="de">
   <head>
@@ -8,7 +12,6 @@
     <title>GemeinderatsRadar</title>
   </head>
   <body>
-    <!-- Navigation -->
     <nav>
       <div class="nav-container">
         <button class="burger" aria-label="Toggle navigation menu">
@@ -17,8 +20,8 @@
           <span></span>
         </button>
         <ul id="nav-menu">
-          <li><a href="/karlsruhe-oparl-viewer/">GemeinderatsRadar</a></li>
-          <li><a href="/karlsruhe-oparl-viewer/vorlagen2025">Vorlagen</a></li>
+          <li><a href={base}>GemeinderatsRadar</a></li>
+          <li><a href={`${base}vorlagen2025`}>Vorlagen</a></li>
           <li>
             <a
               href="https://sitzungskalender.karlsruhe.de/db/ratsinformation/start"
@@ -30,7 +33,6 @@
       </div>
     </nav>
 
-    <!-- Page Content -->
     <main>
       <slot />
     </main>

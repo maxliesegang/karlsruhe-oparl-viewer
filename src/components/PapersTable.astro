@@ -173,14 +173,9 @@ const formatDate = (dateString: string | undefined): string => {
 </style>
 
 <script>
-  const buttons = document.querySelectorAll("tr.clickable");
-
-  buttons.forEach((button) => {
-    button.addEventListener("click", (event: Event) => {
-      const parent = (event.target as HTMLElement)
-        ?.parentElement as HTMLElement;
-
-      window.location.href = `vorlage/${parent.id}`;
+  document.querySelectorAll("tr.clickable").forEach((row) => {
+    row.addEventListener("click", () => {
+      window.location.href = `vorlage/${row.id}`;
     });
   });
 </script>

@@ -1,6 +1,6 @@
 ---
 import type { Paper } from "../shared/types/paper";
-import { OrganizationsStore } from "../shared/stores/organizations-store";
+import { organizationsStore } from "../shared/stores/organizations-store";
 
 interface Props {
   paper: Paper;
@@ -9,9 +9,7 @@ interface Props {
 const { paper } = Astro.props;
 
 const organizations = await Promise.all(
-  (paper.underDirectionOf || []).map(async (organizationId) => {
-    return OrganizationsStore.getInstance().getOrganizationById(organizationId);
-  }),
+  (paper.underDirectionOf || []).map((id) => organizationsStore.getById(id)),
 );
 
 const date = new Date(paper.date);

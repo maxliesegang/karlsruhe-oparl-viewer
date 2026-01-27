@@ -1,5 +1,5 @@
 ---
-import { MeetingsStore } from "../shared/stores/meetings-store";
+import { meetingsStore } from "../shared/stores/meetings-store";
 import type { Paper } from "../shared/types/paper";
 
 interface Props {
@@ -10,9 +10,9 @@ const { paper } = Astro.props;
 
 const consultations = paper.consultation || [];
 const meetings = await Promise.all(
-  consultations.map(async (consultation) => {
-    return MeetingsStore.getInstance().getMeetingById(consultation.meeting);
-  }),
+  consultations.map((consultation) =>
+    meetingsStore.getById(consultation.meeting),
+  ),
 );
 ---
 
