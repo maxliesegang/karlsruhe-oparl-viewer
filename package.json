@@ -11,7 +11,7 @@
     "format": "npx prettier . --write"
   },
   "dependencies": {
-    "astro": "^5.10.0",
+    "astro": "^5.16.15",
     "astro-pagefind": "^1.8.3"
   },
   "devDependencies": {
