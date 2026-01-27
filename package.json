@@ -12,10 +12,10 @@
   },
   "dependencies": {
     "astro": "^5.16.15",
-    "astro-pagefind": "^1.8.3"
+    "astro-pagefind": "^1.8.5"
   },
   "devDependencies": {
-    "prettier": "^3.5.3",
+    "prettier": "^3.8.1",
     "prettier-plugin-astro": "^0.14.1"
   }
 }
