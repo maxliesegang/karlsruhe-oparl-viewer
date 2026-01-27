@@ -2,24 +2,8 @@
 import Layout from "../layouts/Layout.astro";
 import PapersTable from "../components/PapersTable.astro";
 import YearLinks from "../components/YearLinks.astro";
-import { papersStore } from "../shared/stores/papers-store";
-import type { Paper } from "../shared/types/paper";
-
-export const bulkModifiedDate = "2025-03-03";
-
-export function getRelevantYear(paper: Paper) {
-  if (paper.modified.slice(0, bulkModifiedDate.length) === bulkModifiedDate) {
-    return paper.date.slice(0, 4);
-  }
-  return paper.modified.slice(0, 4);
-}
-
-export async function getAllAvailableYears() {
-  const papers = await papersStore.getAllPapers();
-  return Array.from(
-    new Set(papers.map((paper) => getRelevantYear(paper))),
-  ).sort();
-}
+import { papersStore } from "../shared/stores";
+import { getRelevantYear, getAllAvailableYears } from "../shared/utils";
 
 const { year } = Astro.params;
 
@@ -30,25 +14,15 @@ export async function getStaticPaths() {
   }));
 }
 
-let papers: Paper[] = [];
-try {
-  papers = await papersStore.getAllPapers();
-  papers = papers.filter((paper) => getRelevantYear(paper).includes(year));
-} catch (error) {
-  console.error("Error fetching papers:", error);
-}
+let papers = await papersStore.getAllPapers();
+papers = papers.filter((paper) => getRelevantYear(paper) === year);
 
-let allYears: string[] = [];
-try {
-  allYears = await getAllAvailableYears();
-} catch (error) {
-  console.error("Error determining navigation years:", error);
-}
+const allYears = await getAllAvailableYears();
 ---
 
 <Layout>
   <div class="container">
-    <h1 class="header">Aktualisierte Vorlagen aus dem Jahr {year}</h1>
+    <h1 class="page-header">Aktualisierte Vorlagen aus dem Jahr {year}</h1>
 
     <YearLinks allYears={allYears} currentYear={year} />
 
@@ -59,14 +33,3 @@ try {
     <YearLinks allYears={allYears} currentYear={year} />
   </div>
 </Layout>
-
-<style>
-  .header {
-    font-size: 2.5rem;
-    color: #333;
-    margin-bottom: 20px;
-    font-family: Arial, sans-serif;
-    font-weight: bold;
-    text-align: center;
-  }
-</style>

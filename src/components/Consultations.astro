@@ -1,6 +1,7 @@
 ---
-import { meetingsStore } from "../shared/stores/meetings-store";
+import { meetingsStore } from "../shared/stores";
 import type { Paper } from "../shared/types/paper";
+import { formatDateShort } from "../shared/utils";
 
 interface Props {
   paper: Paper;
@@ -40,9 +41,7 @@ const meetings = await Promise.all(
             >
               <div class="consultation-info">
                 <strong>{meeting.name}</strong>
-                <p>
-                  Datum: {new Date(meeting.start).toLocaleDateString("de-DE")}
-                </p>
+                <p>Datum: {formatDateShort(meeting.start)}</p>
                 <a href={itemLink} target="_blank" rel="noopener noreferrer">
                   <p>TOP: {agendaItem?.number || "Keine Angabe"}</p>
                 </a>

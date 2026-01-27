@@ -3,7 +3,7 @@ import Layout from "../../layouts/Layout.astro";
 import KeyInfo from "../../components/KeyInfo.astro";
 import Consultations from "../../components/Consultations.astro";
 import AuxiliaryFiles from "../../components/AuxiliaryFiles.astro";
-import { papersStore } from "../../shared/stores/papers-store";
+import { papersStore } from "../../shared/stores";
 
 const { reference } = Astro.params;
 
@@ -23,9 +23,7 @@ if (!paper) {
 
 <Layout>
   <div class="details-container">
-    <header class="header">
-      <h1 class="title">{paper.name}</h1>
-    </header>
+    <h1 class="page-header">{paper.name}</h1>
 
     <KeyInfo paper={paper} />
     <Consultations paper={paper} />

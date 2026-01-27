@@ -1,8 +1,8 @@
 import type { Consultation } from "./consultation.ts";
 import type { AuxiliaryFile } from "./auxiliary-file.ts";
+import type { Entity } from "./entity.ts";
 
-export interface Paper {
-  id: string;
+export interface Paper extends Entity {
   internalReference: string;
   type: string;
   body: string;

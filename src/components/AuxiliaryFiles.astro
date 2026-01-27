@@ -1,7 +1,7 @@
 ---
 import type { AuxiliaryFile } from "../shared/types/auxiliary-file";
-import { correctUrl } from "../shared/utils";
-import { fileContentStore } from "../shared/stores/file-content-store";
+import { correctUrl, formatDateLong } from "../shared/utils";
+import { fileContentStore } from "../shared/stores";
 
 interface Props {
   auxiliaryFiles: Array<AuxiliaryFile>;
@@ -16,14 +16,6 @@ const fileContents = auxiliaryFiles
       auxiliaryFiles.map((file) => fileContentStore.getById(file.id)),
     )
   : [];
-
-const formattedDate = (date: string) => {
-  return new Date(date).toLocaleDateString("de-DE", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-};
 ---
 
 <section class="files-section">
@@ -61,8 +53,8 @@ const formattedDate = (date: string) => {
                 </a>
 
                 <div class="file-metadata">
-                  <span>Erstellt: {formattedDate(file.created)}</span>
-                  <span>Zuletzt geändert: {formattedDate(file.modified)}</span>
+                  <span>Erstellt: {formatDateLong(file.created)}</span>
+                  <span>Zuletzt geändert: {formatDateLong(file.modified)}</span>
                 </div>
               </div>
 

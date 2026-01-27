@@ -1,6 +1,7 @@
 ---
 import type { Paper } from "../shared/types/paper";
-import { organizationsStore } from "../shared/stores/organizations-store";
+import { organizationsStore } from "../shared/stores";
+import { formatDateShort } from "../shared/utils";
 
 interface Props {
   paper: Paper;
@@ -12,8 +13,7 @@ const organizations = await Promise.all(
   (paper.underDirectionOf || []).map((id) => organizationsStore.getById(id)),
 );
 
-const date = new Date(paper.date);
-const pagefindSortAtt = `date:${date.toISOString()}`;
+const pagefindSortAtt = `date:${new Date(paper.date).toISOString()}`;
 ---
 
 <section class="info">
@@ -30,12 +30,12 @@ const pagefindSortAtt = `date:${date.toISOString()}`;
       <tr>
         <th>Datum:</th>
         <td data-pagefind-sort={pagefindSortAtt}
-          >{new Date(paper.date).toLocaleDateString("de-DE")}</td
+          >{formatDateShort(paper.date)}</td
         >
       </tr>
       <tr>
         <th>Letzte Änderung:</th>
-        <td>{new Date(paper.modified).toLocaleDateString("de-DE")}</td>
+        <td>{formatDateShort(paper.modified)}</td>
       </tr>
       <tr>
         <th>Unter Leitung von:</th>

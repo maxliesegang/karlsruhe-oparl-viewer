@@ -1,9 +1,9 @@
 import type { AgendaItem } from "./agenda-item.ts";
 import type { AuxiliaryFile } from "./auxiliary-file.ts";
+import type { Entity } from "./entity.ts";
 import type { Location } from "./location.ts";
 
-export interface Meeting {
-  id: string;
+export interface Meeting extends Entity {
   type: string;
   name: string;
   start: string;

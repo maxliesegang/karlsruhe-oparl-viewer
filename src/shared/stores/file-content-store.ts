@@ -1,10 +1,9 @@
 import type { FileContentType } from "../types/file-content-type.ts";
+import { DATA_BASE_URL } from "../constants";
 import { BaseStore } from "./base-store";
 
-const baseUrl =
-  "https://raw.githubusercontent.com/maxliesegang/karlsruhe-oparl-syndication/refs/heads/main/docs";
-const metadataUrl = `${baseUrl}/file-contents.json`;
-const chunksBasePath = `${baseUrl}/file-contents-chunks`;
+const metadataUrl = `${DATA_BASE_URL}/file-contents.json`;
+const chunksBasePath = `${DATA_BASE_URL}/file-contents-chunks`;
 
 class FileContentStore extends BaseStore<FileContentType> {
   private chunksLoaded: boolean = false;

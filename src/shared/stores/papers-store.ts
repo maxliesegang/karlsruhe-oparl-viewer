@@ -1,12 +1,10 @@
 import type { Paper } from "../types/paper.ts";
+import { DATA_BASE_URL } from "../constants";
 import { BaseStore } from "./base-store";
-
-const dataUrl =
-  "https://raw.githubusercontent.com/maxliesegang/karlsruhe-oparl-syndication/refs/heads/main/docs/papers.json";
 
 class PapersStore extends BaseStore<Paper> {
   constructor() {
-    super(dataUrl);
+    super(`${DATA_BASE_URL}/papers.json`);
   }
 
   protected processData(data: Array<Paper>): void {

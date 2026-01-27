@@ -1,21 +1,13 @@
 ---
 import type { Paper } from "../shared/types/paper";
+import { formatDateShort } from "../shared/utils";
 
 interface Props {
   papers: Paper[];
 }
 
 const { papers = [] } = Astro.props;
-
-const formatDate = (dateString: string | undefined): string => {
-  if (!dateString) return "";
-  const date = new Date(dateString);
-  return new Intl.DateTimeFormat("de-DE", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  }).format(date);
-};
+const base = import.meta.env.BASE_URL;
 ---
 
 {
@@ -34,12 +26,14 @@ const formatDate = (dateString: string | undefined): string => {
           {papers.map((paper) => (
             <tr
               class="clickable"
-              id={paper.internalReference}
+              data-href={`${base}vorlage/${paper.internalReference}`}
               style="cursor: pointer;"
             >
               <td data-label="Vorlage">{paper.reference}</td>
               <td data-label="Titel">{paper.name}</td>
-              <td data-label="Letzte Änderung">{formatDate(paper.modified)}</td>
+              <td data-label="Letzte Änderung">
+                {formatDateShort(paper.modified)}
+              </td>
               <td data-label="Art">{paper.paperType}</td>
             </tr>
           ))}
@@ -47,7 +41,7 @@ const formatDate = (dateString: string | undefined): string => {
       </table>
     </div>
   ) : (
-    <p>Loading data or no papers available...</p>
+    <p>Keine Vorlagen verfügbar.</p>
   )
 }
 
@@ -175,7 +169,8 @@ const formatDate = (dateString: string | undefined): string => {
 <script>
   document.querySelectorAll("tr.clickable").forEach((row) => {
     row.addEventListener("click", () => {
-      window.location.href = `vorlage/${row.id}`;
+      const href = row.getAttribute("data-href");
+      if (href) window.location.href = href;
     });
   });
 </script>

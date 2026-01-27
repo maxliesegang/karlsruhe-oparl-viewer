@@ -1,5 +1,6 @@
-export interface Organization {
-  id: string;
+import type { Entity } from "./entity.ts";
+
+export interface Organization extends Entity {
   type: string;
   body: string;
   name: string;
