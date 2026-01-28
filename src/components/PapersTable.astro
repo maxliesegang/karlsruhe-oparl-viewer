@@ -46,22 +46,21 @@ const base = import.meta.env.BASE_URL;
 }
 
 <style>
-  /* Base styling for table wrapper */
   .table-wrapper {
     width: 100%;
-    overflow-x: auto; /* Horizontal scroll for small screens */
+    overflow-x: auto;
     margin: 20px auto;
   }
 
   table {
     min-width: 600px;
     border-collapse: collapse;
-    font-family: Arial, sans-serif;
-    color: #222;
+    font-family: var(--font-family);
+    color: var(--color-text);
     margin: 0 auto;
     background-color: #fff;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    border-radius: 8px;
+    box-shadow: var(--shadow-card);
+    border-radius: var(--radius);
     overflow: hidden;
   }
 
@@ -74,7 +73,7 @@ const base = import.meta.env.BASE_URL;
     padding: 15px;
     font-weight: bold;
     color: #000;
-    border-bottom: 2px solid #ddd;
+    border-bottom: 2px solid var(--color-border);
     cursor: pointer;
     text-transform: uppercase;
     font-size: 0.95rem;
@@ -95,8 +94,8 @@ const base = import.meta.env.BASE_URL;
 
   td {
     padding: 12px 15px;
-    border-bottom: 1px solid #ddd;
-    color: #222;
+    border-bottom: 1px solid var(--color-border);
+    color: var(--color-text);
     font-size: 0.95rem;
   }
 
@@ -111,13 +110,12 @@ const base = import.meta.env.BASE_URL;
   }
 
   p {
-    color: #444;
+    color: var(--color-text-muted);
     font-style: italic;
     margin: 20px 0;
     text-align: center;
   }
 
-  /* Mobile responsiveness: Add card style for rows */
   @media screen and (max-width: 768px) {
     .table-wrapper {
       overflow-x: auto;
@@ -125,20 +123,20 @@ const base = import.meta.env.BASE_URL;
 
     table {
       border: 0;
-      min-width: 100%; /* Auto-adjust for smaller viewports */
+      min-width: 100%;
     }
 
     thead {
-      display: none; /* Hide table headers for smaller screens */
+      display: none;
     }
 
     tbody tr {
       display: block;
-      margin-bottom: 20px; /* Add separation between rows */
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow */
-      background-color: #f9f9f9;
+      margin-bottom: 20px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      background-color: var(--color-bg-card);
       padding: 10px;
     }
 
@@ -148,20 +146,20 @@ const base = import.meta.env.BASE_URL;
       align-items: center;
       padding: 10px;
       font-size: 0.9rem;
-      border: none; /* Remove row inner borders */
-      border-bottom: 1px solid #eee; /* Easy-to-follow cell separation */
+      border: none;
+      border-bottom: 1px solid #eee;
     }
 
     tbody td:last-child {
       border-bottom: none;
     }
 
-    tbody td:before {
-      content: attr(data-label); /* Dynamically add column headers */
+    tbody td::before {
+      content: attr(data-label);
       font-weight: bold;
       text-transform: uppercase;
-      color: #555;
-      flex: 1; /* Consistent alignment */
+      color: var(--color-text-muted);
+      flex: 1;
     }
   }
 </style>
