@@ -1,17 +1,14 @@
 ---
 import type { Paper } from "../shared/types/paper";
-import { organizationsStore } from "../shared/stores";
+import type { Organization } from "../shared/types/organization";
 import { formatDateShort } from "../shared/utils";
 
 interface Props {
   paper: Paper;
+  organizations: Organization[];
 }
 
-const { paper } = Astro.props;
-
-const organizations = await Promise.all(
-  (paper.underDirectionOf || []).map((id) => organizationsStore.getById(id)),
-);
+const { paper, organizations } = Astro.props;
 
 const pagefindSortAtt = `date:${new Date(paper.date).toISOString()}`;
 ---

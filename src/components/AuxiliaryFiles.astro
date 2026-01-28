@@ -1,33 +1,22 @@
 ---
-import type { AuxiliaryFile } from "../shared/types/auxiliary-file";
+import type { ResolvedFile } from "../pages/vorlage/[reference].astro";
 import { correctUrl, formatDateLong } from "../shared/utils";
-import { fileContentStore } from "../shared/stores";
 
 interface Props {
-  auxiliaryFiles: Array<AuxiliaryFile>;
+  resolvedFiles: ResolvedFile[];
 }
 
-const { auxiliaryFiles } = Astro.props;
-
-await fileContentStore.preloadAllContents();
-
-const fileContents = auxiliaryFiles
-  ? await Promise.all(
-      auxiliaryFiles.map((file) => fileContentStore.getById(file.id)),
-    )
-  : [];
+const { resolvedFiles } = Astro.props;
 ---
 
 <section class="files-section">
   <h2 class="section-heading">Zusätzliche Dateien</h2>
 
   {
-    auxiliaryFiles?.length > 0 ? (
+    resolvedFiles.length > 0 ? (
       <ul class="file-list">
-        {auxiliaryFiles.map((file) => {
-          const fileText =
-            fileContents.find((f) => f?.id === file.id)?.extractedText ||
-            "Kein Text verfügbar";
+        {resolvedFiles.map(({ file, content }) => {
+          const fileText = content?.extractedText || "Kein Text verfügbar";
 
           return (
             <li class="file-item" data-id={file.id}>

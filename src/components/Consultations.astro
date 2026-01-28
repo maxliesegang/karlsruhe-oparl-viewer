@@ -1,36 +1,21 @@
 ---
-import { meetingsStore } from "../shared/stores";
-import type { Paper } from "../shared/types/paper";
+import type { ResolvedConsultation } from "../pages/vorlage/[reference].astro";
 import { formatDateShort } from "../shared/utils";
 
 interface Props {
-  paper: Paper;
+  resolvedConsultations: ResolvedConsultation[];
 }
 
-const { paper } = Astro.props;
-
-const consultations = paper.consultation || [];
-const meetings = await Promise.all(
-  consultations.map((consultation) =>
-    meetingsStore.getById(consultation.meeting),
-  ),
-);
+const { resolvedConsultations } = Astro.props;
 ---
 
 <section class="consultations">
   <h2 class="section-heading">Beratungen</h2>
   {
-    consultations.length > 0 ? (
+    resolvedConsultations.length > 0 ? (
       <ul class="consultation-list">
-        {consultations.map((consultation) => {
-          const meeting = meetings.find((m) => m?.id === consultation.meeting);
-          if (!meeting) return;
-
-          const agendaItem = meeting.agendaItem?.find(
-            (item) => item.id === consultation.agendaItem,
-          );
-
-          if (!agendaItem) return;
+        {resolvedConsultations.map(({ consultation, meeting, agendaItem }) => {
+          if (!meeting || !agendaItem) return;
 
           const meetingServerId = meeting.id.split("/").pop();
           const itemLink = `https://sitzungskalender.karlsruhe.de/db/ratsinformation/termin-${meetingServerId}#top${agendaItem.number}`;
@@ -43,10 +28,10 @@ const meetings = await Promise.all(
                 <strong>{meeting.name}</strong>
                 <p>Datum: {formatDateShort(meeting.start)}</p>
                 <a href={itemLink} target="_blank" rel="noopener noreferrer">
-                  <p>TOP: {agendaItem?.number || "Keine Angabe"}</p>
+                  <p>TOP: {agendaItem.number || "Keine Angabe"}</p>
                 </a>
                 <p>Rolle: {consultation.role || "Nicht verfügbar"}</p>
-                <p>Ergebnis: {agendaItem?.result || "Keine Angabe"}</p>
+                <p>Ergebnis: {agendaItem.result || "Keine Angabe"}</p>
               </div>
             </li>
           );
