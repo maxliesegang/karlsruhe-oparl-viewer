@@ -2,22 +2,35 @@
 import Layout from "../layouts/Layout.astro";
 import PapersTable from "../components/PapersTable.astro";
 import YearLinks from "../components/YearLinks.astro";
-import { papersStore } from "../shared/stores";
-import { getRelevantYear, getAllAvailableYears } from "../shared/utils";
-
-const { year } = Astro.params;
+import type { Paper } from "../shared/types/paper";
+import {
+  loadPapers,
+  getAllAvailableYears,
+  getRelevantYear,
+} from "../shared/data";
 
 export async function getStaticPaths() {
-  const yearsArray = await getAllAvailableYears();
-  return yearsArray.map((year) => ({
+  const [allPapers, allYears] = await Promise.all([
+    loadPapers(),
+    getAllAvailableYears(),
+  ]);
+
+  return allYears.map((year) => ({
     params: { year },
+    props: {
+      papers: allPapers.filter((p) => getRelevantYear(p) === year),
+      allYears,
+    },
   }));
 }
 
-let papers = await papersStore.getAllPapers();
-papers = papers.filter((paper) => getRelevantYear(paper) === year);
+interface Props {
+  papers: Paper[];
+  allYears: string[];
+}
 
-const allYears = await getAllAvailableYears();
+const { year } = Astro.params;
+const { papers, allYears } = Astro.props;
 ---
 
 <Layout>
