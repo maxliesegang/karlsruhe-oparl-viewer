@@ -22,7 +22,12 @@ const { resolvedConsultations } = Astro.props;
 
           return (
             <li
-              class={`consultation-item ${new Date(meeting.start).getTime() < Date.now() ? "past-meeting" : "upcoming-meeting"}`}
+              class:list={[
+                "consultation-item",
+                new Date(meeting.start) < new Date()
+                  ? "past-meeting"
+                  : "upcoming-meeting",
+              ]}
             >
               <div class="consultation-info">
                 <strong>{meeting.name}</strong>
@@ -59,9 +64,9 @@ const { resolvedConsultations } = Astro.props;
   .consultation-item {
     padding: 10px;
     margin-bottom: 10px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    background: #f9f9f9;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    background: var(--color-bg-card);
   }
 
   .consultation-item.past-meeting {
@@ -69,12 +74,12 @@ const { resolvedConsultations } = Astro.props;
   }
 
   .consultation-item.upcoming-meeting {
-    border-color: #2d89ef;
+    border-color: var(--color-link);
   }
 
   .consultation-info {
     font-size: 0.95rem;
-    color: #555;
+    color: var(--color-text-muted);
   }
 
   .consultation-info p {
