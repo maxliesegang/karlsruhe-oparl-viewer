@@ -9,6 +9,7 @@ import {
   resolveConsultations,
   resolveFiles,
 } from "../../shared/data";
+import type { Paper } from "../../shared/types";
 
 export async function getStaticPaths() {
   const papers = await loadPapers();

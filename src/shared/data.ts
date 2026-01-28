@@ -1,8 +1,12 @@
 import { DATA_BASE_URL } from "./constants";
-import type { Paper } from "./types/paper";
-import type { Meeting } from "./types/meeting";
-import type { Organization } from "./types/organization";
-import type { FileContentType } from "./types/file-content-type";
+import type {
+  FileContentType,
+  Meeting,
+  Organization,
+  Paper,
+  ResolvedConsultation,
+  ResolvedFile,
+} from "./types";
 
 // --- Caches ---
 let papersCache: Paper[] | null = null;
