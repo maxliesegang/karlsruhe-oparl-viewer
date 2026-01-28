@@ -1,7 +1,7 @@
 import type { AuxiliaryFile } from "./auxiliary-file.ts";
+import type { Entity } from "./entity.ts";
 
-export interface AgendaItem {
-  id: string;
+export interface AgendaItem extends Entity {
   type: string;
   meeting: string;
   number: string;

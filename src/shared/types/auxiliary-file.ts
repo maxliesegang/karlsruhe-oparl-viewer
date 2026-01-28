@@ -1,5 +1,6 @@
-export interface AuxiliaryFile {
-  id: string;
+import type { Entity } from "./entity.ts";
+
+export interface AuxiliaryFile extends Entity {
   type: string;
   name: string;
   fileName: string;

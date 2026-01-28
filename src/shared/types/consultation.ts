@@ -1,5 +1,6 @@
-export interface Consultation {
-  id: string;
+import type { Entity } from "./entity.ts";
+
+export interface Consultation extends Entity {
   type: string;
   paper?: string;
   agendaItem: string;
