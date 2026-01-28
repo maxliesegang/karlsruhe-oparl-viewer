@@ -1,0 +1,119 @@
+import { DATA_BASE_URL } from "./constants";
+import type { Paper } from "./types/paper";
+import type { Meeting } from "./types/meeting";
+import type { Organization } from "./types/organization";
+import type { FileContentType } from "./types/file-content-type";
+
+// --- Caches ---
+let papersCache: Paper[] | null = null;
+let meetingsCache: Map<string, Meeting> | null = null;
+let organizationsCache: Map<string, Organization> | null = null;
+let fileContentsCache: Map<string, FileContentType> | null = null;
+let availableYearsCache: string[] | null = null;
+
+// --- Generic fetcher ---
+async function fetchJson<T>(url: string): Promise<T[]> {
+  const response = await fetch(url);
+  if (!response.ok) {
+    console.error(`Failed to fetch ${url}: ${response.status}`);
+    return [];
+  }
+  return response.json();
+}
+
+// --- Loaders ---
+
+export async function loadPapers(): Promise<Paper[]> {
+  if (papersCache) return papersCache;
+
+  const data = await fetchJson<Paper>(`${DATA_BASE_URL}/papers.json`);
+  for (const paper of data) {
+    paper.internalReference = paper.reference.replaceAll("/", "-");
+  }
+  data.sort(
+    (a, b) => new Date(b.modified).getTime() - new Date(a.modified).getTime(),
+  );
+
+  papersCache = data;
+  return papersCache;
+}
+
+export async function loadMeetings(): Promise<Map<string, Meeting>> {
+  if (meetingsCache) return meetingsCache;
+
+  const data = await fetchJson<Meeting>(`${DATA_BASE_URL}/meetings.json`);
+  meetingsCache = new Map(data.map((m) => [m.id, m]));
+  return meetingsCache;
+}
+
+export async function loadOrganizations(): Promise<Map<string, Organization>> {
+  if (organizationsCache) return organizationsCache;
+
+  const data = await fetchJson<Organization>(
+    `${DATA_BASE_URL}/organizations.json`,
+  );
+  organizationsCache = new Map(data.map((o) => [o.id, o]));
+  return organizationsCache;
+}
+
+export async function loadFileContents(): Promise<
+  Map<string, FileContentType>
+> {
+  if (fileContentsCache) return fileContentsCache;
+
+  const metadata = await fetchJson<FileContentType>(
+    `${DATA_BASE_URL}/file-contents.json`,
+  );
+  fileContentsCache = new Map(metadata.map((f) => [f.id, f]));
+
+  // Load chunks in parallel instead of sequentially.
+  // Fire off a batch of requests; non-existent chunks return null.
+  const CHUNK_BATCH_SIZE = 50;
+  const chunkPromises = Array.from({ length: CHUNK_BATCH_SIZE }, (_, i) =>
+    fetch(`${DATA_BASE_URL}/file-contents-chunks/chunk-${i}.json`)
+      .then((r) =>
+        r.ok
+          ? (r.json() as Promise<Array<{ id: string; extractedText: string }>>)
+          : null,
+      )
+      .catch(() => null),
+  );
+
+  const chunks = await Promise.all(chunkPromises);
+  for (const chunk of chunks) {
+    if (!chunk) continue;
+    for (const { id, extractedText } of chunk) {
+      const entry = fileContentsCache.get(id);
+      if (entry?.hasExtractedText) {
+        entry.extractedText = extractedText;
+      }
+    }
+  }
+
+  return fileContentsCache;
+}
+
+// --- Derived data ---
+
+/**
+ * Papers modified on this date had their `modified` field set during a bulk import,
+ * so we use the paper's own `date` field to determine the relevant year instead.
+ */
+const BULK_MODIFIED_DATE = "2025-03-03";
+
+export function getRelevantYear(paper: Paper): string {
+  if (paper.modified.startsWith(BULK_MODIFIED_DATE)) {
+    return paper.date.slice(0, 4);
+  }
+  return paper.modified.slice(0, 4);
+}
+
+export async function getAllAvailableYears(): Promise<string[]> {
+  if (availableYearsCache) return availableYearsCache;
+
+  const papers = await loadPapers();
+  availableYearsCache = [
+    ...new Set(papers.map((paper) => getRelevantYear(paper))),
+  ].sort();
+  return availableYearsCache;
+}
