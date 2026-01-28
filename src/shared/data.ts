@@ -1,4 +1,8 @@
-import { DATA_BASE_URL } from "./constants";
+import {
+  BULK_MODIFIED_DATE,
+  CHUNK_BATCH_SIZE,
+  DATA_BASE_URL,
+} from "./constants";
 import type {
   FileContentType,
   Meeting,
@@ -70,9 +74,7 @@ export async function loadFileContents(): Promise<
   );
   fileContentsCache = new Map(metadata.map((f) => [f.id, f]));
 
-  // Load chunks in parallel instead of sequentially.
-  // Fire off a batch of requests; non-existent chunks return null.
-  const CHUNK_BATCH_SIZE = 50;
+  // Load chunks in parallel; non-existent chunks return null.
   const chunkPromises = Array.from({ length: CHUNK_BATCH_SIZE }, (_, i) =>
     fetch(`${DATA_BASE_URL}/file-contents-chunks/chunk-${i}.json`)
       .then((r) =>
@@ -98,12 +100,6 @@ export async function loadFileContents(): Promise<
 }
 
 // --- Derived data ---
-
-/**
- * Papers modified on this date had their `modified` field set during a bulk import,
- * so we use the paper's own `date` field to determine the relevant year instead.
- */
-const BULK_MODIFIED_DATE = "2025-03-03";
 
 export function getRelevantYear(paper: Paper): string {
   if (paper.modified.startsWith(BULK_MODIFIED_DATE)) {
