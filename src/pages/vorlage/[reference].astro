@@ -5,69 +5,35 @@ import Consultations from "../../components/Consultations.astro";
 import AuxiliaryFiles from "../../components/AuxiliaryFiles.astro";
 import {
   loadPapers,
-  loadMeetings,
-  loadOrganizations,
-  loadFileContents,
+  resolveOrganizations,
+  resolveConsultations,
+  resolveFiles,
 } from "../../shared/data";
-import type { Organization } from "../../shared/types/organization";
-import type { Meeting } from "../../shared/types/meeting";
-import type { AgendaItem } from "../../shared/types/agenda-item";
-import type { Consultation } from "../../shared/types/consultation";
-import type { AuxiliaryFile } from "../../shared/types/auxiliary-file";
-import type { FileContentType } from "../../shared/types/file-content-type";
-
-export interface ResolvedConsultation {
-  consultation: Consultation;
-  meeting: Meeting | undefined;
-  agendaItem: AgendaItem | undefined;
-}
-
-export interface ResolvedFile {
-  file: AuxiliaryFile;
-  content: FileContentType | undefined;
-}
 
 export async function getStaticPaths() {
-  const [papers, orgsMap, meetingsMap, fileContentsMap] = await Promise.all([
-    loadPapers(),
-    loadOrganizations(),
-    loadMeetings(),
-    loadFileContents(),
-  ]);
+  const papers = await loadPapers();
 
   return papers
     .filter((p) => p.internalReference)
-    .map((paper) => {
-      const organizations = (paper.underDirectionOf || [])
-        .map((id) => orgsMap.get(id))
-        .filter((o): o is Organization => o !== undefined);
-
-      const resolvedConsultations: ResolvedConsultation[] = (
-        paper.consultation || []
-      ).map((consultation) => {
-        const meeting = meetingsMap.get(consultation.meeting);
-        const agendaItem = meeting?.agendaItem?.find(
-          (item) => item.id === consultation.agendaItem,
-        );
-        return { consultation, meeting, agendaItem };
-      });
-
-      const resolvedFiles: ResolvedFile[] = (paper.auxiliaryFile || []).map(
-        (file) => ({
-          file,
-          content: fileContentsMap.get(file.id),
-        }),
-      );
-
-      return {
-        params: { reference: paper.internalReference },
-        props: { paper, organizations, resolvedConsultations, resolvedFiles },
-      };
-    });
+    .map((paper) => ({
+      params: { reference: paper.internalReference },
+      props: { paper },
+    }));
 }
 
-const { paper, organizations, resolvedConsultations, resolvedFiles } =
-  Astro.props;
+interface Props {
+  paper: Paper;
+}
+
+const { paper } = Astro.props;
+
+const [organizations, resolvedConsultations, resolvedFiles] = await Promise.all(
+  [
+    resolveOrganizations(paper),
+    resolveConsultations(paper),
+    resolveFiles(paper),
+  ],
+);
 ---
 
 <Layout>

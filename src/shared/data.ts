@@ -117,3 +117,35 @@ export async function getAllAvailableYears(): Promise<string[]> {
   ].sort();
   return availableYearsCache;
 }
+
+// --- Per-paper resolvers ---
+
+export async function resolveOrganizations(
+  paper: Paper,
+): Promise<Organization[]> {
+  const orgsMap = await loadOrganizations();
+  return (paper.underDirectionOf || [])
+    .map((id) => orgsMap.get(id))
+    .filter((o): o is Organization => o !== undefined);
+}
+
+export async function resolveConsultations(
+  paper: Paper,
+): Promise<ResolvedConsultation[]> {
+  const meetingsMap = await loadMeetings();
+  return (paper.consultation || []).map((consultation) => {
+    const meeting = meetingsMap.get(consultation.meeting);
+    const agendaItem = meeting?.agendaItem?.find(
+      (item) => item.id === consultation.agendaItem,
+    );
+    return { consultation, meeting, agendaItem };
+  });
+}
+
+export async function resolveFiles(paper: Paper): Promise<ResolvedFile[]> {
+  const fileContentsMap = await loadFileContents();
+  return (paper.auxiliaryFile || []).map((file) => ({
+    file,
+    content: fileContentsMap.get(file.id),
+  }));
+}
