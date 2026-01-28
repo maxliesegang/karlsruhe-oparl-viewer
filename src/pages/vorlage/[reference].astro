@@ -3,30 +3,79 @@ import Layout from "../../layouts/Layout.astro";
 import KeyInfo from "../../components/KeyInfo.astro";
 import Consultations from "../../components/Consultations.astro";
 import AuxiliaryFiles from "../../components/AuxiliaryFiles.astro";
-import { papersStore } from "../../shared/stores";
+import {
+  loadPapers,
+  loadMeetings,
+  loadOrganizations,
+  loadFileContents,
+} from "../../shared/data";
+import type { Organization } from "../../shared/types/organization";
+import type { Meeting } from "../../shared/types/meeting";
+import type { AgendaItem } from "../../shared/types/agenda-item";
+import type { Consultation } from "../../shared/types/consultation";
+import type { AuxiliaryFile } from "../../shared/types/auxiliary-file";
+import type { FileContentType } from "../../shared/types/file-content-type";
 
-const { reference } = Astro.params;
+export interface ResolvedConsultation {
+  consultation: Consultation;
+  meeting: Meeting | undefined;
+  agendaItem: AgendaItem | undefined;
+}
+
+export interface ResolvedFile {
+  file: AuxiliaryFile;
+  content: FileContentType | undefined;
+}
 
 export async function getStaticPaths() {
-  const papers = await papersStore.getAllPapers();
+  const [papers, orgsMap, meetingsMap, fileContentsMap] = await Promise.all([
+    loadPapers(),
+    loadOrganizations(),
+    loadMeetings(),
+    loadFileContents(),
+  ]);
 
-  return papers.map((paper) => ({
-    params: { reference: paper.internalReference },
-  }));
+  return papers
+    .filter((p) => p.internalReference)
+    .map((paper) => {
+      const organizations = (paper.underDirectionOf || [])
+        .map((id) => orgsMap.get(id))
+        .filter((o): o is Organization => o !== undefined);
+
+      const resolvedConsultations: ResolvedConsultation[] = (
+        paper.consultation || []
+      ).map((consultation) => {
+        const meeting = meetingsMap.get(consultation.meeting);
+        const agendaItem = meeting?.agendaItem?.find(
+          (item) => item.id === consultation.agendaItem,
+        );
+        return { consultation, meeting, agendaItem };
+      });
+
+      const resolvedFiles: ResolvedFile[] = (paper.auxiliaryFile || []).map(
+        (file) => ({
+          file,
+          content: fileContentsMap.get(file.id),
+        }),
+      );
+
+      return {
+        params: { reference: paper.internalReference },
+        props: { paper, organizations, resolvedConsultations, resolvedFiles },
+      };
+    });
 }
 
-const paper = await papersStore.getById(reference);
-if (!paper) {
-  throw new Error(`Paper with reference ${reference} not found`);
-}
+const { paper, organizations, resolvedConsultations, resolvedFiles } =
+  Astro.props;
 ---
 
 <Layout>
   <div class="details-container">
     <h1 class="page-header">{paper.name}</h1>
 
-    <KeyInfo paper={paper} />
-    <Consultations paper={paper} />
-    <AuxiliaryFiles auxiliaryFiles={paper.auxiliaryFile || []} />
+    <KeyInfo paper={paper} organizations={organizations} />
+    <Consultations resolvedConsultations={resolvedConsultations} />
+    <AuxiliaryFiles resolvedFiles={resolvedFiles} />
   </div>
 </Layout>
