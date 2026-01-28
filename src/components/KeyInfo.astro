@@ -12,7 +12,7 @@ const { paper, organizations } = Astro.props;
 const pagefindSortAtt = `date:${new Date(paper.date).toISOString()}`;
 ---
 
-<section class="info">
+<section class="section-card">
   <table>
     <tbody>
       <tr>
@@ -47,16 +47,8 @@ const pagefindSortAtt = `date:${new Date(paper.date).toISOString()}`;
 </section>
 
 <style>
-  .info {
-    margin-top: 20px;
-    padding: 20px;
-    background: white;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-  }
-
   table th {
     text-align: right;
-    padding-right: 10px; /* Optional - adds space between the aligned text and the td */
+    padding-right: 10px;
   }
 </style>
