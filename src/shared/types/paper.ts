@@ -15,4 +15,5 @@ export interface Paper extends Entity {
   consultation: Consultation[];
   created: string;
   modified: string;
+  deleted?: boolean;
 }

@@ -35,14 +35,15 @@ export async function loadPapers(): Promise<Paper[]> {
   if (papersCache) return papersCache;
 
   const data = await fetchJson<Paper>(`${DATA_BASE_URL}/papers.json`);
-  for (const paper of data) {
+  const activePapers = data.filter((paper) => !paper.deleted);
+  for (const paper of activePapers) {
     paper.internalReference = paper.reference.replaceAll("/", "-");
   }
-  data.sort(
+  activePapers.sort(
     (a, b) => new Date(b.modified).getTime() - new Date(a.modified).getTime(),
   );
 
-  papersCache = data;
+  papersCache = activePapers;
   return papersCache;
 }
 
