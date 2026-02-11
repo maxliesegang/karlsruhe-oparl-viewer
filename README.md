@@ -98,6 +98,7 @@ public/           # static assets
 This project builds to static assets and can be hosted on any static provider.
 
 - GitHub Pages: already configured via `.github/workflows/deploy.yml` (runs on `main` pushes and twice daily). Artifacts from the build job are published with `actions/deploy-pages`.
+  - In GitHub repository settings (`Settings` → `Pages`), set **Build and deployment** → **Source** to **GitHub Actions**. Otherwise GitHub can also trigger a separate Jekyll workflow (`pages build and deployment`) that is not used by this Astro pipeline.
 - Other hosts (Netlify, Vercel, etc.): run `npm run build` and deploy the `dist/` directory.
 
 ## Contributing
