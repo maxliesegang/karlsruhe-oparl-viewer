@@ -4,6 +4,8 @@ import PapersTable from "../components/PapersTable.astro";
 import YearLinks from "../components/YearLinks.astro";
 import {
   loadPapers,
+  loadOrganizations,
+  loadMeetings,
   getAllAvailableYears,
   getRelevantYear,
 } from "../shared/data";
@@ -17,23 +19,80 @@ export async function getStaticPaths() {
 }
 
 const { year } = Astro.params;
-const [allPapers, allYears] = await Promise.all([
+const [allPapers, allYears, orgsMap, meetingsMap] = await Promise.all([
   loadPapers(),
   getAllAvailableYears(),
+  loadOrganizations(),
+  loadMeetings(),
 ]);
 const papers = allPapers.filter((p) => getRelevantYear(p) === year);
+
+const filterData: Record<
+  string,
+  { organizationNames: string; lastRole: string; lastResult: string }
+> = {};
+const paperTypeSet = new Set<string>();
+const organizationSet = new Set<string>();
+const roleSet = new Set<string>();
+const resultSet = new Set<string>();
+
+for (const paper of papers) {
+  const orgNames = (paper.underDirectionOf || [])
+    .map((id) => orgsMap.get(id)?.name)
+    .filter((n): n is string => !!n);
+  const organizationNames =
+    orgNames.length > 0 ? orgNames.join(", ") : "Keine Angaben";
+
+  let lastRole = "Keine Angabe";
+  let lastResult = "Keine Angabe";
+  for (const consultation of paper.consultation || []) {
+    if (consultation.role) {
+      lastRole = consultation.role;
+    }
+    const meeting = meetingsMap.get(consultation.meeting);
+    const agendaItem = meeting?.agendaItem?.find(
+      (item) => item.id === consultation.agendaItem,
+    );
+    if (agendaItem?.result) {
+      lastResult = agendaItem.result;
+    }
+  }
+
+  filterData[paper.reference] = { organizationNames, lastRole, lastResult };
+
+  if (paper.paperType) paperTypeSet.add(paper.paperType);
+  organizationSet.add(organizationNames);
+  if (lastRole) roleSet.add(lastRole);
+  if (lastResult) resultSet.add(lastResult);
+}
+
+const filterOptions = {
+  paperTypes: [...paperTypeSet].sort(),
+  organizations: [...organizationSet].sort(),
+  roles: [...roleSet].sort(),
+  results: [...resultSet].sort(),
+};
 ---
 
 <Layout>
-  <div class="container">
-    <h1 class="page-header">Aktualisierte Vorlagen aus dem Jahr {year}</h1>
+  <div class="vorlagen-page">
+    <h1 class="page-header">Vorlagen aktualisiert {year}</h1>
 
     <YearLinks allYears={allYears} currentYear={year} />
 
-    <div class="content-section" data-pagefind-ignore>
-      <PapersTable papers={papers} />
+    <div data-pagefind-ignore>
+      <PapersTable
+        papers={papers}
+        filterData={filterData}
+        filterOptions={filterOptions}
+      />
     </div>
-
-    <YearLinks allYears={allYears} currentYear={year} />
   </div>
 </Layout>
+
+<style>
+  .vorlagen-page {
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+</style>

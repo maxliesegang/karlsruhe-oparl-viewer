@@ -2,173 +2,300 @@
 import type { Paper } from "../shared/types";
 import { formatDateShort } from "../shared/utils";
 
-interface Props {
-  papers: Paper[];
+interface FilterOptions {
+  paperTypes: string[];
+  organizations: string[];
+  roles: string[];
+  results: string[];
 }
 
-const { papers = [] } = Astro.props;
+interface Props {
+  papers: Paper[];
+  filterData?: Record<
+    string,
+    { organizationNames: string; lastRole: string; lastResult: string }
+  >;
+  filterOptions?: FilterOptions;
+}
+
+const { papers = [], filterData, filterOptions } = Astro.props;
 const base = import.meta.env.BASE_URL;
+const hasFilters = filterOptions && filterData;
 ---
 
 {
   papers.length > 0 ? (
-    <div class="table-wrapper">
-      <table>
-        <thead>
-          <tr>
-            <th>Aktenzeichen</th>
-            <th>Titel</th>
-            <th style="width: fit-content;">Letzte Änderung</th>
-            <th>Art</th>
-          </tr>
-        </thead>
-        <tbody>
-          {papers.map((paper) => (
-            <tr
-              class="clickable"
-              data-href={`${base}vorlage/${paper.internalReference}`}
-              style="cursor: pointer;"
-            >
-              <td data-label="Vorlage">{paper.reference}</td>
-              <td data-label="Titel">{paper.name}</td>
-              <td data-label="Letzte Änderung">
-                {formatDateShort(paper.modified)}
-              </td>
-              <td data-label="Art">{paper.paperType}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div class="papers-panel">
+      {hasFilters && (
+        <div class="filters">
+          <div class="filter-row">
+            <div class="filter-group">
+              <label for="filter-type">Art</label>
+              <select id="filter-type">
+                <option value="">Alle</option>
+                {filterOptions.paperTypes.map((t) => (
+                  <option value={t}>{t}</option>
+                ))}
+              </select>
+            </div>
+            <div class="filter-group">
+              <label for="filter-org">Unter Leitung von</label>
+              <select id="filter-org">
+                <option value="">Alle</option>
+                {filterOptions.organizations.map((o) => (
+                  <option value={o}>{o}</option>
+                ))}
+              </select>
+            </div>
+            <div class="filter-group">
+              <label for="filter-role">Letzte Rolle</label>
+              <select id="filter-role">
+                <option value="">Alle</option>
+                {filterOptions.roles.map((r) => (
+                  <option value={r}>{r}</option>
+                ))}
+              </select>
+            </div>
+            <div class="filter-group">
+              <label for="filter-result">Letztes Beratungsergebnis</label>
+              <select id="filter-result">
+                <option value="">Alle</option>
+                {filterOptions.results.map((r) => (
+                  <option value={r}>{r}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <p class="filter-count" id="filter-count" />
+        </div>
+      )}
+      <ul class="paper-list">
+        {papers.map((paper) => {
+          const fd = filterData?.[paper.reference];
+          return (
+            <li>
+              <a
+                class="paper-card"
+                href={`${base}vorlage/${paper.internalReference}`}
+                data-paper-type={paper.paperType}
+                data-organization={fd?.organizationNames ?? ""}
+                data-role={fd?.lastRole ?? ""}
+                data-result={fd?.lastResult ?? ""}
+              >
+                <span class="paper-title">{paper.name}</span>
+                <span class="paper-meta">
+                  {[
+                    paper.reference,
+                    paper.paperType,
+                    fd?.organizationNames,
+                    fd?.lastRole,
+                    fd?.lastResult,
+                    `Aktualisiert: ${formatDateShort(paper.modified)}`,
+                  ]
+                    .filter(Boolean)
+                    .join(" \u00B7 ")}
+                </span>
+              </a>
+            </li>
+          );
+        })}
+      </ul>
+      <p class="no-results" id="no-results" style="display: none;">
+        Keine Vorlagen für die gewählten Filter gefunden.
+      </p>
     </div>
   ) : (
-    <p>Keine Vorlagen verfügbar.</p>
+    <p class="empty">Keine Vorlagen verfügbar.</p>
   )
 }
 
 <style>
-  .table-wrapper {
-    width: 100%;
-    overflow-x: auto;
-    margin: 20px auto;
-  }
-
-  table {
-    min-width: 600px;
-    border-collapse: collapse;
-    font-family: var(--font-family);
-    color: var(--color-text);
-    margin: 0 auto;
-    background-color: #fff;
-    box-shadow: var(--shadow-card);
+  .papers-panel {
+    background: #fff;
     border-radius: var(--radius);
+    box-shadow: var(--shadow-card);
     overflow: hidden;
   }
 
-  thead {
-    background-color: #f1f3f4;
-  }
+  /* --- Filters --- */
 
-  thead th {
-    text-align: left;
-    padding: 15px;
-    font-weight: bold;
-    color: #000;
-    border-bottom: 2px solid var(--color-border);
-    cursor: pointer;
-    text-transform: uppercase;
-    font-size: 0.95rem;
-  }
-
-  tbody tr:nth-child(odd) {
-    background-color: #fdfdfd;
-  }
-
-  tbody tr:nth-child(even) {
-    background-color: #fff;
-  }
-
-  tbody tr:hover {
-    background-color: #e9ecef;
-    transition: background-color 0.2s ease;
-  }
-
-  td {
-    padding: 12px 15px;
+  .filters {
+    padding: 16px 24px;
+    background: #f8f9fa;
     border-bottom: 1px solid var(--color-border);
+  }
+
+  .filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+    min-width: 180px;
+  }
+
+  .filter-group label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--color-text-muted);
+  }
+
+  .filter-group select {
+    padding: 7px 10px;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-family: var(--font-family);
     color: var(--color-text);
-    font-size: 0.95rem;
+    background: #fff;
+    cursor: pointer;
   }
 
-  th,
-  td {
-    border-right: 1px solid #eee;
+  .filter-group select:focus {
+    outline: 2px solid var(--color-link);
+    outline-offset: 1px;
   }
 
-  th:last-child,
-  td:last-child {
-    border-right: none;
+  .filter-count {
+    margin: 8px 0 0;
+    font-size: 0.82rem;
+    color: var(--color-text-muted);
+    min-height: 1.2em;
   }
 
-  p {
+  /* --- Paper list --- */
+
+  .paper-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .paper-card {
+    display: block;
+    padding: 18px 24px;
+    text-decoration: none;
+    color: inherit;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .paper-card:hover {
+    background: #fafafa;
+  }
+
+  .paper-title {
+    display: block;
+    font-size: 1.05rem;
+    color: var(--color-text);
+    line-height: 1.55;
+    margin-bottom: 6px;
+  }
+
+  .paper-meta {
+    display: block;
+    font-size: 0.85rem;
+    color: #888;
+    line-height: 1.4;
+  }
+
+  li:last-child .paper-card {
+    border-bottom: none;
+  }
+
+  .no-results,
+  .empty {
     color: var(--color-text-muted);
     font-style: italic;
-    margin: 20px 0;
+    padding: 32px 24px;
+    margin: 0;
     text-align: center;
   }
 
+  /* --- Mobile --- */
+
   @media screen and (max-width: 768px) {
-    .table-wrapper {
-      overflow-x: auto;
+    .filter-row {
+      flex-direction: column;
     }
 
-    table {
-      border: 0;
+    .filter-group {
       min-width: 100%;
     }
 
-    thead {
-      display: none;
+    .paper-card {
+      padding: 14px 16px;
     }
 
-    tbody tr {
-      display: block;
-      margin-bottom: 20px;
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius);
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      background-color: var(--color-bg-card);
-      padding: 10px;
-    }
-
-    tbody td {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px;
-      font-size: 0.9rem;
-      border: none;
-      border-bottom: 1px solid #eee;
-    }
-
-    tbody td:last-child {
-      border-bottom: none;
-    }
-
-    tbody td::before {
-      content: attr(data-label);
-      font-weight: bold;
-      text-transform: uppercase;
-      color: var(--color-text-muted);
-      flex: 1;
+    .filters {
+      padding: 14px 16px;
     }
   }
 </style>
 
 <script>
-  document.querySelectorAll("tr.clickable").forEach((row) => {
-    row.addEventListener("click", () => {
-      const href = row.getAttribute("data-href");
-      if (href) window.location.href = href;
-    });
-  });
+  function initFilters() {
+    const filterType = document.getElementById(
+      "filter-type",
+    ) as HTMLSelectElement | null;
+    const filterOrg = document.getElementById(
+      "filter-org",
+    ) as HTMLSelectElement | null;
+    const filterRole = document.getElementById(
+      "filter-role",
+    ) as HTMLSelectElement | null;
+    const filterResult = document.getElementById(
+      "filter-result",
+    ) as HTMLSelectElement | null;
+    const filterCount = document.getElementById("filter-count");
+    const noResults = document.getElementById("no-results");
+    const items = document.querySelectorAll<HTMLElement>(".paper-card");
+
+    if (!filterType || !filterOrg || !filterRole || !filterResult) return;
+
+    function applyFilters() {
+      const typeVal = filterType!.value;
+      const orgVal = filterOrg!.value;
+      const roleVal = filterRole!.value;
+      const resultVal = filterResult!.value;
+
+      let visible = 0;
+
+      items.forEach((card) => {
+        const matchType = !typeVal || card.dataset.paperType === typeVal;
+        const matchOrg = !orgVal || card.dataset.organization === orgVal;
+        const matchRole = !roleVal || card.dataset.role === roleVal;
+        const matchResult = !resultVal || card.dataset.result === resultVal;
+
+        const show = matchType && matchOrg && matchRole && matchResult;
+        const li = card.closest("li") as HTMLElement;
+        li.style.display = show ? "" : "none";
+        if (show) visible++;
+      });
+
+      if (filterCount) {
+        const isFiltered = typeVal || orgVal || roleVal || resultVal;
+        filterCount.textContent = isFiltered
+          ? `${visible} von ${items.length} Vorlagen`
+          : "";
+      }
+
+      if (noResults) {
+        noResults.style.display = visible === 0 ? "" : "none";
+      }
+    }
+
+    filterType.addEventListener("change", applyFilters);
+    filterOrg.addEventListener("change", applyFilters);
+    filterRole.addEventListener("change", applyFilters);
+    filterResult.addEventListener("change", applyFilters);
+  }
+
+  initFilters();
 </script>
