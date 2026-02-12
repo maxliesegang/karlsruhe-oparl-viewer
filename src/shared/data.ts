@@ -19,6 +19,7 @@ let organizationsCache: Map<string, Organization> | null = null;
 let fileContentsCache: Map<string, FileContentType> | null = null;
 let paperStadtteileCache: Map<string, string[]> | null = null;
 let availableYearsCache: string[] | null = null;
+let availableStadtteileCache: string[] | null = null;
 
 // --- Generic fetcher ---
 async function fetchJson<T>(url: string): Promise<T[]> {
@@ -169,6 +170,21 @@ export async function getAllAvailableYears(): Promise<string[]> {
     ...new Set(papers.map((paper) => getRelevantYear(paper))),
   ].sort();
   return availableYearsCache;
+}
+
+export async function getAllAvailableStadtteile(): Promise<string[]> {
+  if (availableStadtteileCache) return availableStadtteileCache;
+
+  const papers = await loadPapers();
+  const stadtteileSet = new Set<string>();
+  for (const paper of papers) {
+    for (const s of paper.stadtteile || []) {
+      const trimmed = s.trim();
+      if (trimmed) stadtteileSet.add(trimmed);
+    }
+  }
+  availableStadtteileCache = [...stadtteileSet].sort();
+  return availableStadtteileCache;
 }
 
 // --- Per-paper resolvers ---

@@ -1,0 +1,79 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import PapersTable from "../../components/PapersTable.astro";
+import {
+  loadPapers,
+  loadOrganizations,
+  loadMeetings,
+  getAllAvailableStadtteile,
+} from "../../shared/data";
+import { buildFilterData } from "../../shared/paper-filter-utils";
+import { slugify } from "../../shared/utils";
+
+export async function getStaticPaths() {
+  const stadtteile = await getAllAvailableStadtteile();
+  return stadtteile.map((name) => ({
+    params: { name: slugify(name) },
+    props: { stadtteilName: name },
+  }));
+}
+
+const { stadtteilName } = Astro.props;
+const base = import.meta.env.BASE_URL;
+
+const [allPapers, orgsMap, meetingsMap] = await Promise.all([
+  loadPapers(),
+  loadOrganizations(),
+  loadMeetings(),
+]);
+
+const papers = allPapers.filter((p) =>
+  (p.stadtteile || []).some((s) => s.trim() === stadtteilName),
+);
+
+const { filterData, filterOptions } = buildFilterData(
+  papers,
+  orgsMap,
+  meetingsMap,
+);
+---
+
+<Layout>
+  <div class="stadtteil-page">
+    <h1 class="page-header">{stadtteilName}</h1>
+    <p class="subtitle">
+      {papers.length} Vorlagen &middot;
+      <a href={`${base}stadtteile`} class="back-link">Alle Stadtteile</a>
+    </p>
+
+    <div data-pagefind-ignore>
+      <PapersTable
+        papers={papers}
+        filterData={filterData}
+        filterOptions={filterOptions}
+      />
+    </div>
+  </div>
+</Layout>
+
+<style>
+  .stadtteil-page {
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  .subtitle {
+    text-align: center;
+    color: var(--color-text-muted);
+    margin-bottom: 24px;
+  }
+
+  .back-link {
+    color: var(--color-link);
+    text-decoration: none;
+  }
+
+  .back-link:hover {
+    text-decoration: underline;
+  }
+</style>

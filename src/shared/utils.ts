@@ -24,3 +24,15 @@ export function formatDateLong(date: string | undefined): string {
     day: "numeric",
   });
 }
+
+/** Converts a display string (e.g. Stadtteil name) into a URL-safe slug. */
+export function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/ä/g, "ae")
+    .replace(/ö/g, "oe")
+    .replace(/ü/g, "ue")
+    .replace(/ß/g, "ss")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}

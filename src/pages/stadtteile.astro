@@ -1,0 +1,95 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { getAllAvailableStadtteile, loadPapers } from "../shared/data";
+import { slugify } from "../shared/utils";
+
+const allStadtteile = await getAllAvailableStadtteile();
+const papers = await loadPapers();
+
+const countMap = new Map<string, number>();
+for (const paper of papers) {
+  for (const s of paper.stadtteile || []) {
+    const trimmed = s.trim();
+    if (trimmed) countMap.set(trimmed, (countMap.get(trimmed) ?? 0) + 1);
+  }
+}
+
+const base = import.meta.env.BASE_URL;
+---
+
+<Layout>
+  <div class="stadtteile-page">
+    <h1 class="page-header">Vorlagen nach Stadtteil</h1>
+    <p class="subtitle">
+      {allStadtteile.length} Stadtteile mit Vorlagen
+    </p>
+    <div class="stadtteile-grid">
+      {
+        allStadtteile.map((name) => (
+          <a href={`${base}stadtteil/${slugify(name)}`} class="stadtteil-card">
+            <span class="stadtteil-name">{name}</span>
+            <span class="stadtteil-count">
+              {countMap.get(name) ?? 0} Vorlagen
+            </span>
+          </a>
+        ))
+      }
+    </div>
+  </div>
+</Layout>
+
+<style>
+  .stadtteile-page {
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  .subtitle {
+    text-align: center;
+    color: var(--color-text-muted);
+    margin-bottom: 24px;
+  }
+
+  .stadtteile-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+  }
+
+  .stadtteil-card {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 18px 20px;
+    background: #fff;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    text-decoration: none;
+    color: inherit;
+    transition:
+      box-shadow 0.2s,
+      transform 0.2s;
+  }
+
+  .stadtteil-card:hover {
+    box-shadow: var(--shadow-card);
+    transform: translateY(-2px);
+  }
+
+  .stadtteil-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--color-text);
+  }
+
+  .stadtteil-count {
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+  }
+
+  @media screen and (max-width: 768px) {
+    .stadtteile-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
