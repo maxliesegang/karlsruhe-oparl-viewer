@@ -17,6 +17,7 @@ let papersCache: Paper[] | null = null;
 let meetingsCache: Map<string, Meeting> | null = null;
 let organizationsCache: Map<string, Organization> | null = null;
 let fileContentsCache: Map<string, FileContentType> | null = null;
+let paperStadtteileCache: Map<string, string[]> | null = null;
 let availableYearsCache: string[] | null = null;
 
 // --- Generic fetcher ---
@@ -29,15 +30,49 @@ async function fetchJson<T>(url: string): Promise<T[]> {
   return response.json();
 }
 
+async function fetchJsonRecord<T>(
+  url: string,
+): Promise<Record<string, T | undefined>> {
+  const response = await fetch(url);
+  if (!response.ok) {
+    console.error(`Failed to fetch ${url}: ${response.status}`);
+    return {};
+  }
+
+  const data: unknown = await response.json();
+  if (!data || typeof data !== "object" || Array.isArray(data)) {
+    console.error(`Unexpected data shape for ${url}`);
+    return {};
+  }
+
+  return data as Record<string, T | undefined>;
+}
+
+function normalizeStringArray(
+  value: string[] | string | null | undefined,
+): string[] {
+  const rawValues = Array.isArray(value)
+    ? value
+    : typeof value === "string"
+      ? [value]
+      : [];
+
+  return [...new Set(rawValues.map((entry) => entry.trim()).filter(Boolean))];
+}
+
 // --- Loaders ---
 
 export async function loadPapers(): Promise<Paper[]> {
   if (papersCache) return papersCache;
 
-  const data = await fetchJson<Paper>(`${DATA_BASE_URL}/papers.json`);
+  const [data, paperStadtteile] = await Promise.all([
+    fetchJson<Paper>(`${DATA_BASE_URL}/papers.json`),
+    loadPaperStadtteile(),
+  ]);
   const activePapers = data.filter((paper) => !paper.deleted);
   for (const paper of activePapers) {
     paper.internalReference = paper.reference.replaceAll("/", "-");
+    paper.stadtteile = paperStadtteile.get(paper.reference) ?? [];
   }
   activePapers.sort(
     (a, b) => new Date(b.modified).getTime() - new Date(a.modified).getTime(),
@@ -98,6 +133,23 @@ export async function loadFileContents(): Promise<
   }
 
   return fileContentsCache;
+}
+
+export async function loadPaperStadtteile(): Promise<Map<string, string[]>> {
+  if (paperStadtteileCache) return paperStadtteileCache;
+
+  const data = await fetchJsonRecord<string[] | string | null>(
+    `${DATA_BASE_URL}/paper-stadtteile.json`,
+  );
+
+  paperStadtteileCache = new Map(
+    Object.entries(data).map(([reference, rawValue]) => [
+      reference,
+      normalizeStringArray(rawValue),
+    ]),
+  );
+
+  return paperStadtteileCache;
 }
 
 // --- Derived data ---

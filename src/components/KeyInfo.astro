@@ -42,6 +42,10 @@ const pagefindSortAtt = `date:${new Date(paper.date).toISOString()}`;
           }</td
         >
       </tr>
+      <tr>
+        <th>Erwähnte Stadtteile:</th>
+        <td>{paper.stadtteile?.join(", ") || "Keine Angaben"}</td>
+      </tr>
     </tbody>
   </table>
 </section>

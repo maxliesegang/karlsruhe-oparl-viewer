@@ -4,6 +4,7 @@ import type { Entity } from "./entity.ts";
 
 export interface Paper extends Entity {
   internalReference: string;
+  stadtteile: string[];
   type: string;
   body: string;
   name: string;

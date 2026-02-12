@@ -1,21 +1,15 @@
 ---
-import type { Paper } from "../shared/types";
+import type {
+  Paper,
+  PaperFilterData,
+  PaperFilterOptions,
+} from "../shared/types";
 import { formatDateLong } from "../shared/utils";
-
-interface FilterOptions {
-  paperTypes: string[];
-  organizations: string[];
-  roles: string[];
-  results: string[];
-}
 
 interface Props {
   papers: Paper[];
-  filterData?: Record<
-    string,
-    { organizationNames: string; lastRole: string; lastResult: string }
-  >;
-  filterOptions?: FilterOptions;
+  filterData?: Record<string, PaperFilterData>;
+  filterOptions?: PaperFilterOptions;
 }
 
 const { papers = [], filterData, filterOptions } = Astro.props;
@@ -25,6 +19,21 @@ const hasFilters = filterOptions && filterData;
 /** Extract date part (YYYY-MM-DD) from an ISO datetime string. */
 function toDateKey(modified: string): string {
   return modified.slice(0, 10);
+}
+
+function buildPaperMetaText(paper: Paper, data?: PaperFilterData): string {
+  return [
+    paper.reference,
+    paper.paperType,
+    data?.organizationNames,
+    data?.lastRole,
+    data?.lastResult,
+    data?.stadtteileLabel
+      ? `Erwähnte Stadtteile: ${data.stadtteileLabel}`
+      : undefined,
+  ]
+    .filter(Boolean)
+    .join(" \u00B7 ");
 }
 ---
 
@@ -70,6 +79,15 @@ function toDateKey(modified: string): string {
                 ))}
               </select>
             </div>
+            <div class="filter-group">
+              <label for="filter-stadtteil">Erwähnter Stadtteil</label>
+              <select id="filter-stadtteil">
+                <option value="">Alle</option>
+                {filterOptions.stadtteile.map((s) => (
+                  <option value={s}>{s}</option>
+                ))}
+              </select>
+            </div>
           </div>
           <p class="filter-count" id="filter-count" />
         </div>
@@ -80,6 +98,7 @@ function toDateKey(modified: string): string {
           const dateKey = toDateKey(paper.modified);
           const prevDateKey = i > 0 ? toDateKey(papers[i - 1].modified) : null;
           const showHeader = dateKey !== prevDateKey;
+          const metaText = buildPaperMetaText(paper, fd);
 
           return (
             <>
@@ -96,18 +115,11 @@ function toDateKey(modified: string): string {
                   data-organization={fd?.organizationNames ?? ""}
                   data-role={fd?.lastRole ?? ""}
                   data-result={fd?.lastResult ?? ""}
+                  data-stadtteile={fd?.stadtteileFilterValue ?? ""}
                 >
                   <span class="paper-title">{paper.name}</span>
-                  <span class="paper-meta">
-                    {[
-                      paper.reference,
-                      paper.paperType,
-                      fd?.organizationNames,
-                      fd?.lastRole,
-                      fd?.lastResult,
-                    ]
-                      .filter(Boolean)
-                      .join(" \u00B7 ")}
+                  <span class="paper-meta" title={metaText}>
+                    {metaText}
                   </span>
                 </a>
               </li>
@@ -230,10 +242,22 @@ function toDateKey(modified: string): string {
   }
 
   .paper-meta {
-    display: block;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
     font-size: 0.85rem;
     color: #888;
     line-height: 1.4;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+  }
+
+  @media screen and (max-width: 1100px) {
+    .paper-meta {
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
+    }
   }
 
   li:last-child .paper-card {
@@ -268,6 +292,11 @@ function toDateKey(modified: string): string {
       padding: 14px 16px;
     }
 
+    .paper-meta {
+      -webkit-line-clamp: 3;
+      line-clamp: 3;
+    }
+
     .filters {
       padding: 14px 16px;
     }
@@ -288,6 +317,9 @@ function toDateKey(modified: string): string {
     const filterResult = document.getElementById(
       "filter-result",
     ) as HTMLSelectElement | null;
+    const filterStadtteil = document.getElementById(
+      "filter-stadtteil",
+    ) as HTMLSelectElement | null;
     const filterCount = document.getElementById("filter-count");
     const noResults = document.getElementById("no-results");
     const items = document.querySelectorAll<HTMLElement>(".paper-card");
@@ -296,11 +328,24 @@ function toDateKey(modified: string): string {
 
     if (!filterType || !filterOrg || !filterRole || !filterResult) return;
 
+    const controls = {
+      type: filterType,
+      org: filterOrg,
+      role: filterRole,
+      result: filterResult,
+      stadtteil: filterStadtteil,
+    };
+
+    function parseStadtteile(raw: string | undefined): string[] {
+      return (raw || "").split("|").filter(Boolean);
+    }
+
     function applyFilters() {
-      const typeVal = filterType!.value;
-      const orgVal = filterOrg!.value;
-      const roleVal = filterRole!.value;
-      const resultVal = filterResult!.value;
+      const typeVal = controls.type.value;
+      const orgVal = controls.org.value;
+      const roleVal = controls.role.value;
+      const resultVal = controls.result.value;
+      const stadtteilVal = controls.stadtteil?.value ?? "";
 
       const visibleDates = new Set<string>();
       let visible = 0;
@@ -310,8 +355,12 @@ function toDateKey(modified: string): string {
         const matchOrg = !orgVal || card.dataset.organization === orgVal;
         const matchRole = !roleVal || card.dataset.role === roleVal;
         const matchResult = !resultVal || card.dataset.result === resultVal;
+        const stadtteile = parseStadtteile(card.dataset.stadtteile);
+        const matchStadtteil =
+          !stadtteilVal || stadtteile.includes(stadtteilVal);
 
-        const show = matchType && matchOrg && matchRole && matchResult;
+        const show =
+          matchType && matchOrg && matchRole && matchResult && matchStadtteil;
         const li = card.closest("li") as HTMLElement;
         li.style.display = show ? "" : "none";
         if (show) {
@@ -328,7 +377,8 @@ function toDateKey(modified: string): string {
       });
 
       if (filterCount) {
-        const isFiltered = typeVal || orgVal || roleVal || resultVal;
+        const isFiltered =
+          typeVal || orgVal || roleVal || resultVal || stadtteilVal;
         filterCount.textContent = isFiltered
           ? `${visible} von ${items.length} Vorlagen`
           : "";
@@ -339,10 +389,19 @@ function toDateKey(modified: string): string {
       }
     }
 
-    filterType.addEventListener("change", applyFilters);
-    filterOrg.addEventListener("change", applyFilters);
-    filterRole.addEventListener("change", applyFilters);
-    filterResult.addEventListener("change", applyFilters);
+    function scheduleApplyFilters() {
+      requestAnimationFrame(applyFilters);
+    }
+
+    controls.type.addEventListener("change", applyFilters);
+    controls.org.addEventListener("change", applyFilters);
+    controls.role.addEventListener("change", applyFilters);
+    controls.result.addEventListener("change", applyFilters);
+    controls.stadtteil?.addEventListener("change", applyFilters);
+    window.addEventListener("pageshow", scheduleApplyFilters);
+
+    // Apply once on load so browser-restored select values are reflected in the list.
+    scheduleApplyFilters();
   }
 
   initFilters();

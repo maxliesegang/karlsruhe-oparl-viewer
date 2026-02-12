@@ -7,5 +7,6 @@ export type { Location } from "./location.ts";
 export type { Meeting } from "./meeting.ts";
 export type { Organization } from "./organization.ts";
 export type { Paper } from "./paper.ts";
+export type { PaperFilterData, PaperFilterOptions } from "./paper-filters.ts";
 export type { ResolvedConsultation } from "./resolved-consultation.ts";
 export type { ResolvedFile } from "./resolved-file.ts";
