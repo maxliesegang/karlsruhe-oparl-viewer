@@ -1,5 +1,6 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import StadtteilHint from "../components/StadtteilHint.astro";
 import { getAllAvailableStadtteile, loadPapers } from "../shared/data";
 import { slugify } from "../shared/utils";
 
@@ -23,11 +24,7 @@ const base = import.meta.env.BASE_URL;
     <p class="subtitle">
       {allStadtteile.length} Stadtteile mit Vorlagen
     </p>
-    <p class="hint" role="note">
-      Hinweis: Die Zuordnung zu Stadtteilen erfolgt automatisch über Texttreffer
-      in den Vorlagen. Deshalb können manchmal unpassende Treffer auftauchen
-      oder passende Vorlagen fehlen, wenn ein Stadtteil anders benannt ist.
-    </p>
+    <StadtteilHint />
     <div class="stadtteile-grid">
       {
         allStadtteile.map((name) => (
@@ -53,16 +50,6 @@ const base = import.meta.env.BASE_URL;
     text-align: center;
     color: var(--color-text-muted);
     margin-bottom: 14px;
-  }
-
-  .hint {
-    margin: 0 auto 20px;
-    max-width: 760px;
-    padding: 0 8px;
-    font-size: 0.88rem;
-    color: var(--color-text-muted);
-    text-align: center;
-    line-height: 1.45;
   }
 
   .stadtteile-grid {

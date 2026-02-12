@@ -1,6 +1,7 @@
 ---
 import Layout from "../../layouts/Layout.astro";
 import PapersTable from "../../components/PapersTable.astro";
+import StadtteilHint from "../../components/StadtteilHint.astro";
 import {
   loadPapers,
   loadOrganizations,
@@ -45,11 +46,7 @@ const { filterData, filterOptions } = buildFilterData(
       {papers.length} Vorlagen &middot;
       <a href={`${base}stadtteile`} class="back-link">Alle Stadtteile</a>
     </p>
-    <p class="hint" role="note">
-      Hinweis: Die Zuordnung zu Stadtteilen erfolgt automatisch über Texttreffer
-      in den Vorlagen. Deshalb können manchmal unpassende Treffer auftauchen
-      oder passende Vorlagen fehlen, wenn ein Stadtteil anders benannt ist.
-    </p>
+    <StadtteilHint />
 
     <div data-pagefind-ignore>
       <PapersTable
@@ -71,16 +68,6 @@ const { filterData, filterOptions } = buildFilterData(
     text-align: center;
     color: var(--color-text-muted);
     margin-bottom: 14px;
-  }
-
-  .hint {
-    margin: 0 auto 20px;
-    max-width: 760px;
-    padding: 0 8px;
-    font-size: 0.88rem;
-    color: var(--color-text-muted);
-    text-align: center;
-    line-height: 1.45;
   }
 
   .back-link {
