@@ -1,6 +1,6 @@
 ---
 import type { Paper } from "../shared/types";
-import { formatDateShort } from "../shared/utils";
+import { formatDateLong } from "../shared/utils";
 
 interface FilterOptions {
   paperTypes: string[];
@@ -21,6 +21,11 @@ interface Props {
 const { papers = [], filterData, filterOptions } = Astro.props;
 const base = import.meta.env.BASE_URL;
 const hasFilters = filterOptions && filterData;
+
+/** Extract date part (YYYY-MM-DD) from an ISO datetime string. */
+function toDateKey(modified: string): string {
+  return modified.slice(0, 10);
+}
 ---
 
 {
@@ -70,33 +75,43 @@ const hasFilters = filterOptions && filterData;
         </div>
       )}
       <ul class="paper-list">
-        {papers.map((paper) => {
+        {papers.map((paper, i) => {
           const fd = filterData?.[paper.reference];
+          const dateKey = toDateKey(paper.modified);
+          const prevDateKey = i > 0 ? toDateKey(papers[i - 1].modified) : null;
+          const showHeader = dateKey !== prevDateKey;
+
           return (
-            <li>
-              <a
-                class="paper-card"
-                href={`${base}vorlage/${paper.internalReference}`}
-                data-paper-type={paper.paperType}
-                data-organization={fd?.organizationNames ?? ""}
-                data-role={fd?.lastRole ?? ""}
-                data-result={fd?.lastResult ?? ""}
-              >
-                <span class="paper-title">{paper.name}</span>
-                <span class="paper-meta">
-                  {[
-                    paper.reference,
-                    paper.paperType,
-                    fd?.organizationNames,
-                    fd?.lastRole,
-                    fd?.lastResult,
-                    `Aktualisiert: ${formatDateShort(paper.modified)}`,
-                  ]
-                    .filter(Boolean)
-                    .join(" \u00B7 ")}
-                </span>
-              </a>
-            </li>
+            <>
+              {showHeader && (
+                <li class="date-group-header" data-date={dateKey}>
+                  Aktualisiert am {formatDateLong(paper.modified)}
+                </li>
+              )}
+              <li data-date-group={dateKey}>
+                <a
+                  class="paper-card"
+                  href={`${base}vorlage/${paper.internalReference}`}
+                  data-paper-type={paper.paperType}
+                  data-organization={fd?.organizationNames ?? ""}
+                  data-role={fd?.lastRole ?? ""}
+                  data-result={fd?.lastResult ?? ""}
+                >
+                  <span class="paper-title">{paper.name}</span>
+                  <span class="paper-meta">
+                    {[
+                      paper.reference,
+                      paper.paperType,
+                      fd?.organizationNames,
+                      fd?.lastRole,
+                      fd?.lastResult,
+                    ]
+                      .filter(Boolean)
+                      .join(" \u00B7 ")}
+                  </span>
+                </a>
+              </li>
+            </>
           );
         })}
       </ul>
@@ -178,6 +193,22 @@ const hasFilters = filterOptions && filterData;
     padding: 0;
   }
 
+  .date-group-header {
+    padding: 10px 24px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--color-text-muted);
+    background: #f8f9fa;
+    border-bottom: 1px solid var(--color-border);
+    border-top: 1px solid var(--color-border);
+  }
+
+  .date-group-header:first-child {
+    border-top: none;
+  }
+
   .paper-card {
     display: block;
     padding: 18px 24px;
@@ -229,6 +260,10 @@ const hasFilters = filterOptions && filterData;
       min-width: 100%;
     }
 
+    .date-group-header {
+      padding: 10px 16px;
+    }
+
     .paper-card {
       padding: 14px 16px;
     }
@@ -256,6 +291,8 @@ const hasFilters = filterOptions && filterData;
     const filterCount = document.getElementById("filter-count");
     const noResults = document.getElementById("no-results");
     const items = document.querySelectorAll<HTMLElement>(".paper-card");
+    const dateHeaders =
+      document.querySelectorAll<HTMLElement>(".date-group-header");
 
     if (!filterType || !filterOrg || !filterRole || !filterResult) return;
 
@@ -265,6 +302,7 @@ const hasFilters = filterOptions && filterData;
       const roleVal = filterRole!.value;
       const resultVal = filterResult!.value;
 
+      const visibleDates = new Set<string>();
       let visible = 0;
 
       items.forEach((card) => {
@@ -276,7 +314,17 @@ const hasFilters = filterOptions && filterData;
         const show = matchType && matchOrg && matchRole && matchResult;
         const li = card.closest("li") as HTMLElement;
         li.style.display = show ? "" : "none";
-        if (show) visible++;
+        if (show) {
+          visible++;
+          const dateGroup = li.dataset.dateGroup;
+          if (dateGroup) visibleDates.add(dateGroup);
+        }
+      });
+
+      dateHeaders.forEach((header) => {
+        header.style.display = visibleDates.has(header.dataset.date ?? "")
+          ? ""
+          : "none";
       });
 
       if (filterCount) {
