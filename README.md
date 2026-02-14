@@ -1,157 +1,108 @@
 # GemeinderatsRadar
 
-GemeinderatsRadar is an Astro-powered web application designed to provide insights and structured information about local council agendas, documents, and consultations. The application fetches, organizes, and displays data from sources like the OParl standard, making it more accessible to interested citizens.
+GemeinderatsRadar is an Astro static site that makes Karlsruhe council papers easier to browse and search.  
+It builds from an OParl-based JSON mirror and publishes to GitHub Pages.
 
-## Live Demo
+## Live Site
 
-Visit the live application (GitHub Pages):  
-https://maxliesegang.github.io/karlsruhe-oparl-viewer/
+[https://maxliesegang.github.io/karlsruhe-oparl-viewer/](https://maxliesegang.github.io/karlsruhe-oparl-viewer/)
 
-If you fork this project for GitHub Pages, keep the base path intact by using `import.meta.env.BASE_URL` everywhere (already wired in the codebase).
+## What It Does
 
-## About OParl
+- Full-text search on the landing page via `astro-pagefind` (German UI copy).
+- Browse papers by year (`/vorlagen{year}`).
+- Browse papers by district (`/stadtteile`, `/stadtteil/[name]`).
+- Filter list pages by type, organization, role, result, and mentioned district.
+- Open paper detail pages with key metadata, consultations, and auxiliary files.
 
-[OParl](https://oparl.org/) is an open standard for parliamentary information systems in Germany. It defines a standardized API for accessing information about local councils, their meetings, documents, and decisions, making government data more transparent and accessible.
+## Stack
 
-## Purpose
+- Astro 5 (`astro build`, static output)
+- TypeScript (strict via `astro/tsconfigs/strict`)
+- `astro-pagefind`
+- Prettier 3 + `prettier-plugin-astro`
+- npm (`package-lock.json` is authoritative)
 
-This project focuses on making council data from Karlsruhe, Germany more accessible. It transforms the raw OParl data into an intuitive interface where citizens can browse, search, and understand local government activities and decisions.
+## Requirements
 
-## Prerequisites
+- Node.js 20.x recommended
+- npm
+- Internet access during build (content is fetched from GitHub Raw)
 
-- Node.js 20.x recommended (matches the GitHub Actions runner).
-- npm (lockfile is `package-lock.json`; prefer npm over pnpm/yarn to avoid lock drift).
-- Internet access at build time (data is fetched from GitHub Raw; see “Data sources”).
-
-## Quickstart
+## Local Development
 
 ```bash
-npm ci          # or npm install
-npm run dev     # http://localhost:4321
+npm ci
+npm run dev
 ```
 
-Build and preview production output:
+Dev server: [http://localhost:4321](http://localhost:4321)
+
+Build and preview:
 
 ```bash
 npm run build
 npm run preview
 ```
 
-> Tip: run `npm run format` before committing to keep Astro and TypeScript files prettified.
+Format:
 
----
-
-## Features
-
-- **Search:** Full-text search via [`astro-pagefind`](https://github.com/astro-community/astro-pagefind) with German UI copy.
-- **Per-year listings:** `/vorlagen{year}` shows papers grouped by their relevant year (see bulk-import note below).
-- **Detail pages:** `/vorlage/[reference]` includes metadata, consultations, and auxiliary files with extracted text snippets.
-- **Responsive layout:** Optimized for mobile and desktop.
-- **GitHub Pages ready:** Uses `import.meta.env.BASE_URL` so links work from the repo’s Pages subpath.
-
-## Routes at a Glance
-
-- `/` – landing page with search UI.
-- `/vorlagen{year}` – list of papers for the given year (static paths generated from available years).
-- `/vorlage/[reference]` – details for a single paper.
-
-## Data Sources
-
-Content is pulled at build time from the public mirror:
-`https://raw.githubusercontent.com/maxliesegang/karlsruhe-oparl-syndication/refs/heads/main/docs`
-
-- Papers, meetings, organizations, file metadata, and up to 50 file-content chunks are fetched and cached in `src/shared/data.ts`.
-- Bulk import: items with `modified` on `2025-03-03` use `paper.date` to determine their year. Changing that date constant may impact routing.
-
-> Building offline will fail unless you point `DATA_BASE_URL` (see `src/shared/constants.ts`) to a reachable mirror.
-
-## Project Structure (short)
-
-```plaintext
-src/
-  pages/          # Astro entry points and dynamic routes
-  components/     # UI building blocks
-  layouts/        # Shared layout
-  shared/         # data loaders, utils, types
-public/           # static assets
+```bash
+npm run format
 ```
 
-## Key Technologies
+## Routes
 
-- Astro 5 (static generation).
-- TypeScript strict mode.
-- `astro-pagefind` for on-site search.
-- Prettier + `prettier-plugin-astro` for formatting.
+- `/` -> search page
+- `/vorlagen{year}` -> papers for a year
+- `/stadtteile` -> district overview
+- `/stadtteil/[name]` -> papers for one district
+- `/vorlage/[reference]` -> paper details
 
-## 🧞 Available Scripts
+## Data Flow
 
-| Command           | Description                                            |
-| ----------------- | ------------------------------------------------------ |
-| `npm ci`          | Install dependencies exactly as locked                 |
-| `npm run dev`     | Start a development server at `localhost:4321`         |
-| `npm run build`   | Build the project for production in the `dist/` folder |
-| `npm run preview` | Serve the built production output locally              |
-| `npm run format`  | Format the codebase with Prettier                      |
+The build reads from:
+
+`https://raw.githubusercontent.com/maxliesegang/karlsruhe-oparl-syndication/refs/heads/main/docs`
+
+Key implementation points:
+
+- Data endpoint is configured in `src/shared/constants.ts` (`DATA_BASE_URL`).
+- Fetching/caching lives in `src/shared/data.ts` (module-scoped caches).
+- `internalReference` is derived from `paper.reference` by replacing `/` with `-`.
+- Year bucketing uses `getRelevantYear()` with bulk-import handling (`BULK_MODIFIED_DATE = "2025-03-03"`).
+- File content text is loaded from chunk files (`CHUNK_BATCH_SIZE = 50`).
+- District counts are derived and cached via `getStadtteilCounts()`.
+
+Offline builds fail unless `DATA_BASE_URL` is pointed to a reachable local mirror.
+
+## Architecture Notes
+
+- `src/layouts/Layout.astro` provides page shell and global styles.
+- `src/components/SiteNavigation.astro` owns nav markup/styles/mobile behavior.
+- `src/components/PaperListingPage.astro` + `src/components/PageContainer.astro` are shared list-page wrappers.
+- `src/components/PapersTable.astro` renders paper rows and metadata.
+- `src/components/FilterSelect.astro` renders each filter dropdown.
+- `src/shared/papers-table-filters.ts` contains client-side filtering logic.
+- `src/shared/paper-filter-utils.ts` builds filter metadata/options from paper + meeting/org data.
 
 ## Deployment
 
-This project builds to static assets and can be hosted on any static provider.
+GitHub Pages deployment is configured in `.github/workflows/deploy.yml`:
 
-- GitHub Pages: already configured via `.github/workflows/deploy.yml` (runs on `main` pushes and twice daily). Artifacts from the build job are published with `actions/deploy-pages`.
-  - In GitHub repository settings (`Settings` → `Pages`), set **Build and deployment** → **Source** to **GitHub Actions**. Otherwise GitHub can also trigger a separate Jekyll workflow (`pages build and deployment`) that is not used by this Astro pipeline.
-- Other hosts (Netlify, Vercel, etc.): run `npm run build` and deploy the `dist/` directory.
+- On push to `main`
+- On schedule at `03:00` and `15:00` UTC
+- Via `withastro/action@v3` + `actions/deploy-pages@v4`
+
+Do not commit generated output (`dist/`).
 
 ## Contributing
 
-Contributions are welcome! If you’d like to report a bug, suggest features, or submit a pull request:
-
 1. Create a feature branch.
-2. Run `npm run format` before pushing.
-3. Describe your changes clearly in the PR.
-
-## File Breakdown
-
-### Key Files
-
-- **`astro.config.mjs`**: Astro project config, including `astro-pagefind`.
-- **`src/layouts/Layout.astro`**: Shared page chrome and navigation.
-- **`src/shared/data.ts`**: Fetching and caching logic for papers, meetings, organizations, and file contents.
-- **`src/shared/utils.ts`**: URL correction and date formatting helpers.
-- **`src/shared/types/`**: Type definitions for the fetched data.
-
-## Example Usage
-
-### Running Locally
-
-1. Clone the repository.
-
-```bash
-git clone https://github.com/maxliesegang/karlsruhe-oparl-viewer.git
-cd karlsruhe-oparl-viewer
-```
-
-2. Install dependencies.
-
-```bash
-npm ci
-```
-
-3. Start the local development server.
-
-```bash
-npm run dev
-```
-
-Visit `http://localhost:4321` in your web browser to access the app.
-
-### Fetching Paper Details
-
-Search for council papers via the landing page or use the “Vorlagen” navigation link to browse by year. Click on an individual paper to drill down into its details.
+2. Keep links base-aware with `import.meta.env.BASE_URL`.
+3. Run `npm run format`.
+4. Run `npm run build` if you touched page/data logic.
 
 ## License
 
-This project is licensed under the [MIT License](LICENSE). See the file for more information.
-
----
-
-Enjoy building with GemeinderatsRadar! 🚀
+[MIT](LICENSE)

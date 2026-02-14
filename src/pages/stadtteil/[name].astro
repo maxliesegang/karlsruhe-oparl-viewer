@@ -1,6 +1,6 @@
 ---
 import Layout from "../../layouts/Layout.astro";
-import PapersTable from "../../components/PapersTable.astro";
+import PaperListingPage from "../../components/PaperListingPage.astro";
 import StadtteilHint from "../../components/StadtteilHint.astro";
 import {
   loadPapers,
@@ -40,30 +40,21 @@ const { filterData, filterOptions } = buildFilterData(
 ---
 
 <Layout>
-  <div class="stadtteil-page">
-    <h1 class="page-header">{stadtteilName}</h1>
-    <p class="subtitle">
+  <PaperListingPage
+    title={stadtteilName}
+    papers={papers}
+    filterData={filterData}
+    filterOptions={filterOptions}
+  >
+    <p slot="intro" class="subtitle">
       {papers.length} Vorlagen &middot;
       <a href={`${base}stadtteile`} class="back-link">Alle Stadtteile</a>
     </p>
-    <StadtteilHint />
-
-    <div data-pagefind-ignore>
-      <PapersTable
-        papers={papers}
-        filterData={filterData}
-        filterOptions={filterOptions}
-      />
-    </div>
-  </div>
+    <StadtteilHint slot="intro" />
+  </PaperListingPage>
 </Layout>
 
 <style>
-  .stadtteil-page {
-    max-width: 1400px;
-    margin: 0 auto;
-  }
-
   .subtitle {
     text-align: center;
     color: var(--color-text-muted);

@@ -1,0 +1,57 @@
+---
+interface Props {
+  id: string;
+  label: string;
+  options: string[];
+}
+
+const { id, label, options } = Astro.props;
+---
+
+<div class="filter-group">
+  <label for={id}>{label}</label>
+  <select id={id}>
+    <option value="">Alle</option>
+    {options.map((option) => <option value={option}>{option}</option>)}
+  </select>
+</div>
+
+<style>
+  .filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+    min-width: 180px;
+  }
+
+  .filter-group label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--color-text-muted);
+  }
+
+  .filter-group select {
+    padding: 7px 10px;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-family: var(--font-family);
+    color: var(--color-text);
+    background: #fff;
+    cursor: pointer;
+  }
+
+  .filter-group select:focus {
+    outline: 2px solid var(--color-link);
+    outline-offset: 1px;
+  }
+
+  @media screen and (max-width: 768px) {
+    .filter-group {
+      min-width: 100%;
+    }
+  }
+</style>

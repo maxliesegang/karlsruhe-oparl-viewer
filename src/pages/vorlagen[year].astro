@@ -1,6 +1,6 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import PapersTable from "../components/PapersTable.astro";
+import PaperListingPage from "../components/PaperListingPage.astro";
 import YearLinks from "../components/YearLinks.astro";
 import {
   loadPapers,
@@ -32,24 +32,12 @@ const { filterData, filterOptions } = buildFilterData(
 ---
 
 <Layout>
-  <div class="vorlagen-page">
-    <h1 class="page-header">Vorlagen {year}</h1>
-
-    <YearLinks allYears={allYears} currentYear={year} />
-
-    <div data-pagefind-ignore>
-      <PapersTable
-        papers={papers}
-        filterData={filterData}
-        filterOptions={filterOptions}
-      />
-    </div>
-  </div>
+  <PaperListingPage
+    title={`Vorlagen ${year}`}
+    papers={papers}
+    filterData={filterData}
+    filterOptions={filterOptions}
+  >
+    <YearLinks slot="intro" allYears={allYears} currentYear={year} />
+  </PaperListingPage>
 </Layout>
-
-<style>
-  .vorlagen-page {
-    max-width: 1400px;
-    margin: 0 auto;
-  }
-</style>

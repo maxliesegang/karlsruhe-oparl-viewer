@@ -1,0 +1,30 @@
+---
+import type {
+  Paper,
+  PaperFilterData,
+  PaperFilterOptions,
+} from "../shared/types";
+import PageContainer from "./PageContainer.astro";
+import PapersTable from "./PapersTable.astro";
+
+interface Props {
+  title: string;
+  papers: Paper[];
+  filterData?: Record<string, PaperFilterData>;
+  filterOptions?: PaperFilterOptions;
+}
+
+const { title, papers, filterData, filterOptions } = Astro.props;
+---
+
+<PageContainer>
+  <h1 class="page-header">{title}</h1>
+  <slot name="intro" />
+  <div data-pagefind-ignore>
+    <PapersTable
+      papers={papers}
+      filterData={filterData}
+      filterOptions={filterOptions}
+    />
+  </div>
+</PageContainer>

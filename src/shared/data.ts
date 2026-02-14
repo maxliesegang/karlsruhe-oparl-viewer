@@ -20,6 +20,7 @@ let fileContentsCache: Map<string, FileContentType> | null = null;
 let paperStadtteileCache: Map<string, string[]> | null = null;
 let availableYearsCache: string[] | null = null;
 let availableStadtteileCache: string[] | null = null;
+let stadtteilCountsCache: Map<string, number> | null = null;
 
 // --- Generic fetcher ---
 async function fetchJson<T>(url: string): Promise<T[]> {
@@ -59,6 +60,24 @@ function normalizeStringArray(
       : [];
 
   return [...new Set(rawValues.map((entry) => entry.trim()).filter(Boolean))];
+}
+
+function buildStadtteilCountMap(papers: Paper[]): Map<string, number> {
+  const stadtteilCounts = new Map<string, number>();
+
+  for (const paper of papers) {
+    for (const stadtteil of paper.stadtteile || []) {
+      const trimmedStadtteil = stadtteil.trim();
+      if (!trimmedStadtteil) continue;
+
+      stadtteilCounts.set(
+        trimmedStadtteil,
+        (stadtteilCounts.get(trimmedStadtteil) ?? 0) + 1,
+      );
+    }
+  }
+
+  return stadtteilCounts;
 }
 
 // --- Loaders ---
@@ -175,16 +194,17 @@ export async function getAllAvailableYears(): Promise<string[]> {
 export async function getAllAvailableStadtteile(): Promise<string[]> {
   if (availableStadtteileCache) return availableStadtteileCache;
 
-  const papers = await loadPapers();
-  const stadtteileSet = new Set<string>();
-  for (const paper of papers) {
-    for (const s of paper.stadtteile || []) {
-      const trimmed = s.trim();
-      if (trimmed) stadtteileSet.add(trimmed);
-    }
-  }
-  availableStadtteileCache = [...stadtteileSet].sort();
+  const stadtteilCounts = await getStadtteilCounts();
+  availableStadtteileCache = [...stadtteilCounts.keys()].sort();
   return availableStadtteileCache;
+}
+
+export async function getStadtteilCounts(): Promise<Map<string, number>> {
+  if (stadtteilCountsCache) return stadtteilCountsCache;
+
+  const papers = await loadPapers();
+  stadtteilCountsCache = buildStadtteilCountMap(papers);
+  return stadtteilCountsCache;
 }
 
 // --- Per-paper resolvers ---

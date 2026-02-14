@@ -1,0 +1,223 @@
+---
+interface Props {
+  latestYear: string;
+}
+
+const { latestYear } = Astro.props;
+const base = import.meta.env.BASE_URL;
+---
+
+<nav data-site-nav>
+  <div class="nav-container">
+    <button
+      class="burger"
+      aria-label="Navigation umschalten"
+      aria-controls="nav-menu"
+      aria-expanded="false"
+    >
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+    <ul id="nav-menu">
+      <li><a href={base}>GemeinderatsRadar</a></li>
+      <li><a href={`${base}vorlagen${latestYear}`}>Vorlagen</a></li>
+      <li><a href={`${base}stadtteile`}>Stadtteile</a></li>
+      <li>
+        <a
+          href="https://sitzungskalender.karlsruhe.de/db/ratsinformation/start"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Ratsinformationssystem
+        </a>
+      </li>
+    </ul>
+  </div>
+</nav>
+<div class="menu-overlay" data-nav-overlay hidden></div>
+
+<style>
+  nav {
+    background-color: var(--color-primary);
+    padding: 20px 30px;
+    font-family: var(--font-family);
+    box-shadow: var(--shadow-card);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+  }
+
+  .nav-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    gap: 30px;
+  }
+
+  nav ul li {
+    display: inline;
+  }
+
+  nav ul li a {
+    text-decoration: none;
+    font-size: 18px;
+    color: #000;
+    font-weight: bold;
+    padding: 10px 20px;
+    border-radius: 8px;
+    transition: all 0.3s ease-in-out;
+  }
+
+  nav ul li a:hover {
+    background-color: var(--color-primary-hover);
+    color: #fff;
+    transform: scale(1.03);
+  }
+
+  .burger {
+    display: none;
+    flex-direction: column;
+    gap: 7px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    z-index: 1002;
+  }
+
+  .burger span {
+    width: 30px;
+    height: 3px;
+    background-color: #000;
+    border-radius: 2px;
+    transition: all 0.3s ease-in-out;
+  }
+
+  .burger:hover span {
+    background-color: var(--color-primary-hover);
+  }
+
+  #nav-menu {
+    display: flex;
+  }
+
+  .menu-overlay {
+    display: none;
+  }
+
+  @media (max-width: 768px) {
+    .burger {
+      display: flex;
+    }
+
+    #nav-menu {
+      display: none;
+      flex-direction: column;
+      position: absolute;
+      top: 65px;
+      left: 0;
+      right: 0;
+      background-color: var(--color-primary);
+      box-shadow: var(--shadow-card);
+      padding: 20px 0;
+      transform: translateY(-100%);
+      transition: transform 0.3s ease-in-out;
+      z-index: 1001;
+    }
+
+    #nav-menu.active {
+      display: flex;
+      transform: translateY(0%);
+    }
+
+    #nav-menu li {
+      margin-bottom: 15px;
+    }
+
+    #nav-menu li:last-child {
+      margin-bottom: 0;
+    }
+
+    #nav-menu li a {
+      font-size: 20px;
+      padding: 15px 10px;
+      text-decoration: none;
+      font-weight: bold;
+      color: #000;
+      transition:
+        color 0.3s,
+        background-color 0.3s;
+      border-radius: 5px;
+    }
+
+    #nav-menu li a:hover {
+      color: #fff;
+      background-color: var(--color-primary-hover);
+    }
+
+    .menu-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 999;
+      opacity: 0;
+      transition: opacity 0.3s ease-in-out;
+    }
+
+    .menu-overlay.active {
+      display: block;
+      opacity: 1;
+    }
+
+    :global(body.menu-open) {
+      overflow: hidden;
+    }
+  }
+</style>
+
+<script>
+  function initNavigation() {
+    const nav = document.querySelector<HTMLElement>("[data-site-nav]");
+    const burger = nav?.querySelector<HTMLButtonElement>(".burger");
+    const navMenu = nav?.querySelector<HTMLElement>("#nav-menu");
+    const overlay = document.querySelector<HTMLElement>("[data-nav-overlay]");
+    const body = document.body;
+
+    if (!burger || !navMenu || !overlay) return;
+
+    function setMenuState(isOpen: boolean) {
+      navMenu.classList.toggle("active", isOpen);
+      overlay.classList.toggle("active", isOpen);
+      overlay.hidden = !isOpen;
+      burger.setAttribute("aria-expanded", String(isOpen));
+      body.classList.toggle("menu-open", isOpen);
+    }
+
+    burger.addEventListener("click", () => {
+      const isOpen = navMenu.classList.contains("active");
+      setMenuState(!isOpen);
+    });
+
+    overlay.addEventListener("click", () => {
+      setMenuState(false);
+    });
+
+    window.addEventListener("resize", () => {
+      if (window.innerWidth > 768) {
+        setMenuState(false);
+      }
+    });
+  }
+
+  initNavigation();
+</script>

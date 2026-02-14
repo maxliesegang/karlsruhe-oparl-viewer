@@ -5,6 +5,7 @@ import type {
   PaperFilterOptions,
 } from "../shared/types";
 import { formatDateLong } from "../shared/utils";
+import FilterSelect from "./FilterSelect.astro";
 
 interface Props {
   papers: Paper[];
@@ -15,22 +16,56 @@ interface Props {
 const { papers = [], filterData, filterOptions } = Astro.props;
 const base = import.meta.env.BASE_URL;
 const hasFilters = filterOptions && filterData;
+const META_EMPTY_VALUES = new Set(["Keine Angabe", "Keine Angaben"]);
+const FILTER_FIELDS: Array<{
+  id: string;
+  label: string;
+  optionsKey: keyof PaperFilterOptions;
+}> = [
+  { id: "filter-type", label: "Art", optionsKey: "paperTypes" },
+  {
+    id: "filter-org",
+    label: "Unter Leitung von",
+    optionsKey: "organizations",
+  },
+  { id: "filter-role", label: "Letzte Rolle", optionsKey: "roles" },
+  {
+    id: "filter-result",
+    label: "Letztes Beratungsergebnis",
+    optionsKey: "results",
+  },
+  {
+    id: "filter-stadtteil",
+    label: "Erwähnter Stadtteil",
+    optionsKey: "stadtteile",
+  },
+];
 
 /** Extract date part (YYYY-MM-DD) from an ISO datetime string. */
 function toDateKey(modified: string): string {
   return modified.slice(0, 10);
 }
 
+function getMeaningfulMetaValue(value?: string): string | undefined {
+  if (!value) return undefined;
+  const normalizedValue = value.trim();
+  if (!normalizedValue || META_EMPTY_VALUES.has(normalizedValue)) {
+    return undefined;
+  }
+  return normalizedValue;
+}
+
 function buildPaperMetaText(paper: Paper, data?: PaperFilterData): string {
+  const lastResult = getMeaningfulMetaValue(data?.lastResult);
+  const stadtteileLabel = getMeaningfulMetaValue(data?.stadtteileLabel);
+
   return [
     paper.reference,
     paper.paperType,
     data?.organizationNames,
     data?.lastRole,
-    data?.lastResult,
-    data?.stadtteileLabel
-      ? `Erwähnte Stadtteile: ${data.stadtteileLabel}`
-      : undefined,
+    lastResult,
+    stadtteileLabel ? `Erwähnte Stadtteile: ${stadtteileLabel}` : undefined,
   ]
     .filter(Boolean)
     .join(" \u00B7 ");
@@ -39,55 +74,17 @@ function buildPaperMetaText(paper: Paper, data?: PaperFilterData): string {
 
 {
   papers.length > 0 ? (
-    <div class="papers-panel">
+    <div class="papers-panel" data-papers-table>
       {hasFilters && (
         <div class="filters">
           <div class="filter-row">
-            <div class="filter-group">
-              <label for="filter-type">Art</label>
-              <select id="filter-type">
-                <option value="">Alle</option>
-                {filterOptions.paperTypes.map((t) => (
-                  <option value={t}>{t}</option>
-                ))}
-              </select>
-            </div>
-            <div class="filter-group">
-              <label for="filter-org">Unter Leitung von</label>
-              <select id="filter-org">
-                <option value="">Alle</option>
-                {filterOptions.organizations.map((o) => (
-                  <option value={o}>{o}</option>
-                ))}
-              </select>
-            </div>
-            <div class="filter-group">
-              <label for="filter-role">Letzte Rolle</label>
-              <select id="filter-role">
-                <option value="">Alle</option>
-                {filterOptions.roles.map((r) => (
-                  <option value={r}>{r}</option>
-                ))}
-              </select>
-            </div>
-            <div class="filter-group">
-              <label for="filter-result">Letztes Beratungsergebnis</label>
-              <select id="filter-result">
-                <option value="">Alle</option>
-                {filterOptions.results.map((r) => (
-                  <option value={r}>{r}</option>
-                ))}
-              </select>
-            </div>
-            <div class="filter-group">
-              <label for="filter-stadtteil">Erwähnter Stadtteil</label>
-              <select id="filter-stadtteil">
-                <option value="">Alle</option>
-                {filterOptions.stadtteile.map((s) => (
-                  <option value={s}>{s}</option>
-                ))}
-              </select>
-            </div>
+            {FILTER_FIELDS.map((field) => (
+              <FilterSelect
+                id={field.id}
+                label={field.label}
+                options={filterOptions?.[field.optionsKey] ?? []}
+              />
+            ))}
           </div>
           <p class="filter-count" id="filter-count" />
         </div>
@@ -156,38 +153,6 @@ function buildPaperMetaText(paper: Paper, data?: PaperFilterData): string {
     display: flex;
     flex-wrap: wrap;
     gap: 16px;
-  }
-
-  .filter-group {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    flex: 1;
-    min-width: 180px;
-  }
-
-  .filter-group label {
-    font-size: 0.8rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-    color: var(--color-text-muted);
-  }
-
-  .filter-group select {
-    padding: 7px 10px;
-    border: 1px solid var(--color-border);
-    border-radius: 6px;
-    font-size: 0.9rem;
-    font-family: var(--font-family);
-    color: var(--color-text);
-    background: #fff;
-    cursor: pointer;
-  }
-
-  .filter-group select:focus {
-    outline: 2px solid var(--color-link);
-    outline-offset: 1px;
   }
 
   .filter-count {
@@ -280,10 +245,6 @@ function buildPaperMetaText(paper: Paper, data?: PaperFilterData): string {
       flex-direction: column;
     }
 
-    .filter-group {
-      min-width: 100%;
-    }
-
     .date-group-header {
       padding: 10px 16px;
     }
@@ -304,105 +265,7 @@ function buildPaperMetaText(paper: Paper, data?: PaperFilterData): string {
 </style>
 
 <script>
-  function initFilters() {
-    const filterType = document.getElementById(
-      "filter-type",
-    ) as HTMLSelectElement | null;
-    const filterOrg = document.getElementById(
-      "filter-org",
-    ) as HTMLSelectElement | null;
-    const filterRole = document.getElementById(
-      "filter-role",
-    ) as HTMLSelectElement | null;
-    const filterResult = document.getElementById(
-      "filter-result",
-    ) as HTMLSelectElement | null;
-    const filterStadtteil = document.getElementById(
-      "filter-stadtteil",
-    ) as HTMLSelectElement | null;
-    const filterCount = document.getElementById("filter-count");
-    const noResults = document.getElementById("no-results");
-    const items = document.querySelectorAll<HTMLElement>(".paper-card");
-    const dateHeaders =
-      document.querySelectorAll<HTMLElement>(".date-group-header");
+  import { initPapersTableFilters } from "../shared/papers-table-filters";
 
-    if (!filterType || !filterOrg || !filterRole || !filterResult) return;
-
-    const controls = {
-      type: filterType,
-      org: filterOrg,
-      role: filterRole,
-      result: filterResult,
-      stadtteil: filterStadtteil,
-    };
-
-    function parseStadtteile(raw: string | undefined): string[] {
-      return (raw || "").split("|").filter(Boolean);
-    }
-
-    function applyFilters() {
-      const typeVal = controls.type.value;
-      const orgVal = controls.org.value;
-      const roleVal = controls.role.value;
-      const resultVal = controls.result.value;
-      const stadtteilVal = controls.stadtteil?.value ?? "";
-
-      const visibleDates = new Set<string>();
-      let visible = 0;
-
-      items.forEach((card) => {
-        const matchType = !typeVal || card.dataset.paperType === typeVal;
-        const matchOrg = !orgVal || card.dataset.organization === orgVal;
-        const matchRole = !roleVal || card.dataset.role === roleVal;
-        const matchResult = !resultVal || card.dataset.result === resultVal;
-        const stadtteile = parseStadtteile(card.dataset.stadtteile);
-        const matchStadtteil =
-          !stadtteilVal || stadtteile.includes(stadtteilVal);
-
-        const show =
-          matchType && matchOrg && matchRole && matchResult && matchStadtteil;
-        const li = card.closest("li") as HTMLElement;
-        li.style.display = show ? "" : "none";
-        if (show) {
-          visible++;
-          const dateGroup = li.dataset.dateGroup;
-          if (dateGroup) visibleDates.add(dateGroup);
-        }
-      });
-
-      dateHeaders.forEach((header) => {
-        header.style.display = visibleDates.has(header.dataset.date ?? "")
-          ? ""
-          : "none";
-      });
-
-      if (filterCount) {
-        const isFiltered =
-          typeVal || orgVal || roleVal || resultVal || stadtteilVal;
-        filterCount.textContent = isFiltered
-          ? `${visible} von ${items.length} Vorlagen`
-          : "";
-      }
-
-      if (noResults) {
-        noResults.style.display = visible === 0 ? "" : "none";
-      }
-    }
-
-    function scheduleApplyFilters() {
-      requestAnimationFrame(applyFilters);
-    }
-
-    controls.type.addEventListener("change", applyFilters);
-    controls.org.addEventListener("change", applyFilters);
-    controls.role.addEventListener("change", applyFilters);
-    controls.result.addEventListener("change", applyFilters);
-    controls.stadtteil?.addEventListener("change", applyFilters);
-    window.addEventListener("pageshow", scheduleApplyFilters);
-
-    // Apply once on load so browser-restored select values are reflected in the list.
-    scheduleApplyFilters();
-  }
-
-  initFilters();
+  initPapersTableFilters();
 </script>
