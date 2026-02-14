@@ -4,7 +4,7 @@
 
 - Name: GemeinderatsRadar (`karlsruhe-oparl-viewer`)
 - Purpose: Static Astro site for browsing Karlsruhe council papers based on an OParl JSON mirror
-- Stack: Astro 5.16.x, TypeScript strict, Node 20.x recommended, npm with `package-lock.json`
+- Stack: Astro 5.17.x, TypeScript strict, Node 20.x recommended, npm with `package-lock.json`
 - Formatting: Prettier 3 + `prettier-plugin-astro` (`npm run format`)
 - Hosting: GitHub Pages via `.github/workflows/deploy.yml` (push to `main`, 03:00 and 15:00 UTC schedule)
 
@@ -18,6 +18,23 @@
 - Format: `npm run format`
 
 Do not edit generated artifacts (`dist/`, `.astro/`, `node_modules/`).
+
+## Astro Upgrade Quick Steps
+
+1. Check current versions:
+   - `npm outdated --long`
+   - `npm view astro version`
+2. Read the Astro release notes for the target version.
+3. Run the official upgrader:
+   - `npx @astrojs/upgrade`
+4. Re-check dependency status:
+   - `npm outdated --long`
+5. Validate both build paths:
+   - `npm run build:quick`
+   - `npm run build`
+6. Commit `package.json` and `package-lock.json` together.
+
+When touching env flags, cast `import.meta.env.*` values before string operations and prefer explicit checks such as `=== "true"` or `=== "1"`.
 
 ## Data Flow
 
@@ -76,6 +93,7 @@ Do not edit generated artifacts (`dist/`, `.astro/`, `node_modules/`).
 - Missing `BASE_URL` prefixes breaks GitHub Pages subpath routing
 - If the mirror adds more than 50 file-content chunks, update `CHUNK_BATCH_SIZE`
 - Any route-affecting change to references must keep compatibility with existing `internalReference` URLs
+- Astro upgrades can expose implicit env-type assumptions; cast `import.meta.env` values before calling string methods
 
 ## Quick File Map
 

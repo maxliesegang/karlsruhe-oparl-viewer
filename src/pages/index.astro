@@ -2,9 +2,10 @@
 import Layout from "../layouts/Layout.astro";
 import Search from "astro-pagefind/components/Search";
 
-const pagefindEnabled = !["1", "true", "yes"].includes(
-  (import.meta.env.SKIP_PAGEFIND ?? "").toLowerCase(),
-);
+const skipPagefindValue = String(import.meta.env.SKIP_PAGEFIND ?? "")
+  .trim()
+  .toLowerCase();
+const pagefindEnabled = !["1", "true", "yes"].includes(skipPagefindValue);
 
 const uiOptions = {
   showImages: false,
