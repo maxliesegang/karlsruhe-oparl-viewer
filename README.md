@@ -45,6 +45,12 @@ npm run build
 npm run preview
 ```
 
+Fast validation build (skips Pagefind indexing):
+
+```bash
+npm run build:quick
+```
+
 Format:
 
 ```bash
@@ -93,6 +99,7 @@ GitHub Pages deployment is configured in `.github/workflows/deploy.yml`:
 - On push to `main`
 - On schedule at `03:00` and `15:00` UTC
 - Via `withastro/action@v3` + `actions/deploy-pages@v4`
+- Uses the default `npm run build` (Pagefind enabled)
 
 Do not commit generated output (`dist/`).
 

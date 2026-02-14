@@ -13,6 +13,7 @@
 - Install: `npm ci` (preferred) or `npm install`
 - Dev: `npm run dev` -> `http://localhost:4321`
 - Build: `npm run build` (outputs `dist/`)
+- Fast build (no Pagefind index): `npm run build:quick`
 - Preview: `npm run preview`
 - Format: `npm run format`
 
@@ -24,6 +25,7 @@ Do not edit generated artifacts (`dist/`, `.astro/`, `node_modules/`).
 - Core loaders/caches: `src/shared/data.ts`
 - Filter metadata generation: `src/shared/paper-filter-utils.ts`
 - Client filter behavior for list pages: `src/shared/papers-table-filters.ts`
+- Pagefind toggle: set `SKIP_PAGEFIND=1` to skip `astro-pagefind` integration (used by `npm run build:quick`)
 - File contents are loaded from chunk files (`CHUNK_BATCH_SIZE = 50`)
 - Year logic: `getRelevantYear()` handles bulk-import date `BULK_MODIFIED_DATE = "2025-03-03"`
 - Stable routing key: `paper.internalReference = paper.reference.replaceAll("/", "-")`
@@ -66,6 +68,7 @@ Do not edit generated artifacts (`dist/`, `.astro/`, `node_modules/`).
 - Workflow: `.github/workflows/deploy.yml`
 - Uses `withastro/action@v3` + `actions/deploy-pages@v4`
 - Avoid committing `dist/`
+- Keep deploy on default `npm run build` so Pagefind assets stay available in production
 
 ## Common Pitfalls
 

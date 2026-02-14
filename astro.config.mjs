@@ -6,6 +6,10 @@ const PAGES_BASE = "/karlsruhe-oparl-viewer/";
 const runningInCi =
   process.env.CI === "true" || process.env.GITHUB_ACTIONS === "true";
 const isDev = process.env.NODE_ENV === "development" && !runningInCi;
+const skipPagefind = ["1", "true", "yes"].includes(
+  (process.env.SKIP_PAGEFIND ?? "").toLowerCase(),
+);
+const integrations = skipPagefind ? [] : [pagefind()];
 
 // https://astro.build/config
 export default defineConfig({
@@ -14,5 +18,5 @@ export default defineConfig({
   build: {
     format: "file",
   },
-  integrations: [pagefind()],
+  integrations,
 });
