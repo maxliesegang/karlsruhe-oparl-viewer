@@ -16,6 +16,7 @@
     "astro-pagefind": "^1.8.5"
   },
   "devDependencies": {
+    "@types/node": "^25.2.3",
     "prettier": "^3.8.1",
     "prettier-plugin-astro": "^0.14.1"
   }
