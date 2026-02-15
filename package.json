@@ -3,7 +3,9 @@
   "type": "module",
   "version": "0.0.1",
   "scripts": {
+    "predev": "node scripts/ensure-pagefind-index.mjs",
     "dev": "astro dev",
+    "prestart": "node scripts/ensure-pagefind-index.mjs",
     "start": "astro dev",
     "build": "astro build",
     "build:quick": "SKIP_PAGEFIND=1 astro build",

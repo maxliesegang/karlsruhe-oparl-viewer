@@ -1,52 +1,81 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import PageContainer from "../components/PageContainer.astro";
 import Search from "astro-pagefind/components/Search";
+import { pagefindUiOptions } from "../shared/pagefind-config";
+import { resolvePagefindAvailability } from "../shared/pagefind-server";
 
-const skipPagefindValue = String(import.meta.env.SKIP_PAGEFIND ?? "")
-  .trim()
-  .toLowerCase();
-const pagefindEnabled = !["1", "true", "yes"].includes(skipPagefindValue);
-
-const uiOptions = {
-  showImages: false,
-  pageSize: 10,
-  sort: {
-    date: "dsc",
-  },
-  translations: {
-    placeholder: "Suchen",
-    clear_search: "Löschen",
-    load_more: "Mehr Ergebnisse laden",
-    search_label: "Diese Seite durchsuchen",
-    filters_label: "Filter",
-    zero_results: "Keine Ergebnisse für [SEARCH_TERM]",
-    many_results: "[COUNT] Ergebnisse für [SEARCH_TERM]",
-    one_result: "[COUNT] Ergebnis für [SEARCH_TERM]",
-    alt_search:
-      "Keine Ergebnisse für [SEARCH_TERM]. Stattdessen werden Ergebnisse für [DIFFERENT_TERM] angezeigt",
-    search_suggestion:
-      "Keine Ergebnisse für [SEARCH_TERM]. Versuchen Sie eine der folgenden Suchen:",
-    searching: "Suche nach [SEARCH_TERM]...",
-  },
-};
+const pagefind = resolvePagefindAvailability(import.meta.env.SKIP_PAGEFIND, {
+  isDev: import.meta.env.DEV,
+});
+const base = import.meta.env.BASE_URL;
 ---
 
 <Layout>
-  <div class="container">
+  <PageContainer class="search-page">
     <h1 class="page-header">GemeinderatsRadar</h1>
     {
-      pagefindEnabled ? (
-        <Search id="search" className="pagefind-ui" uiOptions={uiOptions} />
+      pagefind.enabled ? (
+        <>
+          <div
+            class="saved-search-controls"
+            data-pagefind-ignore
+            data-saved-search-controls
+          >
+            <div class="saved-search-actions">
+              <button
+                type="button"
+                class="saved-search-button"
+                data-save-search-button
+                disabled
+              >
+                <svg
+                  class="saved-search-icon"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 16 16"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
+                  <path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5V2z" />
+                </svg>
+                Suche speichern
+              </button>
+              <a
+                class="saved-search-link-button"
+                href={`${base}gespeicherte-suchen`}
+                data-saved-searches-link
+              >
+                Gespeicherte Suchen
+              </a>
+            </div>
+            <p
+              class="saved-search-status"
+              data-save-search-status
+              aria-live="polite"
+            />
+          </div>
+          <Search
+            id="search"
+            className="pagefind-ui"
+            uiOptions={pagefindUiOptions}
+          />
+        </>
       ) : (
         <p class="search-disabled" role="status">
-          Suche ist in diesem schnellen Build deaktiviert (SKIP_PAGEFIND=1).
+          {pagefind.disabledMessage}
         </p>
       )
     }
-  </div>
+  </PageContainer>
 </Layout>
 
 <style>
+  .search-page {
+    display: grid;
+    gap: 14px;
+  }
+
   .search-disabled {
     margin: 16px auto 0;
     max-width: 760px;
@@ -57,4 +86,96 @@ const uiOptions = {
     text-align: center;
     font-size: 0.92rem;
   }
+
+  .saved-search-controls {
+    margin: 0 auto;
+    width: min(760px, 100%);
+    display: grid;
+    gap: 6px;
+  }
+
+  .saved-search-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .saved-search-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    background: var(--color-primary);
+    color: var(--color-text);
+    padding: 8px 14px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.2s;
+  }
+
+  .saved-search-button:hover:not(:disabled) {
+    background: var(--color-primary-hover);
+  }
+
+  .saved-search-button:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  .saved-search-button :global(.saved-search-icon) {
+    flex-shrink: 0;
+  }
+
+  .saved-search-link-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    background: #fff;
+    color: var(--color-text);
+    padding: 8px 14px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background 0.2s;
+  }
+
+  .saved-search-link-button:hover {
+    background: #f3f3f3;
+  }
+
+  .saved-search-status {
+    margin: 0;
+    text-align: center;
+    color: var(--color-text-muted);
+    font-size: 0.84rem;
+    min-height: 1.2em;
+    line-height: 1.2;
+    transition: opacity 0.3s;
+  }
+
+  .saved-search-status:empty {
+    min-height: 0;
+  }
+
+  .saved-search-status[data-state="error"] {
+    color: #b10000;
+  }
+
+  .saved-search-status[data-state="info"] {
+    color: #0f5132;
+  }
 </style>
+
+<script>
+  import { initIndexSavedSearchControl } from "../shared/index-saved-search-control";
+  import { initPagefindQueryFromUrl } from "../shared/pagefind-url-query";
+
+  initPagefindQueryFromUrl();
+  initIndexSavedSearchControl();
+</script>

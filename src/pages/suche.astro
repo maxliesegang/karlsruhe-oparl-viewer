@@ -1,0 +1,65 @@
+---
+import Layout from "../layouts/Layout.astro";
+import PageContainer from "../components/PageContainer.astro";
+import Search from "astro-pagefind/components/Search";
+import { pagefindUiOptions } from "../shared/pagefind-config";
+import { resolvePagefindAvailability } from "../shared/pagefind-server";
+
+const pagefind = resolvePagefindAvailability(import.meta.env.SKIP_PAGEFIND, {
+  isDev: import.meta.env.DEV,
+});
+---
+
+<Layout>
+  <PageContainer class="search-results-page">
+    <h1 class="page-header">Suchergebnisse</h1>
+    {
+      pagefind.enabled ? (
+        <>
+          <p class="subtitle">
+            Diese Seite ist für gespeicherte Suchlinks gedacht und führt die
+            Anfrage direkt aus.
+          </p>
+          <Search
+            id="saved-search-results"
+            className="pagefind-ui"
+            uiOptions={pagefindUiOptions}
+          />
+        </>
+      ) : (
+        <p class="search-disabled" role="status">
+          {pagefind.disabledMessage}
+        </p>
+      )
+    }
+  </PageContainer>
+</Layout>
+
+<style>
+  .search-results-page {
+    max-width: 900px;
+  }
+
+  .subtitle {
+    margin: 0 auto 16px;
+    text-align: center;
+    color: var(--color-text-muted);
+  }
+
+  .search-disabled {
+    margin: 16px auto 0;
+    max-width: 760px;
+    padding: 10px 12px;
+    border: 1px dashed var(--color-border);
+    border-radius: var(--radius);
+    color: var(--color-text-muted);
+    text-align: center;
+    font-size: 0.92rem;
+  }
+</style>
+
+<script>
+  import { initPagefindQueryFromUrl } from "../shared/pagefind-url-query";
+
+  initPagefindQueryFromUrl();
+</script>

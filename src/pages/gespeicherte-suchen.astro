@@ -1,0 +1,298 @@
+---
+import Layout from "../layouts/Layout.astro";
+import PageContainer from "../components/PageContainer.astro";
+import { resolvePagefindAvailability } from "../shared/pagefind-server";
+
+const pagefind = resolvePagefindAvailability(import.meta.env.SKIP_PAGEFIND, {
+  isDev: import.meta.env.DEV,
+});
+const base = import.meta.env.BASE_URL;
+---
+
+<Layout>
+  <PageContainer class="saved-searches-page">
+    <h1 class="page-header">Gespeicherte Suchen</h1>
+    <p class="subtitle">
+      Ihre gespeicherten Suchanfragen mit aktuellen Trefferzahlen.
+    </p>
+    <div
+      class="saved-searches-panel"
+      data-pagefind-ignore
+      data-saved-searches-root
+      data-base-url={base}
+      data-pagefind-enabled={String(pagefind.enabled)}
+    >
+      <div class="saved-searches-toolbar" data-saved-searches-toolbar hidden>
+        <p class="saved-searches-summary" data-saved-searches-summary>
+          0 gespeicherte Suchanfragen
+        </p>
+        <button
+          type="button"
+          class="saved-searches-clear-button"
+          data-clear-saved-searches-button
+        >
+          Alle löschen
+        </button>
+      </div>
+      <ul class="saved-search-list" data-saved-searches-list hidden></ul>
+      <div class="saved-searches-empty" data-saved-searches-empty>
+        <svg
+          class="empty-icon"
+          width="48"
+          height="48"
+          viewBox="0 0 16 16"
+          fill="currentColor"
+          aria-hidden="true"
+        >
+          <path
+            d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5V2z"
+          ></path>
+        </svg>
+        <p class="empty-text">
+          Noch keine Suche gespeichert.<br />
+          <a href={base}>Zur Suche</a>
+        </p>
+      </div>
+    </div>
+  </PageContainer>
+</Layout>
+
+<style>
+  .saved-searches-page {
+    max-width: 900px;
+  }
+
+  .subtitle {
+    margin: 0 auto 16px;
+    text-align: center;
+    color: var(--color-text-muted);
+  }
+
+  .saved-searches-panel {
+    margin-top: 8px;
+    background: #fff;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-card);
+    overflow: hidden;
+  }
+
+  /* --- Toolbar --- */
+
+  .saved-searches-toolbar {
+    margin: 0;
+    padding: 10px 20px;
+    border-bottom: 1px solid var(--color-border);
+    background: #f8f9fa;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .saved-searches-summary {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: 0.88rem;
+    font-weight: 600;
+  }
+
+  .saved-searches-clear-button {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    background: #fff;
+    color: #8a1f11;
+    padding: 6px 10px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .saved-searches-clear-button:hover {
+    background: #fff5f5;
+  }
+
+  .saved-searches-clear-button:disabled {
+    color: var(--color-text-muted);
+    cursor: not-allowed;
+    background: #f2f2f2;
+  }
+
+  /* --- Empty state --- */
+
+  .saved-searches-empty {
+    margin: 0;
+    padding: 48px 20px 40px;
+    text-align: center;
+    color: var(--color-text-muted);
+  }
+
+  /* --- Mobile --- */
+
+  @media screen and (max-width: 768px) {
+    .saved-searches-toolbar {
+      align-items: stretch;
+      flex-direction: column;
+      padding: 10px 16px;
+    }
+  }
+</style>
+
+<style is:global>
+  /* Dynamically created elements (JS) — must be global */
+
+  .saved-searches-panel .saved-search-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .saved-searches-panel .saved-search-item {
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid var(--color-border);
+    transition: opacity 0.3s;
+  }
+
+  .saved-searches-panel .saved-search-item:last-child {
+    border-bottom: none;
+  }
+
+  .saved-searches-panel .saved-search-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+    min-width: 0;
+    padding: 14px 20px;
+    color: inherit;
+    text-decoration: none;
+    transition: background 0.2s;
+  }
+
+  .saved-searches-panel .saved-search-link:hover {
+    background: #fafafa;
+  }
+
+  .saved-searches-panel .saved-search-query {
+    flex: 1;
+    min-width: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-text);
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+  }
+
+  .saved-searches-panel .saved-search-count-badge {
+    flex-shrink: 0;
+    min-width: 28px;
+    text-align: center;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    border: 1px solid var(--color-border);
+    background: #f8f9fa;
+    border-radius: 999px;
+    padding: 3px 10px;
+    transition:
+      color 0.2s,
+      background 0.2s,
+      border-color 0.2s;
+  }
+
+  .saved-searches-panel .saved-search-count-badge[data-state="loading"] {
+    color: transparent;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e4e4e4 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: badge-pulse 1.4s ease-in-out infinite;
+    border-color: #e8e8e8;
+  }
+
+  @keyframes badge-pulse {
+    0% {
+      background-position: 200% 0;
+    }
+    100% {
+      background-position: -200% 0;
+    }
+  }
+
+  .saved-searches-panel .saved-search-count-badge[data-state="ok"] {
+    color: var(--color-text);
+  }
+
+  .saved-searches-panel .saved-search-count-badge[data-state="error"] {
+    color: #999;
+    border-color: var(--color-border);
+    background: #f8f9fa;
+  }
+
+  .saved-searches-panel .saved-search-remove-button {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    border: none;
+    border-left: 1px solid var(--color-border);
+    background: transparent;
+    color: #aaa;
+    cursor: pointer;
+    transition:
+      color 0.2s,
+      background 0.2s;
+    align-self: stretch;
+  }
+
+  .saved-searches-panel .saved-search-remove-button:hover {
+    color: #8a1f11;
+    background: #fff5f5;
+  }
+
+  .saved-searches-panel .saved-search-remove-button:focus-visible {
+    outline: 2px solid #b10000;
+    outline-offset: -2px;
+  }
+
+  .saved-searches-panel .empty-icon {
+    opacity: 0.25;
+    margin-bottom: 12px;
+  }
+
+  .saved-searches-panel .empty-text {
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.7;
+  }
+
+  .saved-searches-panel .saved-searches-empty a {
+    color: var(--color-link);
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  .saved-searches-panel .saved-searches-empty a:hover {
+    color: var(--color-link-hover);
+    text-decoration: underline;
+  }
+
+  @media screen and (max-width: 768px) {
+    .saved-searches-panel .saved-search-link {
+      padding: 12px 16px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .saved-searches-panel .saved-search-remove-button {
+      width: 36px;
+    }
+  }
+</style>
+
+<script>
+  import { initSavedSearchesPage } from "../shared/saved-searches-page";
+
+  initSavedSearchesPage();
+</script>
