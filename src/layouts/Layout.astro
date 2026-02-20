@@ -1,10 +1,7 @@
 ---
 import SiteNavigation from "../components/SiteNavigation.astro";
-import { getAllAvailableYears } from "../shared/data";
 
 const base = import.meta.env.BASE_URL;
-const years = await getAllAvailableYears();
-const latestYear = years[years.length - 1];
 ---
 
 <!doctype html>
@@ -17,7 +14,7 @@ const latestYear = years[years.length - 1];
     <title>GemeinderatsRadar</title>
   </head>
   <body>
-    <SiteNavigation latestYear={latestYear} />
+    <SiteNavigation />
     <main>
       <slot />
     </main>

@@ -1,0 +1,46 @@
+---
+interface Props {
+  targetUrl: string;
+  preserveSearchAndHash?: boolean;
+}
+
+const { targetUrl, preserveSearchAndHash = false } = Astro.props;
+---
+
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="refresh" content={`0;url=${targetUrl}`} />
+    <meta name="robots" content="noindex" />
+    <link rel="canonical" href={targetUrl} />
+    <title>Weiterleitung...</title>
+    <script is:inline define:vars={{ preserveSearchAndHash, targetUrl }}>
+      if (preserveSearchAndHash) {
+        const currentUrl = new URL(window.location.href);
+        const redirectUrl = new URL(targetUrl, window.location.origin);
+
+        for (const [key, value] of currentUrl.searchParams.entries()) {
+          if (!redirectUrl.searchParams.has(key)) {
+            redirectUrl.searchParams.set(key, value);
+          }
+        }
+
+        if (currentUrl.hash && !redirectUrl.hash) {
+          redirectUrl.hash = currentUrl.hash;
+        }
+
+        location.replace(
+          `${redirectUrl.pathname}${redirectUrl.search}${redirectUrl.hash}`,
+        );
+      } else {
+        location.replace(targetUrl);
+      }
+    </script>
+  </head>
+  <body>
+    <p>
+      Weiterleitung zu <a href={targetUrl}>{targetUrl}</a>...
+    </p>
+  </body>
+</html>

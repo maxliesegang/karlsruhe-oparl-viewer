@@ -5,6 +5,27 @@ export function correctUrl(url: string): string {
   return url.replace("/oparl/", "/ris/oparl/");
 }
 
+export const VORLAGEN_YEAR_QUERY_PARAM = "year";
+
+export function buildVorlagenUrl(base: string, year?: string | null): string {
+  const normalizedYear = year?.trim() ?? "";
+  if (!normalizedYear) {
+    return `${base}vorlagen`;
+  }
+
+  const params = new URLSearchParams([
+    [VORLAGEN_YEAR_QUERY_PARAM, normalizedYear],
+  ]);
+  return `${base}vorlagen?${params.toString()}`;
+}
+
+export function buildVorlagenDetailUrl(
+  base: string,
+  reference: string,
+): string {
+  return `${base}vorlagen/${encodeURIComponent(reference)}`;
+}
+
 /** Formats a date string as "dd.MM.yyyy" in German locale. */
 export function formatDateShort(date: string | undefined): string {
   if (!date) return "";

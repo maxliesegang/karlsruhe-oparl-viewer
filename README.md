@@ -10,9 +10,9 @@ It builds from an OParl-based JSON mirror and publishes to GitHub Pages.
 ## What It Does
 
 - Full-text search on the landing page via `astro-pagefind` (German UI copy).
-- Browse papers by year (`/vorlagen{year}`).
+- Browse papers on one page (`/vorlagen`) with a year filter (`?year=YYYY`).
 - Browse papers by district (`/stadtteile`, `/stadtteil/[name]`).
-- Filter list pages by type, organization, role, result, and mentioned district.
+- Filter list pages by year, type, organization, role, result, and mentioned district.
 - Open paper detail pages with key metadata, consultations, and auxiliary files.
 
 ## Stack
@@ -60,10 +60,12 @@ npm run format
 ## Routes
 
 - `/` -> search page
-- `/vorlagen{year}` -> papers for a year
+- `/vorlagen` -> papers list with filters (including `year` query param)
+- `/vorlagen{year}` -> legacy redirect to `/vorlagen?year={year}`
+- `/vorlagen/[reference]` -> paper details
 - `/stadtteile` -> district overview
 - `/stadtteil/[name]` -> papers for one district
-- `/vorlage/[reference]` -> paper details
+- `/vorlage/[reference]` -> legacy redirect to `/vorlagen/[reference]`
 
 ## Data Flow
 

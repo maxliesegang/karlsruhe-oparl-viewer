@@ -1,48 +1,15 @@
 ---
-import Layout from "../../layouts/Layout.astro";
-import KeyInfo from "../../components/KeyInfo.astro";
-import Consultations from "../../components/Consultations.astro";
-import AuxiliaryFiles from "../../components/AuxiliaryFiles.astro";
-import {
-  loadPapers,
-  resolveOrganizations,
-  resolveConsultations,
-  resolveFiles,
-} from "../../shared/data";
-import type { Paper } from "../../shared/types";
+import LegacyRedirectPage from "../../components/LegacyRedirectPage.astro";
+import { getPaperReferenceStaticPaths } from "../../shared/paper-detail-paths";
+import { buildVorlagenDetailUrl } from "../../shared/utils";
 
 export async function getStaticPaths() {
-  const papers = await loadPapers();
-
-  return papers
-    .filter((p) => p.internalReference)
-    .map((paper) => ({
-      params: { reference: paper.internalReference },
-      props: { paper },
-    }));
+  return getPaperReferenceStaticPaths();
 }
 
-interface Props {
-  paper: Paper;
-}
-
-const { paper } = Astro.props;
-
-const [organizations, resolvedConsultations, resolvedFiles] = await Promise.all(
-  [
-    resolveOrganizations(paper),
-    resolveConsultations(paper),
-    resolveFiles(paper),
-  ],
-);
+const base = import.meta.env.BASE_URL;
+const reference = Astro.params.reference ?? "";
+const targetUrl = buildVorlagenDetailUrl(base, reference);
 ---
 
-<Layout>
-  <div class="details-container">
-    <h1 class="page-header">{paper.name}</h1>
-
-    <KeyInfo paper={paper} organizations={organizations} />
-    <Consultations resolvedConsultations={resolvedConsultations} />
-    <AuxiliaryFiles resolvedFiles={resolvedFiles} />
-  </div>
-</Layout>
+<LegacyRedirectPage targetUrl={targetUrl} preserveSearchAndHash={true} />

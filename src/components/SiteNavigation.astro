@@ -1,10 +1,8 @@
 ---
-interface Props {
-  latestYear: string;
-}
+import { buildVorlagenUrl } from "../shared/utils";
 
-const { latestYear } = Astro.props;
 const base = import.meta.env.BASE_URL;
+const vorlagenHref = buildVorlagenUrl(base);
 ---
 
 <nav data-site-nav>
@@ -21,7 +19,7 @@ const base = import.meta.env.BASE_URL;
     </button>
     <ul id="nav-menu">
       <li><a href={base}>GemeinderatsRadar</a></li>
-      <li><a href={`${base}vorlagen${latestYear}`}>Vorlagen</a></li>
+      <li><a href={vorlagenHref}>Vorlagen</a></li>
       <li><a href={`${base}stadtteile`}>Stadtteile</a></li>
       <li><a href={`${base}gespeicherte-suchen`}>Gespeicherte Suchen</a></li>
       <li>

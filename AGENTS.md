@@ -51,10 +51,12 @@ When touching env flags, cast `import.meta.env.*` values before string operation
 ## Routing & Pages
 
 - `/` -> `src/pages/index.astro` (search page)
-- `/vorlagen{year}` -> `src/pages/vorlagen[year].astro`
+- `/vorlagen` -> `src/pages/vorlagen.astro`
+- `/vorlagen{year}` -> `src/pages/vorlagen[year].astro` (legacy redirect to `/vorlagen?year=...`)
+- `/vorlagen/[reference]` -> `src/pages/vorlagen/[reference].astro`
 - `/stadtteile` -> `src/pages/stadtteile.astro`
 - `/stadtteil/[name]` -> `src/pages/stadtteil/[name].astro`
-- `/vorlage/[reference]` -> `src/pages/vorlage/[reference].astro`
+- `/vorlage/[reference]` -> `src/pages/vorlage/[reference].astro` (legacy redirect to `/vorlagen/[reference]`)
 
 ## Component Architecture
 
@@ -64,17 +66,17 @@ When touching env flags, cast `import.meta.env.*` values before string operation
 - `src/components/PaperListingPage.astro`: reusable list-page skeleton (title + intro slot + table)
 - `src/components/PapersTable.astro`: list rows, metadata text, filter panel mount point
 - `src/components/FilterSelect.astro`: reusable dropdown for filter controls
+- `src/components/LegacyRedirectPage.astro`: reusable noindex redirect shell for legacy routes
 - Detail page components:
   - `src/components/KeyInfo.astro`
   - `src/components/Consultations.astro`
   - `src/components/AuxiliaryFiles.astro`
   - `src/components/StadtteilHint.astro`
-  - `src/components/YearLinks.astro`
 
 ## Important Contracts
 
 - Keep all internal links base-aware: prefix with `import.meta.env.BASE_URL`
-- Keep list filter control IDs stable (`filter-type`, `filter-org`, `filter-role`, `filter-result`, `filter-stadtteil`)
+- Keep list filter control IDs stable (`filter-year`, `filter-type`, `filter-org`, `filter-role`, `filter-result`, `filter-stadtteil`)
   - `src/shared/papers-table-filters.ts` depends on those IDs and table data attributes
 - Preserve `data-pagefind-ignore` wrappers around interactive list UIs
 - Preserve `data-pagefind-sort` usage in `KeyInfo` when touching date metadata

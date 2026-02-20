@@ -5,9 +5,15 @@ import type {
   PaperFilterData,
   PaperFilterOptions,
 } from "./types";
+import { getRelevantYear } from "./data";
 
 const NO_VALUE = "Keine Angabe";
 const NO_VALUES = "Keine Angaben";
+type AgendaItemResultIndex = Map<string, Map<string, string>>;
+const agendaItemResultIndexCache = new WeakMap<
+  Map<string, Meeting>,
+  AgendaItemResultIndex
+>();
 
 function normalizeValues(values: string[] = []): string[] {
   return [...new Set(values.map((value) => value.trim()).filter(Boolean))];
@@ -26,7 +32,7 @@ function getOrganizationNames(
 
 function getLastConsultationMeta(
   paper: Paper,
-  meetings: Map<string, Meeting>,
+  agendaItemResultIndex: AgendaItemResultIndex,
 ): { lastRole: string; lastResult: string } {
   let lastRole = NO_VALUE;
   let lastResult = NO_VALUE;
@@ -36,16 +42,48 @@ function getLastConsultationMeta(
       lastRole = consultation.role;
     }
 
-    const meeting = meetings.get(consultation.meeting);
-    const agendaItem = meeting?.agendaItem?.find(
-      (item) => item.id === consultation.agendaItem,
-    );
-    if (agendaItem?.result) {
-      lastResult = agendaItem.result;
+    const result = agendaItemResultIndex
+      .get(consultation.meeting)
+      ?.get(consultation.agendaItem);
+    if (result) {
+      lastResult = result;
     }
   }
 
   return { lastRole, lastResult };
+}
+
+function buildAgendaItemResultIndex(
+  meetings: Map<string, Meeting>,
+): AgendaItemResultIndex {
+  const agendaItemResultIndex: AgendaItemResultIndex = new Map();
+
+  for (const [meetingId, meeting] of meetings.entries()) {
+    if (!meeting.agendaItem?.length) continue;
+
+    const agendaResults = new Map<string, string>();
+    for (const agendaItem of meeting.agendaItem) {
+      if (!agendaItem.result) continue;
+      agendaResults.set(agendaItem.id, agendaItem.result);
+    }
+
+    if (agendaResults.size > 0) {
+      agendaItemResultIndex.set(meetingId, agendaResults);
+    }
+  }
+
+  return agendaItemResultIndex;
+}
+
+function getAgendaItemResultIndex(
+  meetings: Map<string, Meeting>,
+): AgendaItemResultIndex {
+  const cachedIndex = agendaItemResultIndexCache.get(meetings);
+  if (cachedIndex) return cachedIndex;
+
+  const nextIndex = buildAgendaItemResultIndex(meetings);
+  agendaItemResultIndexCache.set(meetings, nextIndex);
+  return nextIndex;
 }
 
 function getStadtteileMeta(paper: Paper): {
@@ -75,18 +113,25 @@ export function buildFilterData(
 } {
   const filterData: Record<string, PaperFilterData> = {};
   const paperTypeSet = new Set<string>();
+  const yearSet = new Set<string>();
   const organizationSet = new Set<string>();
   const roleSet = new Set<string>();
   const resultSet = new Set<string>();
   const stadtteilSet = new Set<string>();
+  const agendaItemResultIndex = getAgendaItemResultIndex(meetings);
 
   for (const paper of papers) {
+    const year = getRelevantYear(paper);
     const organizationNames = getOrganizationNames(paper, organizations);
-    const { lastRole, lastResult } = getLastConsultationMeta(paper, meetings);
+    const { lastRole, lastResult } = getLastConsultationMeta(
+      paper,
+      agendaItemResultIndex,
+    );
     const { stadtteile, stadtteileLabel, stadtteileFilterValue } =
       getStadtteileMeta(paper);
 
     filterData[paper.reference] = {
+      year,
       organizationNames,
       lastRole,
       lastResult,
@@ -94,6 +139,7 @@ export function buildFilterData(
       stadtteileFilterValue,
     };
 
+    yearSet.add(year);
     if (paper.paperType) paperTypeSet.add(paper.paperType);
     organizationSet.add(organizationNames);
     if (lastRole) roleSet.add(lastRole);
@@ -104,6 +150,7 @@ export function buildFilterData(
   }
 
   const filterOptions: PaperFilterOptions = {
+    years: [...yearSet].sort((a, b) => b.localeCompare(a)),
     paperTypes: [...paperTypeSet].sort(),
     organizations: [...organizationSet].sort(),
     roles: [...roleSet].sort(),

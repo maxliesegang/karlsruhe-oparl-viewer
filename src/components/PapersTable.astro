@@ -4,8 +4,9 @@ import type {
   PaperFilterData,
   PaperFilterOptions,
 } from "../shared/types";
-import { formatDateLong } from "../shared/utils";
-import FilterSelect from "./FilterSelect.astro";
+import { buildVorlagenDetailUrl, formatDateLong } from "../shared/utils";
+import { INITIAL_PAPERS_BATCH_SIZE } from "../shared/papers-table-filters";
+import PapersFiltersPanel from "./PapersFiltersPanel.astro";
 
 interface Props {
   papers: Paper[];
@@ -15,31 +16,8 @@ interface Props {
 
 const { papers = [], filterData, filterOptions } = Astro.props;
 const base = import.meta.env.BASE_URL;
-const hasFilters = filterOptions && filterData;
+const hasFilters = Boolean(filterOptions && filterData);
 const META_EMPTY_VALUES = new Set(["Keine Angabe", "Keine Angaben"]);
-const FILTER_FIELDS: Array<{
-  id: string;
-  label: string;
-  optionsKey: keyof PaperFilterOptions;
-}> = [
-  { id: "filter-type", label: "Art", optionsKey: "paperTypes" },
-  {
-    id: "filter-org",
-    label: "Unter Leitung von",
-    optionsKey: "organizations",
-  },
-  { id: "filter-role", label: "Letzte Rolle", optionsKey: "roles" },
-  {
-    id: "filter-result",
-    label: "Letztes Beratungsergebnis",
-    optionsKey: "results",
-  },
-  {
-    id: "filter-stadtteil",
-    label: "Erwähnter Stadtteil",
-    optionsKey: "stadtteile",
-  },
-];
 
 /** Extract date part (YYYY-MM-DD) from an ISO datetime string. */
 function toDateKey(modified: string): string {
@@ -75,19 +53,8 @@ function buildPaperMetaText(paper: Paper, data?: PaperFilterData): string {
 {
   papers.length > 0 ? (
     <div class="papers-panel" data-papers-table>
-      {hasFilters && (
-        <div class="filters">
-          <div class="filter-row">
-            {FILTER_FIELDS.map((field) => (
-              <FilterSelect
-                id={field.id}
-                label={field.label}
-                options={filterOptions?.[field.optionsKey] ?? []}
-              />
-            ))}
-          </div>
-          <p class="filter-count" id="filter-count" />
-        </div>
+      {hasFilters && filterOptions && (
+        <PapersFiltersPanel filterOptions={filterOptions} />
       )}
       <ul class="paper-list">
         {papers.map((paper, i) => {
@@ -96,18 +63,28 @@ function buildPaperMetaText(paper: Paper, data?: PaperFilterData): string {
           const prevDateKey = i > 0 ? toDateKey(papers[i - 1].modified) : null;
           const showHeader = dateKey !== prevDateKey;
           const metaText = buildPaperMetaText(paper, fd);
+          const isInitiallyVisible = i < INITIAL_PAPERS_BATCH_SIZE;
+          const showHeaderInitially = showHeader && isInitiallyVisible;
 
           return (
             <>
               {showHeader && (
-                <li class="date-group-header" data-date={dateKey}>
+                <li
+                  class="date-group-header"
+                  data-date={dateKey}
+                  style={showHeaderInitially ? undefined : "display:none;"}
+                >
                   Aktualisiert am {formatDateLong(paper.modified)}
                 </li>
               )}
-              <li data-date-group={dateKey}>
+              <li
+                data-date-group={dateKey}
+                style={isInitiallyVisible ? undefined : "display:none;"}
+              >
                 <a
                   class="paper-card"
-                  href={`${base}vorlage/${paper.internalReference}`}
+                  href={buildVorlagenDetailUrl(base, paper.internalReference)}
+                  data-year={fd?.year ?? ""}
                   data-paper-type={paper.paperType}
                   data-organization={fd?.organizationNames ?? ""}
                   data-role={fd?.lastRole ?? ""}
@@ -124,6 +101,9 @@ function buildPaperMetaText(paper: Paper, data?: PaperFilterData): string {
           );
         })}
       </ul>
+      <p class="load-trigger" data-load-trigger hidden>
+        Weitere Vorlagen werden geladen...
+      </p>
       <p class="no-results" id="no-results" style="display: none;">
         Keine Vorlagen für die gewählten Filter gefunden.
       </p>
@@ -139,27 +119,6 @@ function buildPaperMetaText(paper: Paper, data?: PaperFilterData): string {
     border-radius: var(--radius);
     box-shadow: var(--shadow-card);
     overflow: hidden;
-  }
-
-  /* --- Filters --- */
-
-  .filters {
-    padding: 16px 24px;
-    background: #f8f9fa;
-    border-bottom: 1px solid var(--color-border);
-  }
-
-  .filter-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 16px;
-  }
-
-  .filter-count {
-    margin: 8px 0 0;
-    font-size: 0.82rem;
-    color: var(--color-text-muted);
-    min-height: 1.2em;
   }
 
   /* --- Paper list --- */
@@ -238,13 +197,19 @@ function buildPaperMetaText(paper: Paper, data?: PaperFilterData): string {
     text-align: center;
   }
 
+  .load-trigger {
+    margin: 0;
+    padding: 16px 24px;
+    text-align: center;
+    color: var(--color-text-muted);
+    font-size: 0.85rem;
+    border-top: 1px solid var(--color-border);
+    background: #fafafa;
+  }
+
   /* --- Mobile --- */
 
   @media screen and (max-width: 768px) {
-    .filter-row {
-      flex-direction: column;
-    }
-
     .date-group-header {
       padding: 10px 16px;
     }
@@ -256,10 +221,6 @@ function buildPaperMetaText(paper: Paper, data?: PaperFilterData): string {
     .paper-meta {
       -webkit-line-clamp: 3;
       line-clamp: 3;
-    }
-
-    .filters {
-      padding: 14px 16px;
     }
   }
 </style>

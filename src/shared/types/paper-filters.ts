@@ -1,4 +1,5 @@
 export interface PaperFilterData {
+  year: string;
   organizationNames: string;
   lastRole: string;
   lastResult: string;
@@ -7,6 +8,7 @@ export interface PaperFilterData {
 }
 
 export interface PaperFilterOptions {
+  years: string[];
   paperTypes: string[];
   organizations: string[];
   roles: string[];

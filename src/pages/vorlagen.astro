@@ -1,0 +1,27 @@
+---
+import Layout from "../layouts/Layout.astro";
+import PaperListingPage from "../components/PaperListingPage.astro";
+import { loadPapers, loadOrganizations, loadMeetings } from "../shared/data";
+import { buildFilterData } from "../shared/paper-filter-utils";
+
+const [papers, orgsMap, meetingsMap] = await Promise.all([
+  loadPapers(),
+  loadOrganizations(),
+  loadMeetings(),
+]);
+
+const { filterData, filterOptions } = buildFilterData(
+  papers,
+  orgsMap,
+  meetingsMap,
+);
+---
+
+<Layout>
+  <PaperListingPage
+    title="Vorlagen"
+    papers={papers}
+    filterData={filterData}
+    filterOptions={filterOptions}
+  />
+</Layout>

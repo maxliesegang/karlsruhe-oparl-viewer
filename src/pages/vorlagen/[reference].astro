@@ -1,0 +1,41 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import KeyInfo from "../../components/KeyInfo.astro";
+import Consultations from "../../components/Consultations.astro";
+import AuxiliaryFiles from "../../components/AuxiliaryFiles.astro";
+import {
+  resolveOrganizations,
+  resolveConsultations,
+  resolveFiles,
+} from "../../shared/data";
+import { getPaperDetailStaticPaths } from "../../shared/paper-detail-paths";
+import type { Paper } from "../../shared/types";
+
+export async function getStaticPaths() {
+  return getPaperDetailStaticPaths();
+}
+
+interface Props {
+  paper: Paper;
+}
+
+const { paper } = Astro.props;
+
+const [organizations, resolvedConsultations, resolvedFiles] = await Promise.all(
+  [
+    resolveOrganizations(paper),
+    resolveConsultations(paper),
+    resolveFiles(paper),
+  ],
+);
+---
+
+<Layout>
+  <div class="details-container">
+    <h1 class="page-header">{paper.name}</h1>
+
+    <KeyInfo paper={paper} organizations={organizations} />
+    <Consultations resolvedConsultations={resolvedConsultations} />
+    <AuxiliaryFiles resolvedFiles={resolvedFiles} />
+  </div>
+</Layout>

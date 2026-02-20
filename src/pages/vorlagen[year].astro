@@ -1,43 +1,16 @@
 ---
-import Layout from "../layouts/Layout.astro";
-import PaperListingPage from "../components/PaperListingPage.astro";
-import YearLinks from "../components/YearLinks.astro";
-import {
-  loadPapers,
-  loadOrganizations,
-  loadMeetings,
-  getAllAvailableYears,
-  getRelevantYear,
-} from "../shared/data";
-import { buildFilterData } from "../shared/paper-filter-utils";
+import LegacyRedirectPage from "../components/LegacyRedirectPage.astro";
+import { getAllAvailableYears } from "../shared/data";
+import { buildVorlagenUrl } from "../shared/utils";
 
 export async function getStaticPaths() {
   const allYears = await getAllAvailableYears();
   return allYears.map((year) => ({ params: { year } }));
 }
 
-const { year } = Astro.params;
-const [allPapers, allYears, orgsMap, meetingsMap] = await Promise.all([
-  loadPapers(),
-  getAllAvailableYears(),
-  loadOrganizations(),
-  loadMeetings(),
-]);
-const papers = allPapers.filter((p) => getRelevantYear(p) === year);
-const { filterData, filterOptions } = buildFilterData(
-  papers,
-  orgsMap,
-  meetingsMap,
-);
+const base = import.meta.env.BASE_URL;
+const year = Astro.params.year ?? "";
+const targetUrl = buildVorlagenUrl(base, year);
 ---
 
-<Layout>
-  <PaperListingPage
-    title={`Vorlagen ${year}`}
-    papers={papers}
-    filterData={filterData}
-    filterOptions={filterOptions}
-  >
-    <YearLinks slot="intro" allYears={allYears} currentYear={year} />
-  </PaperListingPage>
-</Layout>
+<LegacyRedirectPage targetUrl={targetUrl} />
