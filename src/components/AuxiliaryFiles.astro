@@ -9,7 +9,7 @@ interface Props {
 const { resolvedFiles } = Astro.props;
 ---
 
-<section class="files-section">
+<section class="section-card">
   <h2 class="section-heading">Zusätzliche Dateien</h2>
 
   {
@@ -47,12 +47,10 @@ const { resolvedFiles } = Astro.props;
                 </div>
               </div>
 
-              <button class="toggle-btn" aria-expanded={false}>
-                Text anzeigen
-              </button>
-              <div class="file-text-wrapper" hidden>
+              <details class="file-text-details">
+                <summary class="file-text-toggle">Extrahierter Text</summary>
                 <p class="file-text">{fileText}</p>
-              </div>
+              </details>
             </li>
           );
         })}
@@ -64,11 +62,6 @@ const { resolvedFiles } = Astro.props;
 </section>
 
 <style>
-  .files-section {
-    padding: 20px;
-    background-color: #fff;
-  }
-
   .file-list {
     list-style: none;
     padding: 0;
@@ -116,23 +109,33 @@ const { resolvedFiles } = Astro.props;
     flex-direction: column;
   }
 
-  .toggle-btn {
+  .file-text-details {
     margin-top: 10px;
+  }
+
+  .file-text-toggle {
+    display: inline-flex;
+    align-items: center;
     padding: 8px 12px;
     font-size: 0.875rem;
     color: #fff;
     background-color: var(--color-link);
-    border: none;
     border-radius: 4px;
     cursor: pointer;
+    list-style: none;
+    user-select: none;
     transition: background-color 0.2s;
   }
 
-  .toggle-btn:hover {
+  .file-text-toggle::-webkit-details-marker {
+    display: none;
+  }
+
+  .file-text-toggle:hover {
     background-color: var(--color-link-hover);
   }
 
-  .file-text-wrapper {
+  .file-text {
     margin-top: 10px;
     padding: 10px;
     background-color: #fff;
@@ -142,29 +145,3 @@ const { resolvedFiles } = Astro.props;
     color: var(--color-text);
   }
 </style>
-
-<script>
-  const toggleButtons = document.querySelectorAll(".toggle-btn");
-
-  toggleButtons.forEach((button) => {
-    button.addEventListener("click", (event) => {
-      const fileItem = (event.target as HTMLElement).closest(".file-item");
-      if (!fileItem) return;
-
-      const fileTextWrapper = fileItem.querySelector(".file-text-wrapper");
-      if (!fileTextWrapper) return;
-
-      const isHidden = fileTextWrapper.hasAttribute("hidden");
-
-      if (isHidden) {
-        fileTextWrapper.removeAttribute("hidden");
-        button.textContent = "Text ausblenden"; // Update button text
-        button.setAttribute("aria-expanded", "true"); // Update ARIA attribute
-      } else {
-        fileTextWrapper.setAttribute("hidden", ""); // Add the hidden attribute
-        button.textContent = "Text anzeigen"; // Update button text
-        button.setAttribute("aria-expanded", "false"); // Update ARIA attribute
-      }
-    });
-  });
-</script>

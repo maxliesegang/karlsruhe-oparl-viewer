@@ -6,6 +6,10 @@ import type {
 } from "../shared/types";
 import { buildVorlagenDetailUrl, formatDateLong } from "../shared/utils";
 import { INITIAL_PAPERS_BATCH_SIZE } from "../shared/papers-table-filters";
+import {
+  FILTER_NO_VALUE,
+  FILTER_NO_VALUES,
+} from "../shared/paper-filter-utils";
 import PapersFiltersPanel from "./PapersFiltersPanel.astro";
 
 interface Props {
@@ -17,7 +21,7 @@ interface Props {
 const { papers = [], filterData, filterOptions } = Astro.props;
 const base = import.meta.env.BASE_URL;
 const hasFilters = Boolean(filterOptions && filterData);
-const META_EMPTY_VALUES = new Set(["Keine Angabe", "Keine Angaben"]);
+const META_EMPTY_VALUES = new Set([FILTER_NO_VALUE, FILTER_NO_VALUES]);
 
 /** Extract date part (YYYY-MM-DD) from an ISO datetime string. */
 function toDateKey(modified: string): string {

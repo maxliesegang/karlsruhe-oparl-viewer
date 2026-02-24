@@ -9,7 +9,7 @@ interface Props {
 const { resolvedConsultations } = Astro.props;
 ---
 
-<section class="consultations">
+<section class="section-card">
   <h2 class="section-heading">Beratungen</h2>
   {
     resolvedConsultations.length > 0 ? (
@@ -32,9 +32,11 @@ const { resolvedConsultations } = Astro.props;
               <div class="consultation-info">
                 <strong>{meeting.name}</strong>
                 <p>Datum: {formatDateShort(meeting.start)}</p>
-                <a href={itemLink} target="_blank" rel="noopener noreferrer">
-                  <p>TOP: {agendaItem.number || "Keine Angabe"}</p>
-                </a>
+                <p>
+                  <a href={itemLink} target="_blank" rel="noopener noreferrer">
+                    TOP: {agendaItem.number || "Keine Angabe"}
+                  </a>
+                </p>
                 <p>Rolle: {consultation.role || "Nicht verfügbar"}</p>
                 <p>Ergebnis: {agendaItem.result || "Keine Angabe"}</p>
               </div>
@@ -49,12 +51,6 @@ const { resolvedConsultations } = Astro.props;
 </section>
 
 <style>
-  .consultations {
-    margin-top: 20px;
-    padding: 20px;
-    background: white;
-  }
-
   .consultation-list {
     list-style: none;
     padding: 0;
@@ -84,6 +80,15 @@ const { resolvedConsultations } = Astro.props;
 
   .consultation-info p {
     margin: 5px 0;
+  }
+
+  .consultation-info a {
+    color: var(--color-link);
+    text-decoration: none;
+  }
+
+  .consultation-info a:hover {
+    text-decoration: underline;
   }
 
   .no-consultations-msg {

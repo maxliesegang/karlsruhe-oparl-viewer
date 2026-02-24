@@ -1,5 +1,6 @@
 ---
 import Layout from "../../layouts/Layout.astro";
+import PageContainer from "../../components/PageContainer.astro";
 import KeyInfo from "../../components/KeyInfo.astro";
 import Consultations from "../../components/Consultations.astro";
 import AuxiliaryFiles from "../../components/AuxiliaryFiles.astro";
@@ -30,12 +31,12 @@ const [organizations, resolvedConsultations, resolvedFiles] = await Promise.all(
 );
 ---
 
-<Layout>
-  <div class="details-container">
+<Layout title={paper.name}>
+  <PageContainer>
     <h1 class="page-header">{paper.name}</h1>
 
     <KeyInfo paper={paper} organizations={organizations} />
     <Consultations resolvedConsultations={resolvedConsultations} />
     <AuxiliaryFiles resolvedFiles={resolvedFiles} />
-  </div>
+  </PageContainer>
 </Layout>

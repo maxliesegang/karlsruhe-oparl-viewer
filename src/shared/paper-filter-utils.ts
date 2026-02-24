@@ -7,8 +7,8 @@ import type {
 } from "./types";
 import { getRelevantYear } from "./data";
 
-const NO_VALUE = "Keine Angabe";
-const NO_VALUES = "Keine Angaben";
+export const FILTER_NO_VALUE = "Keine Angabe";
+export const FILTER_NO_VALUES = "Keine Angaben";
 type AgendaItemResultIndex = Map<string, Map<string, string>>;
 const agendaItemResultIndexCache = new WeakMap<
   Map<string, Meeting>,
@@ -27,15 +27,15 @@ function getOrganizationNames(
     .map((id) => organizations.get(id)?.name)
     .filter((name): name is string => !!name);
 
-  return orgNames.length > 0 ? orgNames.join(", ") : NO_VALUES;
+  return orgNames.length > 0 ? orgNames.join(", ") : FILTER_NO_VALUES;
 }
 
 function getLastConsultationMeta(
   paper: Paper,
   agendaItemResultIndex: AgendaItemResultIndex,
 ): { lastRole: string; lastResult: string } {
-  let lastRole = NO_VALUE;
-  let lastResult = NO_VALUE;
+  let lastRole = FILTER_NO_VALUE;
+  let lastResult = FILTER_NO_VALUE;
 
   for (const consultation of paper.consultation || []) {
     if (consultation.role) {
@@ -93,7 +93,7 @@ function getStadtteileMeta(paper: Paper): {
 } {
   const stadtteile = normalizeValues(paper.stadtteile);
   const stadtteileLabel =
-    stadtteile.length > 0 ? stadtteile.join(", ") : NO_VALUES;
+    stadtteile.length > 0 ? stadtteile.join(", ") : FILTER_NO_VALUES;
 
   return {
     stadtteile,
