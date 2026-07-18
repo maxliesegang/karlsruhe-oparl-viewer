@@ -1,3 +1,19 @@
+/**
+ * Trims each entry, drops empties, and de-duplicates — accepting a single
+ * string, an array, or a nullish value. Preserves first-seen order.
+ */
+export function normalizeStringList(
+  value: string[] | string | null | undefined,
+): string[] {
+  const rawValues = Array.isArray(value)
+    ? value
+    : typeof value === "string"
+      ? [value]
+      : [];
+
+  return [...new Set(rawValues.map((entry) => entry.trim()).filter(Boolean))];
+}
+
 export function normalizeOParlUrl(url: string): string {
   if (url.includes("/ris/")) {
     return url;

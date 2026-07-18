@@ -1,6 +1,7 @@
 import { BULK_MODIFIED_DATE } from "./constants";
 import { dataSource } from "./data-source";
 import { mapConcurrent, memoizeAsync } from "./async-utils";
+import { normalizeStringList } from "./utils";
 import type {
   FileContent,
   Meeting,
@@ -9,18 +10,6 @@ import type {
   ResolvedConsultation,
   ResolvedAuxiliaryFile,
 } from "./types";
-
-function normalizeStringArray(
-  value: string[] | string | null | undefined,
-): string[] {
-  const rawValues = Array.isArray(value)
-    ? value
-    : typeof value === "string"
-      ? [value]
-      : [];
-
-  return [...new Set(rawValues.map((entry) => entry.trim()).filter(Boolean))];
-}
 
 function buildPaperCountsByDistrict(papers: Paper[]): Map<string, number> {
   const paperCountsByDistrict = new Map<string, number>();
@@ -123,7 +112,7 @@ export const loadPaperDistricts = memoizeAsync(
     return new Map(
       Object.entries(districtsByReference).map(([reference, rawValue]) => [
         reference,
-        normalizeStringArray(rawValue),
+        normalizeStringList(rawValue),
       ]),
     );
   },

@@ -5,7 +5,13 @@ import type {
   PaperFilterValues,
   PaperFilterOptions,
 } from "./types";
-import { getPaperYear } from "./data";
+import {
+  getPaperYear,
+  loadMeetings,
+  loadOrganizations,
+  loadPapers,
+} from "./data";
+import { normalizeStringList } from "./utils";
 
 export const FILTER_NO_VALUE = "Keine Angabe";
 export const FILTER_NO_VALUES = "Keine Angaben";
@@ -14,10 +20,6 @@ const agendaItemResultIndexCache = new WeakMap<
   Map<string, Meeting>,
   AgendaItemResultIndex
 >();
-
-function normalizeValues(values: string[] = []): string[] {
-  return [...new Set(values.map((value) => value.trim()).filter(Boolean))];
-}
 
 function getOrganizationLabel(
   paper: Paper,
@@ -91,7 +93,7 @@ function getDistrictFilterValues(paper: Paper): {
   districtLabel: string;
   districts: string;
 } {
-  const districtNames = normalizeValues(paper.stadtteile);
+  const districtNames = normalizeStringList(paper.stadtteile);
   const districtLabel =
     districtNames.length > 0 ? districtNames.join(", ") : FILTER_NO_VALUES;
 
@@ -157,4 +159,26 @@ export function buildPaperFilterModel(
   };
 
   return { valuesByReference, options };
+}
+
+/**
+ * Loads the organizations and meetings a paper list needs and returns the
+ * papers alongside their filter model. Pass a pre-filtered `papers` subset
+ * (e.g. a single district); omit it to build the model for all papers.
+ */
+export async function loadPaperFilterModel(papers?: Paper[]): Promise<
+  {
+    papers: Paper[];
+  } & ReturnType<typeof buildPaperFilterModel>
+> {
+  const [resolvedPapers, organizations, meetings] = await Promise.all([
+    papers ?? loadPapers(),
+    loadOrganizations(),
+    loadMeetings(),
+  ]);
+
+  return {
+    papers: resolvedPapers,
+    ...buildPaperFilterModel(resolvedPapers, organizations, meetings),
+  };
 }

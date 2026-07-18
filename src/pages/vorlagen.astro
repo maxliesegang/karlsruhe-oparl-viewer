@@ -1,20 +1,9 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import PaperListPage from "../components/PaperListPage.astro";
-import { loadPapers, loadOrganizations, loadMeetings } from "../shared/data";
-import { buildPaperFilterModel } from "../shared/paper-filters";
+import { loadPaperFilterModel } from "../shared/paper-filters";
 
-const [papers, organizationsById, meetingsById] = await Promise.all([
-  loadPapers(),
-  loadOrganizations(),
-  loadMeetings(),
-]);
-
-const { valuesByReference, options } = buildPaperFilterModel(
-  papers,
-  organizationsById,
-  meetingsById,
-);
+const { papers, valuesByReference, options } = await loadPaperFilterModel();
 ---
 
 <Layout title="Vorlagen">
