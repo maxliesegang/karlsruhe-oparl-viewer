@@ -11,17 +11,17 @@ Source root. See sub-directory guides for focused documentation:
 
 Route entrypoints in `src/pages/`. Each file maps to a URL path.
 
-| File | URL | Notes |
-|------|-----|-------|
-| `pages/index.astro` | `/` | Search page (Pagefind) |
-| `pages/suche.astro` | `/suche` | Alternative search route |
-| `pages/vorlagen.astro` | `/vorlagen` | Papers list with filters |
-| `pages/vorlagen[year].astro` | `/vorlagen{year}` | Legacy redirect → `/vorlagen?year=…` |
-| `pages/vorlagen/[reference].astro` | `/vorlagen/[reference]` | Paper detail page |
-| `pages/stadtteile.astro` | `/stadtteile` | District overview |
-| `pages/stadtteil/[name].astro` | `/stadtteil/[name]` | Papers for one district |
-| `pages/vorlage/[reference].astro` | `/vorlage/[reference]` | Legacy redirect → `/vorlagen/[reference]` |
-| `pages/gespeicherte-suchen.astro` | `/gespeicherte-suchen` | Saved searches |
+| File                               | URL                     | Notes                                     |
+| ---------------------------------- | ----------------------- | ----------------------------------------- |
+| `pages/index.astro`                | `/`                     | Search page (Pagefind)                    |
+| `pages/suche.astro`                | `/suche`                | Alternative search route                  |
+| `pages/vorlagen.astro`             | `/vorlagen`             | Papers list with filters                  |
+| `pages/vorlagen[year].astro`       | `/vorlagen{year}`       | Legacy redirect → `/vorlagen?year=…`      |
+| `pages/vorlagen/[reference].astro` | `/vorlagen/[reference]` | Paper detail page                         |
+| `pages/stadtteile.astro`           | `/stadtteile`           | District overview                         |
+| `pages/stadtteil/[name].astro`     | `/stadtteil/[name]`     | Papers for one district                   |
+| `pages/vorlage/[reference].astro`  | `/vorlage/[reference]`  | Legacy redirect → `/vorlagen/[reference]` |
+| `pages/gespeicherte-suchen.astro`  | `/gespeicherte-suchen`  | Saved searches                            |
 
 > **Note:** Do not place non-`.astro` files directly inside `src/pages/` — Astro will try to render them as routes.
 

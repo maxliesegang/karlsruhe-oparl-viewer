@@ -1,7 +1,7 @@
 ---
 import type {
   Paper,
-  PaperFilterData,
+  PaperFilterMetadata,
   PaperFilterOptions,
 } from "../shared/types";
 import PageContainer from "./PageContainer.astro";
@@ -10,11 +10,11 @@ import PapersTable from "./PapersTable.astro";
 interface Props {
   title: string;
   papers: Paper[];
-  filterData?: Record<string, PaperFilterData>;
+  filterMetadataByReference?: Record<string, PaperFilterMetadata>;
   filterOptions?: PaperFilterOptions;
 }
 
-const { title, papers, filterData, filterOptions } = Astro.props;
+const { title, papers, filterMetadataByReference, filterOptions } = Astro.props;
 ---
 
 <PageContainer>
@@ -23,7 +23,7 @@ const { title, papers, filterData, filterOptions } = Astro.props;
   <div data-pagefind-ignore>
     <PapersTable
       papers={papers}
-      filterData={filterData}
+      filterMetadataByReference={filterMetadataByReference}
       filterOptions={filterOptions}
     />
   </div>

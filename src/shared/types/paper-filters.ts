@@ -1,10 +1,10 @@
-export interface PaperFilterData {
+export interface PaperFilterMetadata {
   year: string;
   organizationNames: string;
   lastRole: string;
   lastResult: string;
-  stadtteileLabel: string;
-  stadtteileFilterValue: string;
+  districtNamesLabel: string;
+  districtFilterValue: string;
 }
 
 export interface PaperFilterOptions {
@@ -13,5 +13,5 @@ export interface PaperFilterOptions {
   organizations: string[];
   roles: string[];
   results: string[];
-  stadtteile: string[];
+  districts: string[];
 }

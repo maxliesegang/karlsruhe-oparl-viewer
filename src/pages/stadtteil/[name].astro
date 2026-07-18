@@ -6,49 +6,49 @@ import {
   loadPapers,
   loadOrganizations,
   loadMeetings,
-  getAllAvailableStadtteile,
+  getAvailableDistricts,
 } from "../../shared/data";
-import { buildFilterData } from "../../shared/paper-filter-utils";
+import { buildPaperFilters } from "../../shared/paper-filter-utils";
 import { slugify } from "../../shared/utils";
 
 export async function getStaticPaths() {
-  const stadtteile = await getAllAvailableStadtteile();
-  return stadtteile.map((name) => ({
-    params: { name: slugify(name) },
-    props: { stadtteilName: name },
+  const districtNames = await getAvailableDistricts();
+  return districtNames.map((districtName) => ({
+    params: { name: slugify(districtName) },
+    props: { districtName },
   }));
 }
 
-const { stadtteilName } = Astro.props;
-const base = import.meta.env.BASE_URL;
+const { districtName } = Astro.props;
+const baseUrl = import.meta.env.BASE_URL;
 
-const [allPapers, orgsMap, meetingsMap] = await Promise.all([
+const [allPapers, organizationsById, meetingsById] = await Promise.all([
   loadPapers(),
   loadOrganizations(),
   loadMeetings(),
 ]);
 
-const papers = allPapers.filter((p) =>
-  (p.stadtteile || []).some((s) => s.trim() === stadtteilName),
+const papers = allPapers.filter((paper) =>
+  paper.stadtteile.some((paperDistrict) => paperDistrict === districtName),
 );
 
-const { filterData, filterOptions } = buildFilterData(
+const { metadataByPaperReference, filterOptions } = buildPaperFilters(
   papers,
-  orgsMap,
-  meetingsMap,
+  organizationsById,
+  meetingsById,
 );
 ---
 
-<Layout title={stadtteilName}>
+<Layout title={districtName}>
   <PaperListingPage
-    title={stadtteilName}
+    title={districtName}
     papers={papers}
-    filterData={filterData}
+    filterMetadataByReference={metadataByPaperReference}
     filterOptions={filterOptions}
   >
     <p slot="intro" class="subtitle">
       {papers.length} Vorlagen &middot;
-      <a href={`${base}stadtteile`} class="back-link">Alle Stadtteile</a>
+      <a href={`${baseUrl}stadtteile`} class="back-link">Alle Stadtteile</a>
     </p>
     <StadtteilHint slot="intro" />
   </PaperListingPage>

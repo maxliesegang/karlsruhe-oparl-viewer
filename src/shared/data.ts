@@ -1,23 +1,14 @@
 import { BULK_MODIFIED_DATE } from "./constants";
 import { dataSource } from "./data-source";
+import { mapConcurrent, memoizeAsync } from "./async-utils";
 import type {
-  FileContentType,
+  FileContent,
   Meeting,
   Organization,
   Paper,
   ResolvedConsultation,
-  ResolvedFile,
+  ResolvedAuxiliaryFile,
 } from "./types";
-
-// --- Caches ---
-let papersCache: Paper[] | null = null;
-let meetingsCache: Map<string, Meeting> | null = null;
-let organizationsCache: Map<string, Organization> | null = null;
-let fileContentsCache: Map<string, FileContentType> | null = null;
-let paperStadtteileCache: Map<string, string[]> | null = null;
-let availableYearsCache: string[] | null = null;
-let availableStadtteileCache: string[] | null = null;
-let stadtteilCountsCache: Map<string, number> | null = null;
 
 function normalizeStringArray(
   value: string[] | string | null | undefined,
@@ -31,120 +22,112 @@ function normalizeStringArray(
   return [...new Set(rawValues.map((entry) => entry.trim()).filter(Boolean))];
 }
 
-function buildStadtteilCountMap(papers: Paper[]): Map<string, number> {
-  const stadtteilCounts = new Map<string, number>();
+function buildPaperCountsByDistrict(papers: Paper[]): Map<string, number> {
+  const paperCountsByDistrict = new Map<string, number>();
 
   for (const paper of papers) {
-    for (const stadtteil of paper.stadtteile || []) {
-      const trimmedStadtteil = stadtteil.trim();
-      if (!trimmedStadtteil) continue;
+    for (const districtName of paper.stadtteile) {
+      const normalizedDistrictName = districtName.trim();
+      if (!normalizedDistrictName) continue;
 
-      stadtteilCounts.set(
-        trimmedStadtteil,
-        (stadtteilCounts.get(trimmedStadtteil) ?? 0) + 1,
+      paperCountsByDistrict.set(
+        normalizedDistrictName,
+        (paperCountsByDistrict.get(normalizedDistrictName) ?? 0) + 1,
       );
     }
   }
 
-  return stadtteilCounts;
+  return paperCountsByDistrict;
 }
 
 // --- Loaders ---
 
-export async function loadPapers(): Promise<Paper[]> {
-  if (papersCache) return papersCache;
-
-  const [data, paperStadtteile] = await Promise.all([
+export const loadPapers = memoizeAsync(async (): Promise<Paper[]> => {
+  const [papers, districtsByPaperReference] = await Promise.all([
     dataSource.loadArray<Paper>("papers"),
-    loadPaperStadtteile(),
+    loadPaperDistricts(),
   ]);
-  const activePapers = data.filter((paper) => !paper.deleted);
-  for (const paper of activePapers) {
-    paper.internalReference = paper.reference.replaceAll("/", "-");
-    paper.stadtteile = paperStadtteile.get(paper.reference) ?? [];
-  }
-  activePapers.sort(
-    (a, b) => new Date(b.modified).getTime() - new Date(a.modified).getTime(),
-  );
+  const activePapers = papers
+    .filter((paper) => !paper.deleted)
+    .map((paper) => ({
+      ...paper,
+      internalReference: paper.reference.replaceAll("/", "-"),
+      stadtteile: districtsByPaperReference.get(paper.reference) ?? [],
+    }))
+    .sort((a, b) => b.modified.localeCompare(a.modified));
 
-  papersCache = activePapers;
-  return papersCache;
-}
+  return activePapers;
+});
 
-export async function loadMeetings(): Promise<Map<string, Meeting>> {
-  if (meetingsCache) return meetingsCache;
+export const loadMeetings = memoizeAsync(
+  async (): Promise<Map<string, Meeting>> => {
+    const meetings = await dataSource.loadArray<Meeting>("meetings");
+    return new Map(meetings.map((meeting) => [meeting.id, meeting]));
+  },
+);
 
-  const data = await dataSource.loadArray<Meeting>("meetings");
-  meetingsCache = new Map(data.map((m) => [m.id, m]));
-  return meetingsCache;
-}
-
-export async function loadOrganizations(): Promise<Map<string, Organization>> {
-  if (organizationsCache) return organizationsCache;
-
-  const data = await dataSource.loadArray<Organization>("organizations");
-  organizationsCache = new Map(data.map((o) => [o.id, o]));
-  return organizationsCache;
-}
-
-export async function loadFileContents(): Promise<
-  Map<string, FileContentType>
-> {
-  if (fileContentsCache) return fileContentsCache;
-
-  const metadata = await dataSource.loadArray<FileContentType>("file-contents");
-  fileContentsCache = new Map(metadata.map((f) => [f.id, f]));
-
-  const withText = metadata.filter((entry) => entry.hasExtractedText);
-  let missingTextCount = 0;
-  const workerCount = Math.min(64, withText.length);
-  let nextIndex = 0;
-  await Promise.all(
-    Array.from({ length: workerCount }, async () => {
-      while (nextIndex < withText.length) {
-        const entry = withText[nextIndex++];
-        const fileId = new URL(entry.id).pathname
-          .split("/")
-          .filter(Boolean)
-          .at(-1);
-        if (!fileId) {
-          missingTextCount++;
-          continue;
-        }
-        const extractedText = await dataSource.loadText(fileId);
-        if (extractedText === undefined) {
-          missingTextCount++;
-        } else {
-          entry.extractedText = extractedText;
-        }
-      }
-    }),
-  );
-  if (missingTextCount > 0) {
-    console.warn(
-      `Missing extracted text for ${missingTextCount} of ${withText.length} indexed files`,
+export const loadOrganizations = memoizeAsync(
+  async (): Promise<Map<string, Organization>> => {
+    const organizations =
+      await dataSource.loadArray<Organization>("organizations");
+    return new Map(
+      organizations.map((organization) => [organization.id, organization]),
     );
-  }
+  },
+);
 
-  return fileContentsCache;
-}
+export const loadFileContents = memoizeAsync(
+  async (): Promise<Map<string, FileContent>> => {
+    const fileContents =
+      await dataSource.loadArray<FileContent>("file-contents");
+    const fileContentsById = new Map(
+      fileContents.map((fileContent) => [fileContent.id, fileContent]),
+    );
 
-export async function loadPaperStadtteile(): Promise<Map<string, string[]>> {
-  if (paperStadtteileCache) return paperStadtteileCache;
+    const filesWithExtractedText = fileContents.filter(
+      (fileContent) => fileContent.hasExtractedText,
+    );
+    let missingTextCount = 0;
+    await mapConcurrent(filesWithExtractedText, 64, async (fileContent) => {
+      const fileId = new URL(fileContent.id).pathname
+        .split("/")
+        .filter(Boolean)
+        .at(-1);
+      if (!fileId) {
+        missingTextCount++;
+        return;
+      }
+      const extractedText = await dataSource.loadText(fileId);
+      if (extractedText === undefined) {
+        missingTextCount++;
+      } else {
+        fileContent.extractedText = extractedText;
+      }
+    });
+    if (missingTextCount > 0) {
+      console.warn(
+        `Missing extracted text for ${missingTextCount} of ${filesWithExtractedText.length} indexed files`,
+      );
+    }
 
-  const data = await dataSource.loadRecord<string[] | string | null>(
-    "paper-stadtteile",
-  );
+    return fileContentsById;
+  },
+);
 
-  paperStadtteileCache = new Map(
-    Object.entries(data).map(([reference, rawValue]) => [
-      reference,
-      normalizeStringArray(rawValue),
-    ]),
-  );
+export const loadPaperDistricts = memoizeAsync(
+  async (): Promise<Map<string, string[]>> => {
+    const districtsByReference = await dataSource.loadRecord<
+      string[] | string | null
+    >("paper-stadtteile");
 
-  return paperStadtteileCache;
-}
+    return new Map(
+      Object.entries(districtsByReference).map(([reference, rawValue]) => [
+        reference,
+        normalizeStringArray(rawValue),
+      ]),
+    );
+  },
+);
 
 // --- Derived data ---
 
@@ -155,49 +138,45 @@ export function getRelevantYear(paper: Paper): string {
   return paper.modified.slice(0, 4);
 }
 
-export async function getAllAvailableYears(): Promise<string[]> {
-  if (availableYearsCache) return availableYearsCache;
-
+export const getAvailableYears = memoizeAsync(async (): Promise<string[]> => {
   const papers = await loadPapers();
-  availableYearsCache = [
-    ...new Set(papers.map((paper) => getRelevantYear(paper))),
-  ].sort();
-  return availableYearsCache;
-}
+  return [...new Set(papers.map((paper) => getRelevantYear(paper)))].sort();
+});
 
-export async function getAllAvailableStadtteile(): Promise<string[]> {
-  if (availableStadtteileCache) return availableStadtteileCache;
+export const getAvailableDistricts = memoizeAsync(
+  async (): Promise<string[]> => {
+    const paperCountsByDistrict = await getPaperCountsByDistrict();
+    return [...paperCountsByDistrict.keys()].sort();
+  },
+);
 
-  const stadtteilCounts = await getStadtteilCounts();
-  availableStadtteileCache = [...stadtteilCounts.keys()].sort();
-  return availableStadtteileCache;
-}
-
-export async function getStadtteilCounts(): Promise<Map<string, number>> {
-  if (stadtteilCountsCache) return stadtteilCountsCache;
-
-  const papers = await loadPapers();
-  stadtteilCountsCache = buildStadtteilCountMap(papers);
-  return stadtteilCountsCache;
-}
+export const getPaperCountsByDistrict = memoizeAsync(
+  async (): Promise<Map<string, number>> => {
+    const papers = await loadPapers();
+    return buildPaperCountsByDistrict(papers);
+  },
+);
 
 // --- Per-paper resolvers ---
 
 export async function resolveOrganizations(
   paper: Paper,
 ): Promise<Organization[]> {
-  const orgsMap = await loadOrganizations();
+  const organizationsById = await loadOrganizations();
   return (paper.underDirectionOf || [])
-    .map((id) => orgsMap.get(id))
-    .filter((o): o is Organization => o !== undefined);
+    .map((organizationId) => organizationsById.get(organizationId))
+    .filter(
+      (organization): organization is Organization =>
+        organization !== undefined,
+    );
 }
 
 export async function resolveConsultations(
   paper: Paper,
 ): Promise<ResolvedConsultation[]> {
-  const meetingsMap = await loadMeetings();
+  const meetingsById = await loadMeetings();
   return (paper.consultation || []).map((consultation) => {
-    const meeting = meetingsMap.get(consultation.meeting);
+    const meeting = meetingsById.get(consultation.meeting);
     const agendaItem = meeting?.agendaItem?.find(
       (item) => item.id === consultation.agendaItem,
     );
@@ -205,10 +184,12 @@ export async function resolveConsultations(
   });
 }
 
-export async function resolveFiles(paper: Paper): Promise<ResolvedFile[]> {
-  const fileContentsMap = await loadFileContents();
-  return (paper.auxiliaryFile || []).map((file) => ({
-    file,
-    content: fileContentsMap.get(file.id),
+export async function resolveAuxiliaryFiles(
+  paper: Paper,
+): Promise<ResolvedAuxiliaryFile[]> {
+  const fileContentsById = await loadFileContents();
+  return (paper.auxiliaryFile || []).map((auxiliaryFile) => ({
+    file: auxiliaryFile,
+    content: fileContentsById.get(auxiliaryFile.id),
   }));
 }

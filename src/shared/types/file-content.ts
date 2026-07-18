@@ -1,6 +1,6 @@
 import type { Entity } from "./entity.ts";
 
-export interface FileContentType extends Entity {
+export interface FileContent extends Entity {
   downloadUrl: string;
   fileModified: string;
   lastModifiedExtractedDate?: string;

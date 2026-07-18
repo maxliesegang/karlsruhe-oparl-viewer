@@ -1,28 +1,28 @@
 ---
-import type { ResolvedFile } from "../shared/types";
-import { correctUrl, formatDateLong } from "../shared/utils";
+import type { ResolvedAuxiliaryFile } from "../shared/types";
+import { formatDateLong, normalizeOParlUrl } from "../shared/utils";
 
 interface Props {
-  resolvedFiles: ResolvedFile[];
+  auxiliaryFiles: ResolvedAuxiliaryFile[];
 }
 
-const { resolvedFiles } = Astro.props;
+const { auxiliaryFiles } = Astro.props;
 ---
 
 <section class="section-card">
   <h2 class="section-heading">Zusätzliche Dateien</h2>
 
   {
-    resolvedFiles.length > 0 ? (
+    auxiliaryFiles.length > 0 ? (
       <ul class="file-list">
-        {resolvedFiles.map(({ file, content }) => {
+        {auxiliaryFiles.map(({ file, content }) => {
           const fileText = content?.extractedText || "Kein Text verfügbar";
 
           return (
             <li class="file-item" data-id={file.id}>
               <div class="file-details">
                 <a
-                  href={correctUrl(file.accessUrl)}
+                  href={normalizeOParlUrl(file.accessUrl)}
                   target="_blank"
                   rel="noopener noreferrer"
                   class="file-name"

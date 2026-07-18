@@ -3,18 +3,18 @@ import type { ResolvedConsultation } from "../shared/types";
 import { formatDateShort } from "../shared/utils";
 
 interface Props {
-  resolvedConsultations: ResolvedConsultation[];
+  consultations: ResolvedConsultation[];
 }
 
-const { resolvedConsultations } = Astro.props;
+const { consultations } = Astro.props;
 ---
 
 <section class="section-card">
   <h2 class="section-heading">Beratungen</h2>
   {
-    resolvedConsultations.length > 0 ? (
+    consultations.length > 0 ? (
       <ul class="consultation-list">
-        {resolvedConsultations.map(({ consultation, meeting, agendaItem }) => {
+        {consultations.map(({ consultation, meeting, agendaItem }) => {
           if (!meeting || !agendaItem) return;
 
           const meetingServerId = meeting.id.split("/").pop();

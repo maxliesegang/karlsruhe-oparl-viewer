@@ -1,8 +1,8 @@
 ---
-import { buildVorlagenUrl } from "../shared/utils";
+import { buildPapersUrl } from "../shared/utils";
 
-const base = import.meta.env.BASE_URL;
-const vorlagenHref = buildVorlagenUrl(base);
+const baseUrl = import.meta.env.BASE_URL;
+const papersUrl = buildPapersUrl(baseUrl);
 ---
 
 <nav data-site-nav>
@@ -18,10 +18,10 @@ const vorlagenHref = buildVorlagenUrl(base);
       <span></span>
     </button>
     <ul id="nav-menu">
-      <li><a href={base}>GemeinderatsRadar</a></li>
-      <li><a href={vorlagenHref}>Vorlagen</a></li>
-      <li><a href={`${base}stadtteile`}>Stadtteile</a></li>
-      <li><a href={`${base}gespeicherte-suchen`}>Gespeicherte Suchen</a></li>
+      <li><a href={baseUrl}>GemeinderatsRadar</a></li>
+      <li><a href={papersUrl}>Vorlagen</a></li>
+      <li><a href={`${baseUrl}stadtteile`}>Stadtteile</a></li>
+      <li><a href={`${baseUrl}gespeicherte-suchen`}>Gespeicherte Suchen</a></li>
       <li>
         <a
           href="https://maxliesegang.github.io/karlsruhe-oparl-syndication/tagesordnungspunkte.xml"

@@ -1,6 +1,6 @@
 import { PAPER_FILTER_IDS } from "./paper-filter-definitions";
 import { initResponsiveFilterPanel } from "./responsive-filters-panel";
-import { VORLAGEN_YEAR_QUERY_PARAM } from "./utils";
+import { PAPERS_YEAR_QUERY_PARAMETER } from "./utils";
 
 export const INITIAL_PAPERS_BATCH_SIZE = 500;
 const LOAD_AHEAD_ROOT_MARGIN = "1400px 0px";
@@ -8,31 +8,31 @@ const TABLE_INIT_DATA_KEY = "filtersInitialized";
 
 interface FilterControls {
   year: HTMLSelectElement;
-  type: HTMLSelectElement;
-  org: HTMLSelectElement;
-  role: HTMLSelectElement;
-  result: HTMLSelectElement;
-  stadtteil: HTMLSelectElement | null;
+  paperType: HTMLSelectElement;
+  organization: HTMLSelectElement;
+  consultationRole: HTMLSelectElement;
+  consultationResult: HTMLSelectElement;
+  district: HTMLSelectElement | null;
 }
 
 interface FilterState {
   year: string;
-  type: string;
-  org: string;
-  role: string;
-  result: string;
-  stadtteil: string;
+  paperType: string;
+  organization: string;
+  consultationRole: string;
+  consultationResult: string;
+  district: string;
 }
 
 interface PaperRow {
   item: HTMLElement;
   dateGroup: string;
   year: string;
-  type: string;
-  org: string;
-  role: string;
-  result: string;
-  stadtteile: Set<string>;
+  paperType: string;
+  organization: string;
+  consultationRole: string;
+  consultationResult: string;
+  districts: Set<string>;
 }
 
 interface TableContext {
@@ -48,7 +48,7 @@ interface TableContext {
   totalMatchingRows: number;
 }
 
-function parseStadtteile(raw: string | undefined): Set<string> {
+function parseDistrictNames(raw: string | undefined): Set<string> {
   return new Set((raw || "").split("|").filter(Boolean));
 }
 
@@ -59,7 +59,7 @@ function hasSelectOption(select: HTMLSelectElement, value: string): boolean {
 function applyYearFromUrl(controls: FilterControls): void {
   const url = new URL(window.location.href);
   const selectedYear =
-    url.searchParams.get(VORLAGEN_YEAR_QUERY_PARAM)?.trim() ?? "";
+    url.searchParams.get(PAPERS_YEAR_QUERY_PARAMETER)?.trim() ?? "";
   if (selectedYear && hasSelectOption(controls.year, selectedYear)) {
     controls.year.value = selectedYear;
   }
@@ -68,9 +68,9 @@ function applyYearFromUrl(controls: FilterControls): void {
 function syncYearToUrl(controls: FilterControls): void {
   const url = new URL(window.location.href);
   if (controls.year.value) {
-    url.searchParams.set(VORLAGEN_YEAR_QUERY_PARAM, controls.year.value);
+    url.searchParams.set(PAPERS_YEAR_QUERY_PARAMETER, controls.year.value);
   } else {
-    url.searchParams.delete(VORLAGEN_YEAR_QUERY_PARAM);
+    url.searchParams.delete(PAPERS_YEAR_QUERY_PARAMETER);
   }
   history.replaceState(history.state, "", url);
 }
@@ -79,34 +79,49 @@ function getControls(container: HTMLElement): FilterControls | null {
   const year = container.querySelector<HTMLSelectElement>(
     `#${PAPER_FILTER_IDS.year}`,
   );
-  const type = container.querySelector<HTMLSelectElement>(
-    `#${PAPER_FILTER_IDS.type}`,
+  const paperType = container.querySelector<HTMLSelectElement>(
+    `#${PAPER_FILTER_IDS.paperType}`,
   );
-  const org = container.querySelector<HTMLSelectElement>(
-    `#${PAPER_FILTER_IDS.org}`,
+  const organization = container.querySelector<HTMLSelectElement>(
+    `#${PAPER_FILTER_IDS.organization}`,
   );
-  const role = container.querySelector<HTMLSelectElement>(
-    `#${PAPER_FILTER_IDS.role}`,
+  const consultationRole = container.querySelector<HTMLSelectElement>(
+    `#${PAPER_FILTER_IDS.consultationRole}`,
   );
-  const result = container.querySelector<HTMLSelectElement>(
-    `#${PAPER_FILTER_IDS.result}`,
+  const consultationResult = container.querySelector<HTMLSelectElement>(
+    `#${PAPER_FILTER_IDS.consultationResult}`,
   );
-  const stadtteil = container.querySelector<HTMLSelectElement>(
-    `#${PAPER_FILTER_IDS.stadtteil}`,
+  const district = container.querySelector<HTMLSelectElement>(
+    `#${PAPER_FILTER_IDS.district}`,
   );
 
-  if (!year || !type || !org || !role || !result) return null;
-  return { year, type, org, role, result, stadtteil };
+  if (
+    !year ||
+    !paperType ||
+    !organization ||
+    !consultationRole ||
+    !consultationResult
+  ) {
+    return null;
+  }
+  return {
+    year,
+    paperType,
+    organization,
+    consultationRole,
+    consultationResult,
+    district,
+  };
 }
 
 function getFilterState(controls: FilterControls): FilterState {
   return {
     year: controls.year.value,
-    type: controls.type.value,
-    org: controls.org.value,
-    role: controls.role.value,
-    result: controls.result.value,
-    stadtteil: controls.stadtteil?.value ?? "",
+    paperType: controls.paperType.value,
+    organization: controls.organization.value,
+    consultationRole: controls.consultationRole.value,
+    consultationResult: controls.consultationResult.value,
+    district: controls.district?.value ?? "",
   };
 }
 
@@ -126,11 +141,11 @@ function buildRows(container: HTMLElement): {
       item,
       dateGroup: item.dataset.dateGroup ?? "",
       year: card.dataset.year ?? "",
-      type: card.dataset.paperType ?? "",
-      org: card.dataset.organization ?? "",
-      role: card.dataset.role ?? "",
-      result: card.dataset.result ?? "",
-      stadtteile: parseStadtteile(card.dataset.stadtteile),
+      paperType: card.dataset.paperType ?? "",
+      organization: card.dataset.organization ?? "",
+      consultationRole: card.dataset.role ?? "",
+      consultationResult: card.dataset.result ?? "",
+      districts: parseDistrictNames(card.dataset.districts),
     };
 
     rows.push(row);
@@ -147,11 +162,17 @@ function buildRows(container: HTMLElement): {
 }
 
 function matchesNonYearFilters(row: PaperRow, state: FilterState): boolean {
-  if (state.type && row.type !== state.type) return false;
-  if (state.org && row.org !== state.org) return false;
-  if (state.role && row.role !== state.role) return false;
-  if (state.result && row.result !== state.result) return false;
-  if (state.stadtteil && !row.stadtteile.has(state.stadtteil)) return false;
+  if (state.paperType && row.paperType !== state.paperType) return false;
+  if (state.organization && row.organization !== state.organization)
+    return false;
+  if (state.consultationRole && row.consultationRole !== state.consultationRole)
+    return false;
+  if (
+    state.consultationResult &&
+    row.consultationResult !== state.consultationResult
+  )
+    return false;
+  if (state.district && !row.districts.has(state.district)) return false;
   return true;
 }
 
@@ -176,11 +197,11 @@ function updateFilterCount(
 
   const isFiltered =
     state.year ||
-    state.type ||
-    state.org ||
-    state.role ||
-    state.result ||
-    state.stadtteil;
+    state.paperType ||
+    state.organization ||
+    state.consultationRole ||
+    state.consultationResult ||
+    state.district;
 
   if (!isFiltered) {
     filterCount.textContent = "";
@@ -313,11 +334,11 @@ function initPapersTable(container: HTMLElement): void {
   controls.year.addEventListener("change", runFiltersAndSyncYearUrl);
 
   const resetControls: HTMLSelectElement[] = [
-    controls.type,
-    controls.org,
-    controls.role,
-    controls.result,
-    controls.stadtteil,
+    controls.paperType,
+    controls.organization,
+    controls.consultationRole,
+    controls.consultationResult,
+    controls.district,
   ].filter((control): control is HTMLSelectElement => Boolean(control));
   resetControls.forEach((control) =>
     control.addEventListener("change", resetAndRunFilters),

@@ -7,7 +7,7 @@ import AuxiliaryFiles from "../../components/AuxiliaryFiles.astro";
 import {
   resolveOrganizations,
   resolveConsultations,
-  resolveFiles,
+  resolveAuxiliaryFiles,
 } from "../../shared/data";
 import { getPaperDetailStaticPaths } from "../../shared/paper-detail-paths";
 import type { Paper } from "../../shared/types";
@@ -22,13 +22,11 @@ interface Props {
 
 const { paper } = Astro.props;
 
-const [organizations, resolvedConsultations, resolvedFiles] = await Promise.all(
-  [
-    resolveOrganizations(paper),
-    resolveConsultations(paper),
-    resolveFiles(paper),
-  ],
-);
+const [organizations, consultations, auxiliaryFiles] = await Promise.all([
+  resolveOrganizations(paper),
+  resolveConsultations(paper),
+  resolveAuxiliaryFiles(paper),
+]);
 ---
 
 <Layout title={paper.name}>
@@ -36,7 +34,7 @@ const [organizations, resolvedConsultations, resolvedFiles] = await Promise.all(
     <h1 class="page-header">{paper.name}</h1>
 
     <KeyInfo paper={paper} organizations={organizations} />
-    <Consultations resolvedConsultations={resolvedConsultations} />
-    <AuxiliaryFiles resolvedFiles={resolvedFiles} />
+    <Consultations consultations={consultations} />
+    <AuxiliaryFiles auxiliaryFiles={auxiliaryFiles} />
   </PageContainer>
 </Layout>

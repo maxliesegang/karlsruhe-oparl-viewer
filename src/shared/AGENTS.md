@@ -4,19 +4,19 @@ Data fetching, caching, filtering logic, utilities, and TypeScript types.
 
 ## Key Files
 
-| File | Role |
-|------|------|
-| `constants.ts` | `DATA_BASE_URL`, `CHUNK_BATCH_SIZE`, `BULK_MODIFIED_DATE` |
-| `data.ts` | All build-time loaders, caches, and entity resolvers |
-| `paper-filter-utils.ts` | Derives `PaperFilterData` from loaded papers |
-| `paper-filter-definitions.ts` | Static filter field definitions |
-| `papers-table-filters.ts` | Client-side (browser) list filtering logic |
-| `paper-detail-paths.ts` | Maps paper references to URL slugs |
-| `utils.ts` | URL, date, and slug helpers |
-| `pagefind-client.ts` | Pagefind search integration |
-| `saved-searches.ts` | Saved search logic |
-| `responsive-filters-panel.ts` | Responsive filter panel UI behaviour |
-| `types/` | All TypeScript type contracts |
+| File                          | Role                                                      |
+| ----------------------------- | --------------------------------------------------------- |
+| `constants.ts`                | `DATA_BASE_URL`, `CHUNK_BATCH_SIZE`, `BULK_MODIFIED_DATE` |
+| `data.ts`                     | All build-time loaders, caches, and entity resolvers      |
+| `paper-filter-utils.ts`       | Derives `PaperFilterData` from loaded papers              |
+| `paper-filter-definitions.ts` | Static filter field definitions                           |
+| `papers-table-filters.ts`     | Client-side (browser) list filtering logic                |
+| `paper-detail-paths.ts`       | Maps paper references to URL slugs                        |
+| `utils.ts`                    | URL, date, and slug helpers                               |
+| `pagefind-client.ts`          | Pagefind search integration                               |
+| `saved-searches.ts`           | Saved search logic                                        |
+| `responsive-filters-panel.ts` | Responsive filter panel UI behaviour                      |
+| `types/`                      | All TypeScript type contracts                             |
 
 ## Data Flow
 

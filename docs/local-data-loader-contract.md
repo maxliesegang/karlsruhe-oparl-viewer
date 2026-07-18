@@ -1,7 +1,11 @@
 # Local syndication data loader contract (spike)
 
-Set `DATA_SOURCE=local`. `DATA_LOCAL_DIR` is resolved from the viewer working
-directory and defaults to `syndication-data/docs`.
+Local data is the default. `DATA_LOCAL_DIR` is resolved from the viewer working
+directory and defaults to `syndication-data/docs`. Set `DATA_SOURCE=remote` only
+for a compatible aggregate mirror.
+
+Run `npm run data:setup` to create the default local checkout, then use
+`npm run dev:local`, `npm run build:local`, or `npm run build:local:quick`.
 
 For every array store requested by the viewer, provide exactly one of:
 
@@ -25,6 +29,6 @@ the entry's absolute `id` URL and reads `file-contents/<fileId>.txt` as UTF-8.
 Missing text files are tolerated and summarized as a build warning. No chunk
 directory is read.
 
-`DATA_SOURCE=remote` remains the default and keeps using `DATA_BASE_URL`. It
-loads the single-file array stores and per-file text paths over HTTP; remote
-shard discovery is intentionally not part of this spike.
+`DATA_SOURCE=remote` remains available for compatible aggregate stores and uses
+`DATA_BASE_URL`. It cannot discover per-record remote directories. Production
+therefore checks out the data repository and builds with `DATA_SOURCE=local`.

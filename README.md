@@ -27,13 +27,14 @@ It builds from an OParl-based JSON mirror and publishes to GitHub Pages.
 
 - Node.js 20.x recommended
 - npm
-- Internet access during build (content is fetched from GitHub Raw)
+- A local checkout of the council data (created by `npm run data:setup`)
 
 ## Local Development
 
 ```bash
 npm ci
-npm run dev
+npm run data:setup # shallow-clone the current shard-based data store once
+npm run dev:local
 ```
 
 Dev server: [http://localhost:4321](http://localhost:4321)
@@ -41,15 +42,21 @@ Dev server: [http://localhost:4321](http://localhost:4321)
 Build and preview:
 
 ```bash
-npm run build
+npm run build:local
 npm run preview
 ```
 
 Fast validation build (skips Pagefind indexing):
 
 ```bash
-npm run build:quick
+npm run build:local:quick
 ```
+
+The upstream repository stores papers and meetings as individual JSON files in
+`docs/papers/` and `docs/meetings/`; the former aggregate files no longer exist.
+`npm run data:setup` clones that repository into the ignored
+`syndication-data/` directory. To refresh it later, run
+`git -C syndication-data pull --ff-only`.
 
 Format:
 
@@ -69,20 +76,19 @@ npm run format
 
 ## Data Flow
 
-The build reads from:
-
-`https://raw.githubusercontent.com/maxliesegang/karlsruhe-oparl-syndication/refs/heads/main/docs`
-
-Key implementation points:
+Local and production builds read the shard directories from
+`syndication-data/docs`. The deployment workflow checks out the data repository
+there before building. Key implementation points:
 
 - Data endpoint is configured in `src/shared/constants.ts` (`DATA_BASE_URL`).
 - Fetching/caching lives in `src/shared/data.ts` (module-scoped caches).
 - `internalReference` is derived from `paper.reference` by replacing `/` with `-`.
 - Year bucketing uses `getRelevantYear()` with bulk-import handling (`BULK_MODIFIED_DATE = "2025-03-03"`).
-- File content text is loaded from chunk files (`CHUNK_BATCH_SIZE = 50`).
-- District counts are derived and cached via `getStadtteilCounts()`.
+- File content text is loaded concurrently from `file-contents/`.
+- District counts are derived and cached via `getPaperCountsByDistrict()`.
 
-Offline builds fail unless `DATA_BASE_URL` is pointed to a reachable local mirror.
+The optional `DATA_SOURCE=remote` mode remains available for aggregate stores, but
+the upstream paper and meeting data now uses per-record directories.
 
 ## Architecture Notes
 

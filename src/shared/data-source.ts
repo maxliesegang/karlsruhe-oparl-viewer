@@ -2,6 +2,7 @@ import { readdir, readFile, stat } from "node:fs/promises";
 import { resolve } from "node:path";
 
 import { DATA_BASE_URL } from "./constants";
+import { mapConcurrent } from "./async-utils";
 
 export interface DataSource {
   loadArray<T>(entity: string): Promise<T[]>;
@@ -9,7 +10,9 @@ export interface DataSource {
   loadText(fileId: string): Promise<string | undefined>;
 }
 
-async function parseArray<T>(contents: string, location: string): Promise<T[]> {
+const FILE_READ_CONCURRENCY = 64;
+
+function parseArray<T>(contents: string, location: string): T[] {
   const data: unknown = JSON.parse(contents);
   if (!Array.isArray(data)) {
     throw new TypeError(`Expected a JSON array in ${location}`);
@@ -22,6 +25,17 @@ function parseDirectoryEntry<T>(contents: string, location: string): T[] {
   if (Array.isArray(data)) return data as T[];
   if (data && typeof data === "object") return [data as T];
   throw new TypeError(`Expected a JSON object or array in ${location}`);
+}
+
+function parseRecord<T>(
+  contents: string,
+  location: string,
+): Record<string, T | undefined> {
+  const data: unknown = JSON.parse(contents);
+  if (!data || typeof data !== "object" || Array.isArray(data)) {
+    throw new TypeError(`Expected a JSON object in ${location}`);
+  }
+  return data as Record<string, T | undefined>;
 }
 
 class RemoteDataSource implements DataSource {
@@ -40,11 +54,7 @@ class RemoteDataSource implements DataSource {
     if (!response.ok) {
       throw new Error(`Failed to fetch ${url}: ${response.status}`);
     }
-    const data: unknown = await response.json();
-    if (!data || typeof data !== "object" || Array.isArray(data)) {
-      throw new TypeError(`Expected a JSON object in ${url}`);
-    }
-    return data as Record<string, T | undefined>;
+    return parseRecord<T>(await response.text(), url);
   }
 
   async loadText(fileId: string): Promise<string | undefined> {
@@ -92,31 +102,20 @@ class LocalDataSource implements DataSource {
       throw new Error(`No *.json shards found in ${shardDirectory}`);
     }
 
-    const entries: T[][] = new Array(shardNames.length);
-    const workerCount = Math.min(64, shardNames.length);
-    let nextIndex = 0;
-    await Promise.all(
-      Array.from({ length: workerCount }, async () => {
-        while (nextIndex < shardNames.length) {
-          const index = nextIndex++;
-          const path = resolve(shardDirectory, shardNames[index]);
-          entries[index] = parseDirectoryEntry<T>(
-            await readFile(path, "utf8"),
-            path,
-          );
-        }
-      }),
+    const entries = await mapConcurrent(
+      shardNames,
+      FILE_READ_CONCURRENCY,
+      async (shardName): Promise<T[]> => {
+        const path = resolve(shardDirectory, shardName);
+        return parseDirectoryEntry<T>(await readFile(path, "utf8"), path);
+      },
     );
     return entries.flat();
   }
 
   async loadRecord<T>(name: string): Promise<Record<string, T | undefined>> {
     const path = resolve(this.root, `${name}.json`);
-    const data: unknown = JSON.parse(await readFile(path, "utf8"));
-    if (!data || typeof data !== "object" || Array.isArray(data)) {
-      throw new TypeError(`Expected a JSON object in ${path}`);
-    }
-    return data as Record<string, T | undefined>;
+    return parseRecord<T>(await readFile(path, "utf8"), path);
   }
 
   async loadText(fileId: string): Promise<string | undefined> {
@@ -134,15 +133,21 @@ function isMissing(error: unknown): error is NodeJS.ErrnoException {
   return error instanceof Error && "code" in error && error.code === "ENOENT";
 }
 
-const sourceName = String(import.meta.env.DATA_SOURCE ?? "remote");
+type DataSourceName = "local" | "remote";
+
+function parseDataSourceName(value: unknown): DataSourceName {
+  const name = String(value ?? "local");
+  if (name !== "local" && name !== "remote") {
+    throw new Error(`DATA_SOURCE must be "local" or "remote", got ${name}`);
+  }
+  return name;
+}
+
+const sourceName = parseDataSourceName(import.meta.env.DATA_SOURCE);
 const localRoot = resolve(
   process.cwd(),
   String(import.meta.env.DATA_LOCAL_DIR ?? "syndication-data/docs"),
 );
-
-if (sourceName !== "local" && sourceName !== "remote") {
-  throw new Error(`DATA_SOURCE must be "local" or "remote", got ${sourceName}`);
-}
 
 export const dataSource: DataSource =
   sourceName === "local"

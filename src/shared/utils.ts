@@ -1,29 +1,29 @@
-export function correctUrl(url: string): string {
+export function normalizeOParlUrl(url: string): string {
   if (url.includes("/ris/")) {
     return url;
   }
   return url.replace("/oparl/", "/ris/oparl/");
 }
 
-export const VORLAGEN_YEAR_QUERY_PARAM = "year";
+export const PAPERS_YEAR_QUERY_PARAMETER = "year";
 
-export function buildVorlagenUrl(base: string, year?: string | null): string {
+export function buildPapersUrl(baseUrl: string, year?: string | null): string {
   const normalizedYear = year?.trim() ?? "";
   if (!normalizedYear) {
-    return `${base}vorlagen`;
+    return `${baseUrl}vorlagen`;
   }
 
   const params = new URLSearchParams([
-    [VORLAGEN_YEAR_QUERY_PARAM, normalizedYear],
+    [PAPERS_YEAR_QUERY_PARAMETER, normalizedYear],
   ]);
-  return `${base}vorlagen?${params.toString()}`;
+  return `${baseUrl}vorlagen?${params.toString()}`;
 }
 
-export function buildVorlagenDetailUrl(
-  base: string,
+export function buildPaperDetailUrl(
+  baseUrl: string,
   reference: string,
 ): string {
-  return `${base}vorlagen/${encodeURIComponent(reference)}`;
+  return `${baseUrl}vorlagen/${encodeURIComponent(reference)}`;
 }
 
 /** Formats a date string as "dd.MM.yyyy" in German locale. */

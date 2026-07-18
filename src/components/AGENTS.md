@@ -4,19 +4,19 @@ Reusable UI components. Prefer extending existing components over creating new o
 
 ## Component Catalog
 
-| Component | Role |
-|-----------|------|
-| `SiteNavigation.astro` | Top nav — desktop/mobile + overlay |
-| `PageContainer.astro` | Shared max-width wrapper |
-| `PaperListingPage.astro` | Reusable list-page skeleton (title + intro slot + table) |
-| `PapersTable.astro` | Paper rows, metadata text, filter panel mount point |
-| `PapersFiltersPanel.astro` | Filter controls panel |
-| `FilterSelect.astro` | Reusable dropdown for a single filter |
-| `LegacyRedirectPage.astro` | Noindex redirect shell for legacy routes |
-| `KeyInfo.astro` | Paper metadata (date, type, reference) — detail page |
-| `Consultations.astro` | Meeting consultations list — detail page |
-| `AuxiliaryFiles.astro` | File attachments — detail page |
-| `StadtteilHint.astro` | District hint — detail page |
+| Component                  | Role                                                     |
+| -------------------------- | -------------------------------------------------------- |
+| `SiteNavigation.astro`     | Top nav — desktop/mobile + overlay                       |
+| `PageContainer.astro`      | Shared max-width wrapper                                 |
+| `PaperListingPage.astro`   | Reusable list-page skeleton (title + intro slot + table) |
+| `PapersTable.astro`        | Paper rows, metadata text, filter panel mount point      |
+| `PapersFiltersPanel.astro` | Filter controls panel                                    |
+| `FilterSelect.astro`       | Reusable dropdown for a single filter                    |
+| `LegacyRedirectPage.astro` | Noindex redirect shell for legacy routes                 |
+| `KeyInfo.astro`            | Paper metadata (date, type, reference) — detail page     |
+| `Consultations.astro`      | Meeting consultations list — detail page                 |
+| `AuxiliaryFiles.astro`     | File attachments — detail page                           |
+| `StadtteilHint.astro`      | District hint — detail page                              |
 
 ## Reuse Rules
 
@@ -36,10 +36,12 @@ filter-year  filter-type  filter-org  filter-role  filter-result  filter-stadtte
 And reads data from table row `data-*` attributes that match these names.
 
 **Pagefind**
+
 - Wrap interactive list UIs with `data-pagefind-ignore`
 - Preserve `data-pagefind-sort` on date metadata in `KeyInfo`
 
 **Internal links**
+
 - Every internal `href` must be prefixed with `import.meta.env.BASE_URL` to work on GitHub Pages
 
 ## Adding New Components

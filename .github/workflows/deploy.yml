@@ -26,11 +26,19 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      DATA_SOURCE: local
     steps:
       - name: Checkout your repository using git
         uses: actions/checkout@v4
       - name: Setup Pages
         uses: actions/configure-pages@v5
+      - name: Checkout council data
+        uses: actions/checkout@v4
+        with:
+          repository: maxliesegang/karlsruhe-oparl-syndication
+          path: syndication-data
+          fetch-depth: 1
       - name: Install, build, and upload your site
         uses:
           withastro/action@v3

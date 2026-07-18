@@ -8,7 +8,7 @@ import { resolvePagefindAvailability } from "../shared/pagefind-server";
 const pagefind = resolvePagefindAvailability(import.meta.env.SKIP_PAGEFIND, {
   isDev: import.meta.env.DEV,
 });
-const base = import.meta.env.BASE_URL;
+const baseUrl = import.meta.env.BASE_URL;
 ---
 
 <Layout>
@@ -43,7 +43,7 @@ const base = import.meta.env.BASE_URL;
               </button>
               <a
                 class="saved-search-link-button"
-                href={`${base}gespeicherte-suchen`}
+                href={`${baseUrl}gespeicherte-suchen`}
                 data-saved-searches-link
               >
                 Gespeicherte Suchen

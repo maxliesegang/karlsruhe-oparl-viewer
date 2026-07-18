@@ -1,10 +1,10 @@
 ---
 import type {
   Paper,
-  PaperFilterData,
+  PaperFilterMetadata,
   PaperFilterOptions,
 } from "../shared/types";
-import { buildVorlagenDetailUrl, formatDateLong } from "../shared/utils";
+import { buildPaperDetailUrl, formatDateLong } from "../shared/utils";
 import { INITIAL_PAPERS_BATCH_SIZE } from "../shared/papers-table-filters";
 import {
   FILTER_NO_VALUE,
@@ -14,13 +14,13 @@ import PapersFiltersPanel from "./PapersFiltersPanel.astro";
 
 interface Props {
   papers: Paper[];
-  filterData?: Record<string, PaperFilterData>;
+  filterMetadataByReference?: Record<string, PaperFilterMetadata>;
   filterOptions?: PaperFilterOptions;
 }
 
-const { papers = [], filterData, filterOptions } = Astro.props;
-const base = import.meta.env.BASE_URL;
-const hasFilters = Boolean(filterOptions && filterData);
+const { papers = [], filterMetadataByReference, filterOptions } = Astro.props;
+const baseUrl = import.meta.env.BASE_URL;
+const hasFilters = Boolean(filterOptions && filterMetadataByReference);
 const META_EMPTY_VALUES = new Set([FILTER_NO_VALUE, FILTER_NO_VALUES]);
 
 /** Extract date part (YYYY-MM-DD) from an ISO datetime string. */
@@ -37,17 +37,24 @@ function getMeaningfulMetaValue(value?: string): string | undefined {
   return normalizedValue;
 }
 
-function buildPaperMetaText(paper: Paper, data?: PaperFilterData): string {
-  const lastResult = getMeaningfulMetaValue(data?.lastResult);
-  const stadtteileLabel = getMeaningfulMetaValue(data?.stadtteileLabel);
+function buildPaperMetaText(
+  paper: Paper,
+  metadata?: PaperFilterMetadata,
+): string {
+  const lastResult = getMeaningfulMetaValue(metadata?.lastResult);
+  const districtNamesLabel = getMeaningfulMetaValue(
+    metadata?.districtNamesLabel,
+  );
 
   return [
     paper.reference,
     paper.paperType,
-    data?.organizationNames,
-    data?.lastRole,
+    metadata?.organizationNames,
+    metadata?.lastRole,
     lastResult,
-    stadtteileLabel ? `Erwähnte Stadtteile: ${stadtteileLabel}` : undefined,
+    districtNamesLabel
+      ? `Erwähnte Stadtteile: ${districtNamesLabel}`
+      : undefined,
   ]
     .filter(Boolean)
     .join(" \u00B7 ");
@@ -62,11 +69,11 @@ function buildPaperMetaText(paper: Paper, data?: PaperFilterData): string {
       )}
       <ul class="paper-list">
         {papers.map((paper, i) => {
-          const fd = filterData?.[paper.reference];
+          const metadata = filterMetadataByReference?.[paper.reference];
           const dateKey = toDateKey(paper.modified);
           const prevDateKey = i > 0 ? toDateKey(papers[i - 1].modified) : null;
           const showHeader = dateKey !== prevDateKey;
-          const metaText = buildPaperMetaText(paper, fd);
+          const metaText = buildPaperMetaText(paper, metadata);
           const isInitiallyVisible = i < INITIAL_PAPERS_BATCH_SIZE;
           const showHeaderInitially = showHeader && isInitiallyVisible;
 
@@ -87,13 +94,13 @@ function buildPaperMetaText(paper: Paper, data?: PaperFilterData): string {
               >
                 <a
                   class="paper-card"
-                  href={buildVorlagenDetailUrl(base, paper.internalReference)}
-                  data-year={fd?.year ?? ""}
+                  href={buildPaperDetailUrl(baseUrl, paper.internalReference)}
+                  data-year={metadata?.year ?? ""}
                   data-paper-type={paper.paperType}
-                  data-organization={fd?.organizationNames ?? ""}
-                  data-role={fd?.lastRole ?? ""}
-                  data-result={fd?.lastResult ?? ""}
-                  data-stadtteile={fd?.stadtteileFilterValue ?? ""}
+                  data-organization={metadata?.organizationNames ?? ""}
+                  data-role={metadata?.lastRole ?? ""}
+                  data-result={metadata?.lastResult ?? ""}
+                  data-districts={metadata?.districtFilterValue ?? ""}
                 >
                   <span class="paper-title">{paper.name}</span>
                   <span class="paper-meta" title={metaText}>

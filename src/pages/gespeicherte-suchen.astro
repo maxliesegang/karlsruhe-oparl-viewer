@@ -6,7 +6,7 @@ import { resolvePagefindAvailability } from "../shared/pagefind-server";
 const pagefind = resolvePagefindAvailability(import.meta.env.SKIP_PAGEFIND, {
   isDev: import.meta.env.DEV,
 });
-const base = import.meta.env.BASE_URL;
+const baseUrl = import.meta.env.BASE_URL;
 ---
 
 <Layout title="Gespeicherte Suchen">
@@ -19,7 +19,7 @@ const base = import.meta.env.BASE_URL;
       class="saved-searches-panel"
       data-pagefind-ignore
       data-saved-searches-root
-      data-base-url={base}
+      data-base-url={baseUrl}
       data-pagefind-enabled={String(pagefind.enabled)}
     >
       <div class="saved-searches-toolbar" data-saved-searches-toolbar hidden>
@@ -50,7 +50,7 @@ const base = import.meta.env.BASE_URL;
         </svg>
         <p class="empty-text">
           Noch keine Suche gespeichert.<br />
-          <a href={base}>Zur Suche</a>
+          <a href={baseUrl}>Zur Suche</a>
         </p>
       </div>
     </div>
