@@ -25,7 +25,7 @@ It builds from an OParl-based JSON mirror and publishes to GitHub Pages.
 
 ## Requirements
 
-- Node.js 20.x recommended
+- Node.js 24.x recommended
 - npm
 - A local checkout of the council data (created by `npm run data:setup`)
 

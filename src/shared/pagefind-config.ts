@@ -1,7 +1,8 @@
 /** Shared Pagefind configuration — build-time helpers and client-side selectors. */
 
-export const PAGEFIND_ROOT_SELECTOR = "[data-pagefind-ui]";
-export const PAGEFIND_INPUT_SELECTOR = "[data-pagefind-ui] input[type='text']";
+export const PAGEFIND_ROOT_SELECTOR = "pagefind-searchbox.pagefind-ui";
+export const PAGEFIND_INPUT_SELECTOR =
+  "pagefind-searchbox.pagefind-ui input[type='text']";
 
 export function isPagefindEnabled(skipPagefindValue: unknown): boolean {
   const normalized = String(skipPagefindValue ?? "")

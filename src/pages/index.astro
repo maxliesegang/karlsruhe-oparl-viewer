@@ -1,7 +1,7 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import PageContainer from "../components/PageContainer.astro";
-import Search from "astro-pagefind/components/Search";
+import Search from "astro-pagefind/components/Search.astro";
 import { pagefindUiOptions } from "../shared/pagefind-config";
 import { resolvePagefindAvailability } from "../shared/pagefind-server";
 
@@ -74,6 +74,11 @@ const baseUrl = import.meta.env.BASE_URL;
   .search-page {
     display: grid;
     gap: 14px;
+  }
+
+  :global(pagefind-searchbox.pagefind-ui) {
+    width: 100%;
+    --pf-searchbox-max-width: 100%;
   }
 
   .search-disabled {
