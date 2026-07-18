@@ -1,8 +1,5 @@
-import {
-  BULK_MODIFIED_DATE,
-  CHUNK_BATCH_SIZE,
-  DATA_BASE_URL,
-} from "./constants";
+import { BULK_MODIFIED_DATE } from "./constants";
+import { dataSource } from "./data-source";
 import type {
   FileContentType,
   Meeting,
@@ -21,34 +18,6 @@ let paperStadtteileCache: Map<string, string[]> | null = null;
 let availableYearsCache: string[] | null = null;
 let availableStadtteileCache: string[] | null = null;
 let stadtteilCountsCache: Map<string, number> | null = null;
-
-// --- Generic fetcher ---
-async function fetchJson<T>(url: string): Promise<T[]> {
-  const response = await fetch(url);
-  if (!response.ok) {
-    console.error(`Failed to fetch ${url}: ${response.status}`);
-    return [];
-  }
-  return response.json();
-}
-
-async function fetchJsonRecord<T>(
-  url: string,
-): Promise<Record<string, T | undefined>> {
-  const response = await fetch(url);
-  if (!response.ok) {
-    console.error(`Failed to fetch ${url}: ${response.status}`);
-    return {};
-  }
-
-  const data: unknown = await response.json();
-  if (!data || typeof data !== "object" || Array.isArray(data)) {
-    console.error(`Unexpected data shape for ${url}`);
-    return {};
-  }
-
-  return data as Record<string, T | undefined>;
-}
 
 function normalizeStringArray(
   value: string[] | string | null | undefined,
@@ -86,7 +55,7 @@ export async function loadPapers(): Promise<Paper[]> {
   if (papersCache) return papersCache;
 
   const [data, paperStadtteile] = await Promise.all([
-    fetchJson<Paper>(`${DATA_BASE_URL}/papers.json`),
+    dataSource.loadArray<Paper>("papers"),
     loadPaperStadtteile(),
   ]);
   const activePapers = data.filter((paper) => !paper.deleted);
@@ -105,7 +74,7 @@ export async function loadPapers(): Promise<Paper[]> {
 export async function loadMeetings(): Promise<Map<string, Meeting>> {
   if (meetingsCache) return meetingsCache;
 
-  const data = await fetchJson<Meeting>(`${DATA_BASE_URL}/meetings.json`);
+  const data = await dataSource.loadArray<Meeting>("meetings");
   meetingsCache = new Map(data.map((m) => [m.id, m]));
   return meetingsCache;
 }
@@ -113,9 +82,7 @@ export async function loadMeetings(): Promise<Map<string, Meeting>> {
 export async function loadOrganizations(): Promise<Map<string, Organization>> {
   if (organizationsCache) return organizationsCache;
 
-  const data = await fetchJson<Organization>(
-    `${DATA_BASE_URL}/organizations.json`,
-  );
+  const data = await dataSource.loadArray<Organization>("organizations");
   organizationsCache = new Map(data.map((o) => [o.id, o]));
   return organizationsCache;
 }
@@ -125,31 +92,38 @@ export async function loadFileContents(): Promise<
 > {
   if (fileContentsCache) return fileContentsCache;
 
-  const metadata = await fetchJson<FileContentType>(
-    `${DATA_BASE_URL}/file-contents.json`,
-  );
+  const metadata = await dataSource.loadArray<FileContentType>("file-contents");
   fileContentsCache = new Map(metadata.map((f) => [f.id, f]));
 
-  // Load chunks in parallel; non-existent chunks return null.
-  const chunkPromises = Array.from({ length: CHUNK_BATCH_SIZE }, (_, i) =>
-    fetch(`${DATA_BASE_URL}/file-contents-chunks/chunk-${i}.json`)
-      .then((r) =>
-        r.ok
-          ? (r.json() as Promise<Array<{ id: string; extractedText: string }>>)
-          : null,
-      )
-      .catch(() => null),
-  );
-
-  const chunks = await Promise.all(chunkPromises);
-  for (const chunk of chunks) {
-    if (!chunk) continue;
-    for (const { id, extractedText } of chunk) {
-      const entry = fileContentsCache.get(id);
-      if (entry?.hasExtractedText) {
-        entry.extractedText = extractedText;
+  const withText = metadata.filter((entry) => entry.hasExtractedText);
+  let missingTextCount = 0;
+  const workerCount = Math.min(64, withText.length);
+  let nextIndex = 0;
+  await Promise.all(
+    Array.from({ length: workerCount }, async () => {
+      while (nextIndex < withText.length) {
+        const entry = withText[nextIndex++];
+        const fileId = new URL(entry.id).pathname
+          .split("/")
+          .filter(Boolean)
+          .at(-1);
+        if (!fileId) {
+          missingTextCount++;
+          continue;
+        }
+        const extractedText = await dataSource.loadText(fileId);
+        if (extractedText === undefined) {
+          missingTextCount++;
+        } else {
+          entry.extractedText = extractedText;
+        }
       }
-    }
+    }),
+  );
+  if (missingTextCount > 0) {
+    console.warn(
+      `Missing extracted text for ${missingTextCount} of ${withText.length} indexed files`,
+    );
   }
 
   return fileContentsCache;
@@ -158,8 +132,8 @@ export async function loadFileContents(): Promise<
 export async function loadPaperStadtteile(): Promise<Map<string, string[]>> {
   if (paperStadtteileCache) return paperStadtteileCache;
 
-  const data = await fetchJsonRecord<string[] | string | null>(
-    `${DATA_BASE_URL}/paper-stadtteile.json`,
+  const data = await dataSource.loadRecord<string[] | string | null>(
+    "paper-stadtteile",
   );
 
   paperStadtteileCache = new Map(

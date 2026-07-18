@@ -1,0 +1,36 @@
+name: Local syndication data spike
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-local-data:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout viewer
+        uses: actions/checkout@v4
+
+      - name: Checkout syndication data
+        uses: actions/checkout@v4
+        with:
+          repository: maxliesegang/karlsruhe-oparl-syndication
+          ref: main
+          sparse-checkout: docs
+          fetch-depth: 1
+          path: syndication-data
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+      - name: Build from local checkout
+        run: /usr/bin/time -v npm run build
+        env:
+          DATA_SOURCE: local
+          DATA_LOCAL_DIR: syndication-data/docs
