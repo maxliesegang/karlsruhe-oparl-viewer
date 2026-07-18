@@ -22,9 +22,11 @@ Tested 2026-07-18 on macOS against syndication commit
 
 ## Results
 
-The current, unsharded local checkout built 27,507 pages successfully. A test
+The original unsharded local checkout built 27,507 pages successfully. A test
 layout replacing `papers.json` with three `papers/part-*.json` array shards
-built the same 27,507 pages without loader changes.
+built the same 27,507 pages without loader changes. After the syndication side
+moved to one object per file, the loader was extended to accept those records
+alongside array shards.
 
 One-run quick-build measurements on the same host and data generation:
 
@@ -41,6 +43,13 @@ The full local build completed in 94.77 s with 2.85 GB maximum RSS. Pagefind
 indexed 27,505 pages and wrote its index. An exact word taken from extracted
 PDF text (`Abbiegeassistenzsystemen`) was present in rendered HTML and a
 Pagefind query returned its paper as the sole result.
+
+The per-record follow-up was tested against syndication commit
+`5c530f5b2c20b497ac66740e8041606787a8bc86`, with 13,994 paper files and
+2,598 meeting files. The quick build produced the same 27,507 pages in 25.22 s
+with 2.57 GB maximum RSS. The full build completed in 99.31 s with 2.80 GB
+maximum RSS; Pagefind again indexed 27,505 pages, and the extracted-text query
+returned the same single paper.
 
 ## Cost and limitations
 

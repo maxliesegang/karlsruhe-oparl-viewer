@@ -17,6 +17,13 @@ async function parseArray<T>(contents: string, location: string): Promise<T[]> {
   return data as T[];
 }
 
+function parseDirectoryEntry<T>(contents: string, location: string): T[] {
+  const data: unknown = JSON.parse(contents);
+  if (Array.isArray(data)) return data as T[];
+  if (data && typeof data === "object") return [data as T];
+  throw new TypeError(`Expected a JSON object or array in ${location}`);
+}
+
 class RemoteDataSource implements DataSource {
   async loadArray<T>(entity: string): Promise<T[]> {
     const url = `${DATA_BASE_URL}/${entity}.json`;
@@ -85,13 +92,22 @@ class LocalDataSource implements DataSource {
       throw new Error(`No *.json shards found in ${shardDirectory}`);
     }
 
-    const shards = await Promise.all(
-      shardNames.map(async (name) => {
-        const path = resolve(shardDirectory, name);
-        return parseArray<T>(await readFile(path, "utf8"), path);
+    const entries: T[][] = new Array(shardNames.length);
+    const workerCount = Math.min(64, shardNames.length);
+    let nextIndex = 0;
+    await Promise.all(
+      Array.from({ length: workerCount }, async () => {
+        while (nextIndex < shardNames.length) {
+          const index = nextIndex++;
+          const path = resolve(shardDirectory, shardNames[index]);
+          entries[index] = parseDirectoryEntry<T>(
+            await readFile(path, "utf8"),
+            path,
+          );
+        }
       }),
     );
-    return shards.flat();
+    return entries.flat();
   }
 
   async loadRecord<T>(name: string): Promise<Record<string, T | undefined>> {

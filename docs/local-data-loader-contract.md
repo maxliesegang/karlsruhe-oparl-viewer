@@ -6,13 +6,16 @@ directory and defaults to `syndication-data/docs`.
 For every array store requested by the viewer, provide exactly one of:
 
 - `<entity>.json`, containing one JSON array; or
-- `<entity>/*.json`, where every regular file ending in `.json` contains one
-  JSON array. Shards are read in lexicographic filename order and concatenated.
+- `<entity>/*.json`, where every regular file ending in `.json` contains either
+  one entity object or a JSON array of entities. Files are read in lexicographic
+  filename order and their entities are concatenated.
 
 If both forms exist, the single file wins. Shard counts and names are not fixed;
-an empty shard directory is an error. Files must be UTF-8 JSON. NDJSON and JSON
-objects are rejected. The current viewer requests `papers`, `meetings`,
-`organizations`, and `file-contents` as array stores.
+an empty shard directory is an error. Files must be UTF-8 JSON. NDJSON is
+rejected. A top-level single `<entity>.json` must remain an array; individual
+objects are accepted only inside the entity directory. The current viewer
+requests `papers`, `meetings`, `organizations`, and `file-contents` as array
+stores.
 
 `paper-stadtteile.json` remains a single UTF-8 JSON object.
 
