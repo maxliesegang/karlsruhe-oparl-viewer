@@ -28,7 +28,7 @@ Route entrypoints in `src/pages/`. Each file maps to a URL path.
 ## URL Contracts
 
 - **All internal hrefs** must be prefixed with `import.meta.env.BASE_URL` (required for GitHub Pages subpath)
-- **`internalReference`** — a paper's URL slug is `paper.reference.replaceAll("/", "-")`. This mapping is stable; changing it breaks existing URLs. It is computed in `src/shared/data.ts` and mapped in `src/shared/paper-detail-paths.ts`
+- **`routeReference`** — a paper's URL slug is `paper.reference.replaceAll("/", "-")`. This mapping is stable; changing it breaks existing URLs. It is computed in `src/shared/data.ts` and mapped in `src/shared/paper-detail-paths.ts`
 
 ## Legacy Redirects
 
@@ -38,6 +38,6 @@ Current legacy routes: `pages/vorlagen[year].astro` and `pages/vorlage/[referenc
 
 ## Adding New Pages
 
-- Reuse `Layout` (shell), `PageContainer` (width), and `PaperListingPage` (list skeleton) from `src/components/`
+- Reuse `Layout` (shell), `PageContainer` (width), and `PaperListPage` (list skeleton) from `src/components/`
 - Keep labels and copy in German
 - If the page hosts an interactive list, wrap it with `data-pagefind-ignore`

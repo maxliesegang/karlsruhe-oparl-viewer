@@ -1,26 +1,23 @@
 ---
 import type {
   Paper,
-  PaperFilterMetadata,
+  PaperFilterValues,
   PaperFilterOptions,
 } from "../shared/types";
 import { buildPaperDetailUrl, formatDateLong } from "../shared/utils";
-import { INITIAL_PAPERS_BATCH_SIZE } from "../shared/papers-table-filters";
-import {
-  FILTER_NO_VALUE,
-  FILTER_NO_VALUES,
-} from "../shared/paper-filter-utils";
-import PapersFiltersPanel from "./PapersFiltersPanel.astro";
+import { INITIAL_PAPER_BATCH_SIZE } from "../shared/paper-list-controller";
+import { FILTER_NO_VALUE, FILTER_NO_VALUES } from "../shared/paper-filters";
+import PaperFilters from "./PaperFilters.astro";
 
 interface Props {
   papers: Paper[];
-  filterMetadataByReference?: Record<string, PaperFilterMetadata>;
+  filterValuesByReference?: Record<string, PaperFilterValues>;
   filterOptions?: PaperFilterOptions;
 }
 
-const { papers = [], filterMetadataByReference, filterOptions } = Astro.props;
+const { papers = [], filterValuesByReference, filterOptions } = Astro.props;
 const baseUrl = import.meta.env.BASE_URL;
-const hasFilters = Boolean(filterOptions && filterMetadataByReference);
+const hasFilters = Boolean(filterOptions && filterValuesByReference);
 const META_EMPTY_VALUES = new Set([FILTER_NO_VALUE, FILTER_NO_VALUES]);
 
 /** Extract date part (YYYY-MM-DD) from an ISO datetime string. */
@@ -39,22 +36,20 @@ function getMeaningfulMetaValue(value?: string): string | undefined {
 
 function buildPaperMetaText(
   paper: Paper,
-  metadata?: PaperFilterMetadata,
+  filterValues?: PaperFilterValues,
 ): string {
-  const lastResult = getMeaningfulMetaValue(metadata?.lastResult);
-  const districtNamesLabel = getMeaningfulMetaValue(
-    metadata?.districtNamesLabel,
+  const consultationResult = getMeaningfulMetaValue(
+    filterValues?.consultationResult,
   );
+  const districtLabel = getMeaningfulMetaValue(filterValues?.districtLabel);
 
   return [
     paper.reference,
     paper.paperType,
-    metadata?.organizationNames,
-    metadata?.lastRole,
-    lastResult,
-    districtNamesLabel
-      ? `Erwähnte Stadtteile: ${districtNamesLabel}`
-      : undefined,
+    filterValues?.organization,
+    filterValues?.consultationRole,
+    consultationResult,
+    districtLabel ? `Erwähnte Stadtteile: ${districtLabel}` : undefined,
   ]
     .filter(Boolean)
     .join(" \u00B7 ");
@@ -63,18 +58,18 @@ function buildPaperMetaText(
 
 {
   papers.length > 0 ? (
-    <div class="papers-panel" data-papers-table>
+    <div class="paper-list-panel" data-paper-list>
       {hasFilters && filterOptions && (
-        <PapersFiltersPanel filterOptions={filterOptions} />
+        <PaperFilters filterOptions={filterOptions} />
       )}
       <ul class="paper-list">
         {papers.map((paper, i) => {
-          const metadata = filterMetadataByReference?.[paper.reference];
+          const filterValues = filterValuesByReference?.[paper.reference];
           const dateKey = toDateKey(paper.modified);
           const prevDateKey = i > 0 ? toDateKey(papers[i - 1].modified) : null;
           const showHeader = dateKey !== prevDateKey;
-          const metaText = buildPaperMetaText(paper, metadata);
-          const isInitiallyVisible = i < INITIAL_PAPERS_BATCH_SIZE;
+          const metaText = buildPaperMetaText(paper, filterValues);
+          const isInitiallyVisible = i < INITIAL_PAPER_BATCH_SIZE;
           const showHeaderInitially = showHeader && isInitiallyVisible;
 
           return (
@@ -94,13 +89,13 @@ function buildPaperMetaText(
               >
                 <a
                   class="paper-card"
-                  href={buildPaperDetailUrl(baseUrl, paper.internalReference)}
-                  data-year={metadata?.year ?? ""}
+                  href={buildPaperDetailUrl(baseUrl, paper.routeReference)}
+                  data-year={filterValues?.year ?? ""}
                   data-paper-type={paper.paperType}
-                  data-organization={metadata?.organizationNames ?? ""}
-                  data-role={metadata?.lastRole ?? ""}
-                  data-result={metadata?.lastResult ?? ""}
-                  data-districts={metadata?.districtFilterValue ?? ""}
+                  data-organization={filterValues?.organization ?? ""}
+                  data-role={filterValues?.consultationRole ?? ""}
+                  data-result={filterValues?.consultationResult ?? ""}
+                  data-districts={filterValues?.districts ?? ""}
                 >
                   <span class="paper-title">{paper.name}</span>
                   <span class="paper-meta" title={metaText}>
@@ -125,7 +120,7 @@ function buildPaperMetaText(
 }
 
 <style>
-  .papers-panel {
+  .paper-list-panel {
     background: #fff;
     border-radius: var(--radius);
     box-shadow: var(--shadow-card);
@@ -237,7 +232,7 @@ function buildPaperMetaText(
 </style>
 
 <script>
-  import { initPapersTableFilters } from "../shared/papers-table-filters";
+  import { initPaperList } from "../shared/paper-list-controller";
 
-  initPapersTableFilters();
+  initPaperList();
 </script>

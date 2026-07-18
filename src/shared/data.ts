@@ -51,7 +51,7 @@ export const loadPapers = memoizeAsync(async (): Promise<Paper[]> => {
     .filter((paper) => !paper.deleted)
     .map((paper) => ({
       ...paper,
-      internalReference: paper.reference.replaceAll("/", "-"),
+      routeReference: paper.reference.replaceAll("/", "-"),
       stadtteile: districtsByPaperReference.get(paper.reference) ?? [],
     }))
     .sort((a, b) => b.modified.localeCompare(a.modified));
@@ -131,7 +131,7 @@ export const loadPaperDistricts = memoizeAsync(
 
 // --- Derived data ---
 
-export function getRelevantYear(paper: Paper): string {
+export function getPaperYear(paper: Paper): string {
   if (paper.modified.startsWith(BULK_MODIFIED_DATE)) {
     return paper.date.slice(0, 4);
   }
@@ -140,7 +140,7 @@ export function getRelevantYear(paper: Paper): string {
 
 export const getAvailableYears = memoizeAsync(async (): Promise<string[]> => {
   const papers = await loadPapers();
-  return [...new Set(papers.map((paper) => getRelevantYear(paper)))].sort();
+  return [...new Set(papers.map((paper) => getPaperYear(paper)))].sort();
 });
 
 export const getAvailableDistricts = memoizeAsync(

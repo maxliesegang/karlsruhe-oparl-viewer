@@ -82,8 +82,8 @@ there before building. Key implementation points:
 
 - Data endpoint is configured in `src/shared/constants.ts` (`DATA_BASE_URL`).
 - Fetching/caching lives in `src/shared/data.ts` (module-scoped caches).
-- `internalReference` is derived from `paper.reference` by replacing `/` with `-`.
-- Year bucketing uses `getRelevantYear()` with bulk-import handling (`BULK_MODIFIED_DATE = "2025-03-03"`).
+- `routeReference` is derived from `paper.reference` by replacing `/` with `-`.
+- Year bucketing uses `getPaperYear()` with bulk-import handling (`BULK_MODIFIED_DATE = "2025-03-03"`).
 - File content text is loaded concurrently from `file-contents/`.
 - District counts are derived and cached via `getPaperCountsByDistrict()`.
 
@@ -94,11 +94,11 @@ the upstream paper and meeting data now uses per-record directories.
 
 - `src/layouts/Layout.astro` provides page shell and global styles.
 - `src/components/SiteNavigation.astro` owns nav markup/styles/mobile behavior.
-- `src/components/PaperListingPage.astro` + `src/components/PageContainer.astro` are shared list-page wrappers.
-- `src/components/PapersTable.astro` renders paper rows and metadata.
+- `src/components/PaperListPage.astro` + `src/components/PageContainer.astro` are shared list-page wrappers.
+- `src/components/PaperList.astro` renders paper cards and summary text.
 - `src/components/FilterSelect.astro` renders each filter dropdown.
-- `src/shared/papers-table-filters.ts` contains client-side filtering logic.
-- `src/shared/paper-filter-utils.ts` builds filter metadata/options from paper + meeting/org data.
+- `src/shared/paper-list-controller.ts` contains client-side filtering and incremental-loading logic.
+- `src/shared/paper-filters.ts` builds filter values/options from paper, meeting, and organization data.
 
 ## Deployment
 

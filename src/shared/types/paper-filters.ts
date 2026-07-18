@@ -1,10 +1,10 @@
-export interface PaperFilterMetadata {
+export interface PaperFilterValues {
   year: string;
-  organizationNames: string;
-  lastRole: string;
-  lastResult: string;
-  districtNamesLabel: string;
-  districtFilterValue: string;
+  organization: string;
+  consultationRole: string;
+  consultationResult: string;
+  districtLabel: string;
+  districts: string;
 }
 
 export interface PaperFilterOptions {

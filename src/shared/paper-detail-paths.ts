@@ -21,9 +21,12 @@ async function getStaticPathCache() {
   const papers = await loadPapers();
   const detailPaths: PaperDetailStaticPath[] = [];
   const referencePaths: PaperReferenceStaticPath[] = [];
+  const seenReferences = new Set<string>();
 
   for (const paper of papers) {
-    const reference = paper.internalReference;
+    const reference = paper.routeReference;
+    if (seenReferences.has(reference)) continue;
+    seenReferences.add(reference);
     detailPaths.push({
       params: { reference },
       props: { paper },

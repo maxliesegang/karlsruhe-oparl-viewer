@@ -1,8 +1,8 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import PaperListingPage from "../components/PaperListingPage.astro";
+import PaperListPage from "../components/PaperListPage.astro";
 import { loadPapers, loadOrganizations, loadMeetings } from "../shared/data";
-import { buildPaperFilters } from "../shared/paper-filter-utils";
+import { buildPaperFilterModel } from "../shared/paper-filters";
 
 const [papers, organizationsById, meetingsById] = await Promise.all([
   loadPapers(),
@@ -10,7 +10,7 @@ const [papers, organizationsById, meetingsById] = await Promise.all([
   loadMeetings(),
 ]);
 
-const { metadataByPaperReference, filterOptions } = buildPaperFilters(
+const { valuesByReference, options } = buildPaperFilterModel(
   papers,
   organizationsById,
   meetingsById,
@@ -18,10 +18,10 @@ const { metadataByPaperReference, filterOptions } = buildPaperFilters(
 ---
 
 <Layout title="Vorlagen">
-  <PaperListingPage
+  <PaperListPage
     title="Vorlagen"
     papers={papers}
-    filterMetadataByReference={metadataByPaperReference}
-    filterOptions={filterOptions}
+    filterValuesByReference={valuesByReference}
+    filterOptions={options}
   />
 </Layout>

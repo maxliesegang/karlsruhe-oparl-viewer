@@ -2,10 +2,10 @@ import type {
   Meeting,
   Organization,
   Paper,
-  PaperFilterMetadata,
+  PaperFilterValues,
   PaperFilterOptions,
 } from "./types";
-import { getRelevantYear } from "./data";
+import { getPaperYear } from "./data";
 
 export const FILTER_NO_VALUE = "Keine Angabe";
 export const FILTER_NO_VALUES = "Keine Angaben";
@@ -19,7 +19,7 @@ function normalizeValues(values: string[] = []): string[] {
   return [...new Set(values.map((value) => value.trim()).filter(Boolean))];
 }
 
-function getOrganizationNames(
+function getOrganizationLabel(
   paper: Paper,
   organizations: Map<string, Organization>,
 ): string {
@@ -30,27 +30,27 @@ function getOrganizationNames(
   return orgNames.length > 0 ? orgNames.join(", ") : FILTER_NO_VALUES;
 }
 
-function getLastConsultationMeta(
+function getLatestConsultationValues(
   paper: Paper,
   agendaItemResultIndex: AgendaItemResultIndex,
-): { lastRole: string; lastResult: string } {
-  let lastRole = FILTER_NO_VALUE;
-  let lastResult = FILTER_NO_VALUE;
+): { role: string; result: string } {
+  let role = FILTER_NO_VALUE;
+  let result = FILTER_NO_VALUE;
 
   for (const consultation of paper.consultation || []) {
     if (consultation.role) {
-      lastRole = consultation.role;
+      role = consultation.role;
     }
 
-    const result = agendaItemResultIndex
+    const agendaItemResult = agendaItemResultIndex
       .get(consultation.meeting)
       ?.get(consultation.agendaItem);
-    if (result) {
-      lastResult = result;
+    if (agendaItemResult) {
+      result = agendaItemResult;
     }
   }
 
-  return { lastRole, lastResult };
+  return { role, result };
 }
 
 function buildAgendaItemResultIndex(
@@ -86,32 +86,32 @@ function getAgendaItemResultIndex(
   return nextIndex;
 }
 
-function getDistrictMetadata(paper: Paper): {
+function getDistrictFilterValues(paper: Paper): {
   districtNames: string[];
-  districtNamesLabel: string;
-  districtFilterValue: string;
+  districtLabel: string;
+  districts: string;
 } {
   const districtNames = normalizeValues(paper.stadtteile);
-  const districtNamesLabel =
+  const districtLabel =
     districtNames.length > 0 ? districtNames.join(", ") : FILTER_NO_VALUES;
 
   return {
     districtNames,
-    districtNamesLabel,
-    districtFilterValue: districtNames.join("|"),
+    districtLabel,
+    districts: districtNames.join("|"),
   };
 }
 
-/** Build filter metadata and dropdown options for a list of papers. */
-export function buildPaperFilters(
+/** Build per-paper filter values and dropdown options for a paper list. */
+export function buildPaperFilterModel(
   papers: Paper[],
   organizations: Map<string, Organization>,
   meetings: Map<string, Meeting>,
 ): {
-  metadataByPaperReference: Record<string, PaperFilterMetadata>;
-  filterOptions: PaperFilterOptions;
+  valuesByReference: Record<string, PaperFilterValues>;
+  options: PaperFilterOptions;
 } {
-  const metadataByPaperReference: Record<string, PaperFilterMetadata> = {};
+  const valuesByReference: Record<string, PaperFilterValues> = {};
   const paperTypeSet = new Set<string>();
   const yearSet = new Set<string>();
   const organizationSet = new Set<string>();
@@ -121,35 +121,33 @@ export function buildPaperFilters(
   const agendaItemResultIndex = getAgendaItemResultIndex(meetings);
 
   for (const paper of papers) {
-    const year = getRelevantYear(paper);
-    const organizationNames = getOrganizationNames(paper, organizations);
-    const { lastRole, lastResult } = getLastConsultationMeta(
-      paper,
-      agendaItemResultIndex,
-    );
-    const { districtNames, districtNamesLabel, districtFilterValue } =
-      getDistrictMetadata(paper);
+    const year = getPaperYear(paper);
+    const organization = getOrganizationLabel(paper, organizations);
+    const { role: consultationRole, result: consultationResult } =
+      getLatestConsultationValues(paper, agendaItemResultIndex);
+    const { districtNames, districtLabel, districts } =
+      getDistrictFilterValues(paper);
 
-    metadataByPaperReference[paper.reference] = {
+    valuesByReference[paper.reference] = {
       year,
-      organizationNames,
-      lastRole,
-      lastResult,
-      districtNamesLabel,
-      districtFilterValue,
+      organization,
+      consultationRole,
+      consultationResult,
+      districtLabel,
+      districts,
     };
 
     yearSet.add(year);
     if (paper.paperType) paperTypeSet.add(paper.paperType);
-    organizationSet.add(organizationNames);
-    if (lastRole) roleSet.add(lastRole);
-    if (lastResult) resultSet.add(lastResult);
+    organizationSet.add(organization);
+    if (consultationRole) roleSet.add(consultationRole);
+    if (consultationResult) resultSet.add(consultationResult);
     for (const districtName of districtNames) {
       districtSet.add(districtName);
     }
   }
 
-  const filterOptions: PaperFilterOptions = {
+  const options: PaperFilterOptions = {
     years: [...yearSet].sort((a, b) => b.localeCompare(a)),
     paperTypes: [...paperTypeSet].sort(),
     organizations: [...organizationSet].sort(),
@@ -158,5 +156,5 @@ export function buildPaperFilters(
     districts: [...districtSet].sort(),
   };
 
-  return { metadataByPaperReference, filterOptions };
+  return { valuesByReference, options };
 }

@@ -1,6 +1,6 @@
 ---
 import Layout from "../../layouts/Layout.astro";
-import PaperListingPage from "../../components/PaperListingPage.astro";
+import PaperListPage from "../../components/PaperListPage.astro";
 import StadtteilHint from "../../components/StadtteilHint.astro";
 import {
   loadPapers,
@@ -8,7 +8,7 @@ import {
   loadMeetings,
   getAvailableDistricts,
 } from "../../shared/data";
-import { buildPaperFilters } from "../../shared/paper-filter-utils";
+import { buildPaperFilterModel } from "../../shared/paper-filters";
 import { slugify } from "../../shared/utils";
 
 export async function getStaticPaths() {
@@ -32,7 +32,7 @@ const papers = allPapers.filter((paper) =>
   paper.stadtteile.some((paperDistrict) => paperDistrict === districtName),
 );
 
-const { metadataByPaperReference, filterOptions } = buildPaperFilters(
+const { valuesByReference, options } = buildPaperFilterModel(
   papers,
   organizationsById,
   meetingsById,
@@ -40,18 +40,18 @@ const { metadataByPaperReference, filterOptions } = buildPaperFilters(
 ---
 
 <Layout title={districtName}>
-  <PaperListingPage
+  <PaperListPage
     title={districtName}
     papers={papers}
-    filterMetadataByReference={metadataByPaperReference}
-    filterOptions={filterOptions}
+    filterValuesByReference={valuesByReference}
+    filterOptions={options}
   >
     <p slot="intro" class="subtitle">
       {papers.length} Vorlagen &middot;
       <a href={`${baseUrl}stadtteile`} class="back-link">Alle Stadtteile</a>
     </p>
     <StadtteilHint slot="intro" />
-  </PaperListingPage>
+  </PaperListPage>
 </Layout>
 
 <style>

@@ -3,7 +3,7 @@ import type { AuxiliaryFile } from "./auxiliary-file.ts";
 import type { Entity } from "./entity.ts";
 
 export interface Paper extends Entity {
-  internalReference: string;
+  routeReference: string;
   stadtteile: string[];
   type: string;
   body: string;
