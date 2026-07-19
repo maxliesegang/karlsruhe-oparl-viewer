@@ -26,20 +26,56 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    outputs:
+      data-revision: ${{ steps.data-revision.outputs.revision }}
+      should-deploy: ${{ steps.changes.outputs.should-deploy }}
     env:
       DATA_SOURCE: local
     steps:
       - name: Checkout your repository using git
         uses: actions/checkout@v7
+
+      - name: Resolve council data revision
+        id: data-revision
+        run: |
+          revision=$(git ls-remote https://github.com/maxliesegang/karlsruhe-oparl-syndication.git HEAD | cut -f1)
+          test -n "$revision"
+          echo "revision=$revision" >> "$GITHUB_OUTPUT"
+
+      # Scheduled runs are often no-ops. Remember successful viewer/data revision
+      # pairs so they can skip the large data checkout and full static rebuild.
+      - name: Check for an already successful scheduled build
+        id: successful-build
+        if: github.event_name == 'schedule'
+        uses: actions/cache/restore@v4
+        with:
+          path: .build-markers
+          key: successful-build-${{ github.sha }}-${{ steps.data-revision.outputs.revision }}
+          lookup-only: true
+
+      - name: Decide whether to build
+        id: changes
+        run: |
+          if [[ "${{ github.event_name }}" == "schedule" && "${{ steps.successful-build.outputs.cache-hit }}" == "true" ]]; then
+            echo "should-deploy=false" >> "$GITHUB_OUTPUT"
+            echo "Viewer and council data revisions were already deployed; skipping."
+          else
+            echo "should-deploy=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Setup Pages
+        if: steps.changes.outputs.should-deploy == 'true'
         uses: actions/configure-pages@v5
       - name: Checkout council data
+        if: steps.changes.outputs.should-deploy == 'true'
         uses: actions/checkout@v7
         with:
           repository: maxliesegang/karlsruhe-oparl-syndication
           path: syndication-data
+          sparse-checkout: docs
           fetch-depth: 1
       - name: Install, build, and upload your site
+        if: steps.changes.outputs.should-deploy == 'true'
         uses:
           withastro/action@v6
           # with:
@@ -49,6 +85,7 @@ jobs:
 
   deploy:
     needs: build
+    if: needs.build.outputs.should-deploy == 'true'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
@@ -57,3 +94,12 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5
+
+      - name: Mark revision pair as successfully deployed
+        run: mkdir -p .build-markers && touch .build-markers/success
+
+      - name: Save successful deployment marker
+        uses: actions/cache/save@v4
+        with:
+          path: .build-markers
+          key: successful-build-${{ github.sha }}-${{ needs.build.outputs.data-revision }}

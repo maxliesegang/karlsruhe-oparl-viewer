@@ -38,7 +38,7 @@ const { targetUrl, preserveSearchAndHash = false } = Astro.props;
       }
     </script>
   </head>
-  <body>
+  <body data-pagefind-ignore>
     <p>
       Weiterleitung zu <a href={targetUrl}>{targetUrl}</a>...
     </p>
