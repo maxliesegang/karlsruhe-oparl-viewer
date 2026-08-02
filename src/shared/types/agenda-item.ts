@@ -7,9 +7,9 @@ export interface AgendaItem extends Entity {
   number: string;
   order: number;
   name: string;
-  public: boolean;
+  public?: boolean | null;
   consultation?: string;
-  result?: string;
+  result?: string | null;
   created: string;
   modified: string;
   auxiliaryFile?: AuxiliaryFile[];

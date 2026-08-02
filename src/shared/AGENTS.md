@@ -4,19 +4,23 @@ Data fetching, caching, filtering logic, utilities, and TypeScript types.
 
 ## Key Files
 
-| File                          | Role                                                      |
-| ----------------------------- | --------------------------------------------------------- |
-| `constants.ts`                | `DATA_BASE_URL`, `CHUNK_BATCH_SIZE`, `BULK_MODIFIED_DATE` |
-| `data.ts`                     | All build-time loaders, caches, and entity resolvers      |
-| `paper-filters.ts`            | Derives filter values and options from loaded papers      |
-| `paper-filter-definitions.ts` | Static filter field definitions                           |
-| `paper-list-controller.ts`    | Client-side paper-list filtering and incremental loading  |
-| `paper-detail-paths.ts`       | Maps paper references to URL slugs                        |
-| `utils.ts`                    | URL, date, and slug helpers                               |
-| `pagefind-client.ts`          | Pagefind search integration                               |
-| `saved-searches.ts`           | Saved search logic                                        |
-| `responsive-filters-panel.ts` | Responsive filter panel UI behaviour                      |
-| `types/`                      | All TypeScript type contracts                             |
+| File                            | Role                                                      |
+| ------------------------------- | --------------------------------------------------------- |
+| `constants.ts`                  | `DATA_BASE_URL`, `CHUNK_BATCH_SIZE`, `BULK_MODIFIED_DATE` |
+| `data.ts`                       | All build-time loaders, caches, and entity resolvers      |
+| `paper-filters.ts`              | Derives filter values and options from loaded papers      |
+| `paper-filter-definitions.ts`   | Static filter field definitions                           |
+| `paper-list-controller.ts`      | Client-side paper-list filtering and incremental loading  |
+| `meeting-filters.ts`            | Canonical organization-based meeting filter model         |
+| `meeting-filter-definitions.ts` | Meeting filter IDs, URL parameters, and option sets       |
+| `meeting-filter-controller.ts`  | Client-side meeting filtering and URL synchronization     |
+| `paper-detail-paths.ts`         | Maps paper references to URL slugs                        |
+| `meeting-paths.ts`              | Maps OParl meeting IDs to meeting detail routes           |
+| `utils.ts`                      | URL, date, and slug helpers                               |
+| `pagefind-client.ts`            | Pagefind search integration                               |
+| `saved-searches.ts`             | Saved search logic                                        |
+| `responsive-filters-panel.ts`   | Responsive filter panel UI behaviour                      |
+| `types/`                        | All TypeScript type contracts                             |
 
 ## Data Flow
 
@@ -24,6 +28,7 @@ Data fetching, caching, filtering logic, utilities, and TypeScript types.
 DATA_BASE_URL (constants.ts)
   └─ data.ts (loaders, caches, resolvers)
        ├─ paper-filters.ts       ← builds filter values/options for list pages
+       ├─ meeting-filters.ts     ← builds canonical meeting filter values/options
        └─ paper-detail-paths.ts  ← maps reference → URL slug
 ```
 
@@ -46,6 +51,13 @@ DATA_BASE_URL (constants.ts)
 3. Update filter rendering in `src/components/PaperList.astro`
 4. Update client behaviour in `paper-list-controller.ts`
    — filter control IDs must stay in sync (see `src/components/AGENTS.md`)
+
+Meeting filters follow the same separation of concerns: `meeting-filters.ts`
+derives stable values from the OParl organization relation,
+`MeetingFilters.astro` owns the controls, and
+`meeting-filter-controller.ts` only matches rendered data attributes. Keep title
+parsing as a fallback for meetings without a resolvable organization; do not
+use title variants as the primary organization source.
 
 ## Pitfalls
 

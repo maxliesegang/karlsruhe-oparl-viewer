@@ -1,0 +1,84 @@
+---
+import type { Paper } from "../shared/types";
+import { buildPaperDetailUrl } from "../shared/utils";
+
+interface Props {
+  superordinated: Paper[];
+  subordinated: Paper[];
+}
+
+const { superordinated, subordinated } = Astro.props;
+const baseUrl = import.meta.env.BASE_URL;
+const groups = [
+  { heading: "Übergeordnete Vorlagen", papers: superordinated },
+  { heading: "Nachträge und zugehörige Vorlagen", papers: subordinated },
+].filter((group) => group.papers.length > 0);
+---
+
+{
+  groups.length > 0 && (
+    <section class="section-card" data-pagefind-ignore>
+      <h2 class="section-heading">Zusammengehörige Vorlagen</h2>
+      <div class="related-groups">
+        {groups.map((group) => (
+          <div>
+            <h3>{group.heading}</h3>
+            <ul>
+              {group.papers.map((paper) => (
+                <li>
+                  <a href={buildPaperDetailUrl(baseUrl, paper.routeReference)}>
+                    <span>{paper.name}</span>
+                    <small>
+                      {paper.reference} · {paper.paperType}
+                    </small>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+<style>
+  .related-groups {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+  }
+
+  h3 {
+    margin: 0 0 10px;
+    font-size: 1rem;
+  }
+
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+  }
+
+  li:not(:last-child) {
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  a {
+    display: grid;
+    gap: 4px;
+    padding: 12px;
+    color: var(--color-link);
+    text-decoration: none;
+  }
+
+  a:hover {
+    background: #fafafa;
+  }
+
+  small {
+    color: var(--color-text-muted);
+  }
+</style>

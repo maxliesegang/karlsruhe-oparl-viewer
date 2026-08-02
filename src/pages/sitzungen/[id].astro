@@ -1,0 +1,186 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import PageContainer from "../../components/PageContainer.astro";
+import MeetingAgenda from "../../components/MeetingAgenda.astro";
+import {
+  resolveMeetingAgenda,
+  resolveMeetingOrganizations,
+} from "../../shared/data";
+import { getMeetingStaticPaths } from "../../shared/meeting-paths";
+import {
+  formatDateTime,
+  hasPublishedMeetingEnd,
+  normalizeOParlUrl,
+} from "../../shared/utils";
+import type { AuxiliaryFile, Meeting } from "../../shared/types";
+
+export async function getStaticPaths() {
+  return getMeetingStaticPaths();
+}
+
+interface Props {
+  meeting: Meeting;
+}
+
+const { meeting } = Astro.props;
+const [agenda, organizations] = await Promise.all([
+  resolveMeetingAgenda(meeting),
+  resolveMeetingOrganizations(meeting),
+]);
+const baseUrl = import.meta.env.BASE_URL;
+const hasPublishedEnd = hasPublishedMeetingEnd(meeting.start, meeting.end);
+const rawDocuments: { label: string; file: AuxiliaryFile }[] = [
+  meeting.invitation && { label: "Einladung", file: meeting.invitation },
+  meeting.resultsProtocol && {
+    label: "Ergebnisprotokoll",
+    file: meeting.resultsProtocol,
+  },
+  meeting.verbatimProtocol && {
+    label: "Wortprotokoll",
+    file: meeting.verbatimProtocol,
+  },
+  ...(meeting.auxiliaryFile ?? []).map((file) => ({
+    label: "Unterlage",
+    file,
+  })),
+].filter((entry): entry is { label: string; file: AuxiliaryFile } =>
+  Boolean(entry),
+);
+const seenDocumentIds = new Set<string>();
+const documents = rawDocuments.filter(({ file }) => {
+  if (seenDocumentIds.has(file.id)) return false;
+  seenDocumentIds.add(file.id);
+  return true;
+});
+---
+
+<Layout title={meeting.name} pagefindIgnore>
+  <PageContainer class="meeting-detail-page">
+    <p class="back-link" data-pagefind-ignore>
+      <a href={`${baseUrl}sitzungen`}>← Alle kommenden Sitzungen</a>
+    </p>
+    <h1 class="page-header">{meeting.name}</h1>
+
+    <section class="section-card meeting-key-info" data-pagefind-ignore>
+      <dl>
+        <div>
+          <dt>Beginn</dt>
+          <dd>
+            <time datetime={meeting.start}
+              >{formatDateTime(meeting.start)} Uhr</time
+            >
+          </dd>
+        </div>
+        <div>
+          <dt>Ende</dt>
+          <dd>
+            {
+              hasPublishedEnd ? (
+                <time datetime={meeting.end}>
+                  {formatDateTime(meeting.end)} Uhr
+                </time>
+              ) : (
+                "Nicht angegeben"
+              )
+            }
+          </dd>
+        </div>
+        <div>
+          <dt>Ort</dt>
+          <dd>
+            {meeting.location?.description || "Noch nicht veröffentlicht"}
+          </dd>
+        </div>
+        <div>
+          <dt>Gremium</dt>
+          <dd>
+            {
+              organizations
+                .map((organization) => organization.name)
+                .join(", ") || "Keine Angabe"
+            }
+          </dd>
+        </div>
+      </dl>
+    </section>
+
+    <MeetingAgenda items={agenda} />
+
+    {
+      documents.length > 0 && (
+        <section class="section-card" data-pagefind-ignore>
+          <h2 class="section-heading">Sitzungsunterlagen</h2>
+          <ul class="document-list">
+            {documents.map(({ label, file }) => (
+              <li>
+                <a
+                  href={normalizeOParlUrl(file.accessUrl)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {label}: {file.name}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )
+    }
+  </PageContainer>
+</Layout>
+
+<style>
+  .meeting-detail-page {
+    max-width: 1000px;
+  }
+
+  .back-link a,
+  .document-list a {
+    color: var(--color-link);
+    text-decoration: none;
+  }
+
+  .back-link a:hover,
+  .document-list a:hover {
+    text-decoration: underline;
+  }
+
+  .meeting-key-info {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 20px;
+  }
+
+  dl {
+    display: grid;
+    gap: 10px;
+    margin: 0;
+  }
+
+  dl div {
+    display: grid;
+    grid-template-columns: 90px 1fr;
+    gap: 10px;
+  }
+
+  dt {
+    font-weight: 700;
+  }
+
+  dd {
+    margin: 0;
+  }
+
+  .document-list {
+    margin: 0;
+    padding-left: 20px;
+  }
+
+  @media screen and (max-width: 650px) {
+    .meeting-key-info {
+      align-items: stretch;
+      flex-direction: column;
+    }
+  }
+</style>

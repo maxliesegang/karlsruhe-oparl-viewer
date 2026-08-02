@@ -42,24 +42,89 @@ export function buildPaperDetailUrl(
   return `${baseUrl}vorlagen/${encodeURIComponent(reference)}`;
 }
 
+export function getOParlEntityId(id: string): string {
+  return id.split("/").filter(Boolean).at(-1) ?? "";
+}
+
+export function buildMeetingDetailUrl(baseUrl: string, id: string): string {
+  return `${baseUrl}sitzungen/${encodeURIComponent(id)}`;
+}
+
+const DATE_TIME_FORMATTER = new Intl.DateTimeFormat("de-DE", {
+  dateStyle: "long",
+  timeStyle: "short",
+});
+const DATE_SHORT_FORMATTER = new Intl.DateTimeFormat("de-DE", {
+  day: "2-digit",
+  month: "2-digit",
+  year: "numeric",
+});
+const DATE_LONG_FORMATTER = new Intl.DateTimeFormat("de-DE", {
+  year: "numeric",
+  month: "long",
+  day: "numeric",
+});
+
+export function getDateTimestamp(date: string | undefined): number | undefined {
+  if (!date) return undefined;
+  const timestamp = new Date(date).getTime();
+  return Number.isNaN(timestamp) ? undefined : timestamp;
+}
+
+/** Sorts valid dates chronologically and keeps invalid values deterministic. */
+export function compareDateStrings(
+  left: string | undefined,
+  right: string | undefined,
+): number {
+  const leftTimestamp = getDateTimestamp(left);
+  const rightTimestamp = getDateTimestamp(right);
+
+  if (leftTimestamp !== undefined && rightTimestamp !== undefined) {
+    return leftTimestamp - rightTimestamp;
+  }
+  if (leftTimestamp !== undefined) return -1;
+  if (rightTimestamp !== undefined) return 1;
+  return (left ?? "").localeCompare(right ?? "");
+}
+
+export function formatDateTime(date: string | undefined): string {
+  const timestamp = getDateTimestamp(date);
+  return timestamp === undefined ? "" : DATE_TIME_FORMATTER.format(timestamp);
+}
+
+/** Some OParl meetings use midnight as a placeholder end before their start. */
+export function getEffectiveMeetingEnd(start: string, end: string): Date {
+  const startTimestamp = getDateTimestamp(start);
+  if (startTimestamp === undefined) return new Date(Number.NaN);
+
+  const endTimestamp = getDateTimestamp(end);
+  return new Date(
+    endTimestamp !== undefined && endTimestamp > startTimestamp
+      ? endTimestamp
+      : startTimestamp + 2 * 60 * 60 * 1_000,
+  );
+}
+
+export function hasPublishedMeetingEnd(start: string, end: string): boolean {
+  const startTimestamp = getDateTimestamp(start);
+  const endTimestamp = getDateTimestamp(end);
+  return (
+    startTimestamp !== undefined &&
+    endTimestamp !== undefined &&
+    endTimestamp > startTimestamp
+  );
+}
+
 /** Formats a date string as "dd.MM.yyyy" in German locale. */
 export function formatDateShort(date: string | undefined): string {
-  if (!date) return "";
-  return new Intl.DateTimeFormat("de-DE", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  }).format(new Date(date));
+  const timestamp = getDateTimestamp(date);
+  return timestamp === undefined ? "" : DATE_SHORT_FORMATTER.format(timestamp);
 }
 
 /** Formats a date string as "d. MMMM yyyy" in German locale. */
 export function formatDateLong(date: string | undefined): string {
-  if (!date) return "";
-  return new Date(date).toLocaleDateString("de-DE", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
+  const timestamp = getDateTimestamp(date);
+  return timestamp === undefined ? "" : DATE_LONG_FORMATTER.format(timestamp);
 }
 
 /** Converts a display string (e.g. Stadtteil name) into a URL-safe slug. */

@@ -8,12 +8,14 @@ export interface Meeting extends Entity {
   name: string;
   start: string;
   end: string;
-  location: Location;
-  organization: string[];
+  location?: Location | null;
+  organization?: string[] | null;
   created: string;
   modified: string;
-  invitation?: AuxiliaryFile;
-  resultsProtocol?: AuxiliaryFile;
-  auxiliaryFile?: AuxiliaryFile[];
-  agendaItem: AgendaItem[];
+  invitation?: AuxiliaryFile | null;
+  resultsProtocol?: AuxiliaryFile | null;
+  verbatimProtocol?: AuxiliaryFile | null;
+  auxiliaryFile?: AuxiliaryFile[] | null;
+  agendaItem?: AgendaItem[] | null;
+  deleted?: boolean;
 }

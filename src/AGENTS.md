@@ -22,6 +22,8 @@ Route entrypoints in `src/pages/`. Each file maps to a URL path.
 | `pages/stadtteil/[name].astro`     | `/stadtteil/[name]`     | Papers for one district                   |
 | `pages/vorlage/[reference].astro`  | `/vorlage/[reference]`  | Legacy redirect → `/vorlagen/[reference]` |
 | `pages/gespeicherte-suchen.astro`  | `/gespeicherte-suchen`  | Saved searches                            |
+| `pages/sitzungen.astro`            | `/sitzungen`            | Upcoming meetings                         |
+| `pages/sitzungen/[id].astro`       | `/sitzungen/[id]`       | Meeting details and public agenda         |
 
 > **Note:** Do not place non-`.astro` files directly inside `src/pages/` — Astro will try to render them as routes.
 
@@ -41,3 +43,4 @@ Current legacy routes: `pages/vorlagen[year].astro` and `pages/vorlage/[referenc
 - Reuse `Layout` (shell), `PageContainer` (width), and `PaperListPage` (list skeleton) from `src/components/`
 - Keep labels and copy in German
 - If the page hosts an interactive list, wrap it with `data-pagefind-ignore`
+- Meeting pages are excluded from Pagefind so search and saved-search freshness remain paper-only

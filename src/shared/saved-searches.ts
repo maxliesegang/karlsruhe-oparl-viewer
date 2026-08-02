@@ -6,6 +6,7 @@ export const MAX_SAVED_SEARCHES = 25;
 export interface SavedSearch {
   query: string;
   savedAt: string;
+  lastViewedAt: string;
 }
 
 const MULTI_SPACE_REGEX = /\s+/g;
@@ -27,7 +28,10 @@ function isSavedSearch(value: unknown): value is SavedSearch {
   if (!value || typeof value !== "object") return false;
   const candidate = value as Partial<SavedSearch>;
   return (
-    typeof candidate.query === "string" && typeof candidate.savedAt === "string"
+    typeof candidate.query === "string" &&
+    typeof candidate.savedAt === "string" &&
+    (candidate.lastViewedAt === undefined ||
+      typeof candidate.lastViewedAt === "string")
   );
 }
 
@@ -35,11 +39,16 @@ function toNormalizedSavedSearch(search: SavedSearch): SavedSearch | null {
   const normalizedQuery = normalizeSavedSearchQuery(search.query);
   if (!normalizedQuery) return null;
   const savedAtDate = new Date(search.savedAt);
+  const normalizedSavedAt = Number.isNaN(savedAtDate.getTime())
+    ? new Date(0).toISOString()
+    : savedAtDate.toISOString();
+  const lastViewedAtDate = new Date(search.lastViewedAt ?? normalizedSavedAt);
   return {
     query: normalizedQuery,
-    savedAt: Number.isNaN(savedAtDate.getTime())
-      ? new Date(0).toISOString()
-      : savedAtDate.toISOString(),
+    savedAt: normalizedSavedAt,
+    lastViewedAt: Number.isNaN(lastViewedAtDate.getTime())
+      ? normalizedSavedAt
+      : lastViewedAtDate.toISOString(),
   };
 }
 
@@ -101,15 +110,55 @@ export function upsertSavedSearch(
   const normalizedQuery = normalizeSavedSearchQuery(query);
   if (!normalizedQuery) return sanitizeSavedSearches(searches);
 
+  const existingSearch = searches.find((search) =>
+    isSameSavedSearchQuery(search.query, normalizedQuery),
+  );
   const nextSearches = searches.filter(
     (search) => !isSameSavedSearchQuery(search.query, normalizedQuery),
   );
+  const nowIso = now.toISOString();
   nextSearches.unshift({
     query: normalizedQuery,
-    savedAt: now.toISOString(),
+    savedAt: existingSearch?.savedAt ?? nowIso,
+    lastViewedAt: nowIso,
   });
 
   return sanitizeSavedSearches(nextSearches);
+}
+
+export function markSavedSearchViewed(
+  searches: SavedSearch[],
+  query: string,
+  now: Date = new Date(),
+): SavedSearch[] {
+  const normalizedQuery = normalizeSavedSearchQuery(query);
+  if (!normalizedQuery) return sanitizeSavedSearches(searches);
+
+  return sanitizeSavedSearches(
+    searches.map((search) =>
+      isSameSavedSearchQuery(search.query, normalizedQuery)
+        ? { ...search, lastViewedAt: now.toISOString() }
+        : search,
+    ),
+  );
+}
+
+/** Advances a saved search checkpoint after its results page is opened. */
+export function markCurrentSavedSearchViewed(): void {
+  if (typeof window === "undefined") return;
+  const storage = getBrowserStorage();
+  if (!storage) return;
+
+  const query = new URLSearchParams(window.location.search).get(
+    SAVED_SEARCH_QUERY_PARAM,
+  );
+  if (!query) return;
+
+  const searches = readSavedSearches(storage);
+  if (!searches.some((search) => isSameSavedSearchQuery(search.query, query))) {
+    return;
+  }
+  writeSavedSearches(storage, markSavedSearchViewed(searches, query));
 }
 
 export function removeSavedSearch(

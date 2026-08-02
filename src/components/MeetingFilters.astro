@@ -1,0 +1,334 @@
+---
+import {
+  MEETING_AGENDA_OPTIONS,
+  MEETING_FILTER_IDS,
+  MEETING_SELECT_FILTERS,
+  MEETING_TIME_RANGE_OPTIONS,
+  type MeetingSelectFilterKey,
+} from "../shared/meeting-filter-definitions";
+import type { MeetingFilterOptions } from "../shared/types";
+import FilterSelect from "./FilterSelect.astro";
+
+interface Props {
+  filterOptions: MeetingFilterOptions;
+  meetingCount: number;
+}
+
+const { filterOptions, meetingCount } = Astro.props;
+
+type FilterOption = string | { value: string; label: string };
+
+const optionsByKey: Record<
+  MeetingSelectFilterKey,
+  ReadonlyArray<FilterOption>
+> = {
+  organization: filterOptions.organizations,
+  district: filterOptions.districts,
+  timeRange: MEETING_TIME_RANGE_OPTIONS,
+  agenda: MEETING_AGENDA_OPTIONS,
+};
+---
+
+<div class="meeting-filters" data-meeting-filters>
+  <div class="meeting-body-type-filter">
+    <span class="meeting-filter-label" id="meeting-body-type-label">
+      Gremien
+    </span>
+    <div
+      class="segmented-control"
+      id={MEETING_FILTER_IDS.bodyType}
+      role="group"
+      aria-labelledby="meeting-body-type-label"
+    >
+      <button
+        type="button"
+        class="segmented-control-option active"
+        data-meeting-body-type-option
+        data-value=""
+        aria-pressed="true"
+      >
+        Alle
+      </button>
+      {
+        filterOptions.bodyTypes.map((bodyType) => (
+          <button
+            type="button"
+            class="segmented-control-option"
+            data-meeting-body-type-option
+            data-value={bodyType}
+            aria-pressed="false"
+          >
+            {bodyType}
+          </button>
+        ))
+      }
+    </div>
+  </div>
+  <div
+    class="filters meeting-advanced-filters"
+    id="meeting-advanced-filter-panel"
+    data-filters-panel
+    data-collapsible="true"
+    data-expanded="false"
+  >
+    <div class="filters-toolbar">
+      <button
+        type="button"
+        class="filters-toggle"
+        data-filters-toggle
+        aria-controls="meeting-advanced-filter-panel"
+        aria-expanded="false"
+      >
+        Erweiterte Filter
+      </button>
+      <p class="filter-count" data-meeting-filter-status aria-live="polite">
+        {meetingCount} Sitzungen
+      </p>
+    </div>
+    <div class="filter-row" data-filter-row>
+      {
+        MEETING_SELECT_FILTERS.map(({ key, id, label }) => (
+          <FilterSelect
+            id={id}
+            label={label}
+            emptyLabel={key === "timeRange" ? "Alle kommenden" : undefined}
+            options={optionsByKey[key]}
+          />
+        ))
+      }
+      <div class="filter-group meeting-search-filter">
+        <label for={MEETING_FILTER_IDS.search}>Suche</label>
+        <input
+          id={MEETING_FILTER_IDS.search}
+          type="search"
+          placeholder="Titel oder Ort"
+          autocomplete="off"
+        />
+      </div>
+      <button
+        type="button"
+        class="meeting-filter-reset"
+        id={MEETING_FILTER_IDS.reset}
+        data-meeting-filter-reset
+      >
+        Zurücksetzen
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { initMeetingFilters } from "../shared/meeting-filter-controller";
+
+  initMeetingFilters();
+</script>
+
+<style>
+  .meeting-filters {
+    margin: 20px 0;
+    display: grid;
+    gap: 10px;
+  }
+
+  .meeting-body-type-filter {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 14px;
+  }
+
+  .meeting-filter-label {
+    color: var(--color-text-muted);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+
+  .segmented-control {
+    display: flex;
+    flex: 1 1 480px;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .segmented-control-option {
+    min-height: 34px;
+    padding: 5px 12px;
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    color: var(--color-text);
+    font-family: var(--font-family);
+    font-size: 0.86rem;
+    cursor: pointer;
+    background: #fff;
+  }
+
+  .segmented-control-option:hover {
+    border-color: var(--color-link);
+    color: var(--color-link);
+  }
+
+  .segmented-control-option[aria-pressed="true"] {
+    border-color: var(--color-link);
+    color: #fff;
+    background: var(--color-link);
+  }
+
+  .segmented-control-option:focus-visible {
+    outline: 2px solid var(--color-link);
+    outline-offset: 2px;
+  }
+
+  .meeting-advanced-filters {
+    padding: 10px 16px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    background: #f8f9fa;
+  }
+
+  .filters-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    min-height: 24px;
+  }
+
+  .filters-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 10px;
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    background: #fff;
+    color: var(--color-text);
+    font-size: 0.78rem;
+    line-height: 1.1;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .filters-toggle:hover,
+  .meeting-filter-reset:hover {
+    background: #f3f4f6;
+  }
+
+  .filters-toggle:focus-visible,
+  .meeting-filter-reset:focus-visible,
+  .meeting-search-filter input:focus {
+    outline: 2px solid var(--color-link);
+    outline-offset: 2px;
+  }
+
+  .filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 6px 10px;
+    margin-top: 8px;
+    max-height: 640px;
+    overflow: visible;
+    transition:
+      max-height 150ms ease,
+      opacity 150ms ease,
+      margin-top 150ms ease;
+  }
+
+  .meeting-advanced-filters[data-collapsible="true"][data-expanded="false"]
+    .filter-row {
+    max-height: 0;
+    opacity: 0;
+    margin-top: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .meeting-advanced-filters[data-collapsible="true"][data-expanded="true"]
+    .filter-row {
+    pointer-events: auto;
+  }
+
+  .filter-count {
+    margin: 0 0 0 auto;
+    min-width: 0;
+    min-height: 1.2em;
+    color: var(--color-text-muted);
+    font-size: 0.78rem;
+    text-align: right;
+  }
+
+  .meeting-search-filter {
+    display: flex;
+    flex: 1 1 180px;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 160px;
+    max-width: 260px;
+  }
+
+  .meeting-search-filter label {
+    display: block;
+    overflow: hidden;
+    color: var(--color-text-muted);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    line-height: 1.1;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .meeting-search-filter input {
+    width: 100%;
+    min-height: 34px;
+    box-sizing: border-box;
+    padding: 4px 10px;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    color: var(--color-text);
+    font-family: var(--font-family);
+    font-size: 0.86rem;
+    line-height: 1.2;
+    background: #fff;
+  }
+
+  .meeting-filter-reset {
+    min-height: 34px;
+    padding: 4px 10px;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    color: var(--color-text-muted);
+    font-family: var(--font-family);
+    font-size: 0.78rem;
+    cursor: pointer;
+    background: #fff;
+  }
+
+  @media screen and (max-width: 768px) {
+    .meeting-advanced-filters {
+      padding: 9px 12px;
+    }
+
+    .filter-row {
+      gap: 6px 8px;
+      margin-top: 7px;
+    }
+
+    .filters-toggle {
+      padding: 4px 9px;
+      font-size: 0.75rem;
+    }
+
+    .meeting-search-filter {
+      max-width: none;
+    }
+
+    .segmented-control {
+      flex-basis: 100%;
+    }
+  }
+</style>

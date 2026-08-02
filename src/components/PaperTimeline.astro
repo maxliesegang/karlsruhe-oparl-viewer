@@ -1,0 +1,181 @@
+---
+import type { Paper, ResolvedConsultation } from "../shared/types";
+import {
+  buildMeetingDetailUrl,
+  compareDateStrings,
+  formatDateTime,
+  getDateTimestamp,
+  getOParlEntityId,
+} from "../shared/utils";
+
+interface Props {
+  paper: Paper;
+  consultations: ResolvedConsultation[];
+}
+
+const { paper, consultations } = Astro.props;
+const baseUrl = import.meta.env.BASE_URL;
+const now = Date.now();
+
+function isUpcomingMeeting(meeting: ResolvedConsultation["meeting"]): boolean {
+  return Boolean(
+    meeting &&
+    (getDateTimestamp(meeting.start) ?? Number.NEGATIVE_INFINITY) > now,
+  );
+}
+
+const orderedConsultations = [...consultations].sort((left, right) =>
+  compareDateStrings(
+    left.meeting?.start ?? left.consultation.created,
+    right.meeting?.start ?? right.consultation.created,
+  ),
+);
+const hasDecision = orderedConsultations.some(({ agendaItem }) =>
+  Boolean(agendaItem?.result?.trim()),
+);
+const hasUpcomingMeeting = orderedConsultations.some(({ meeting }) =>
+  isUpcomingMeeting(meeting),
+);
+const status = hasDecision
+  ? "Entschieden"
+  : hasUpcomingMeeting
+    ? "Zur Beratung vorgesehen"
+    : orderedConsultations.length > 0
+      ? "Beraten"
+      : "Veröffentlicht";
+---
+
+<section class="section-card paper-timeline">
+  <div class="timeline-heading-row">
+    <h2 class="section-heading">Verlauf</h2>
+    <span class="status-badge">{status}</span>
+  </div>
+
+  <ol class="timeline-list">
+    <li class="timeline-item completed">
+      <span class="timeline-marker" aria-hidden="true"></span>
+      <div>
+        <strong>Vorlage veröffentlicht</strong>
+        <p>{formatDateTime(paper.created)} Uhr</p>
+      </div>
+    </li>
+    {
+      orderedConsultations.map(({ consultation, meeting, agendaItem }) => {
+        const meetingIsUpcoming = isUpcomingMeeting(meeting);
+        const result = agendaItem?.result?.trim();
+        const title = result
+          ? "Entscheidung"
+          : meetingIsUpcoming
+            ? "Geplante Beratung"
+            : "Beratung";
+        const meetingId = meeting ? getOParlEntityId(meeting.id) : "";
+
+        return (
+          <li class:list={["timeline-item", !meetingIsUpcoming && "completed"]}>
+            <span class="timeline-marker" aria-hidden="true" />
+            <div>
+              <strong>{title}</strong>
+              {meeting ? (
+                <>
+                  <p>
+                    <a href={buildMeetingDetailUrl(baseUrl, meetingId)}>
+                      {meeting.name}
+                    </a>
+                  </p>
+                  <p>
+                    {formatDateTime(meeting.start)} Uhr
+                    {agendaItem?.number ? ` · TOP ${agendaItem.number}` : ""}
+                    {consultation.role ? ` · ${consultation.role}` : ""}
+                  </p>
+                </>
+              ) : (
+                <p>Termin nicht verfügbar</p>
+              )}
+              {result && <p class="timeline-result">Ergebnis: {result}</p>}
+            </div>
+          </li>
+        );
+      })
+    }
+  </ol>
+</section>
+
+<style>
+  .timeline-heading-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .timeline-heading-row .section-heading {
+    margin-top: 0;
+  }
+
+  .status-badge {
+    padding: 5px 10px;
+    border-radius: 999px;
+    background: #e8f5ec;
+    color: #176b3a;
+    font-size: 0.82rem;
+    font-weight: 700;
+  }
+
+  .timeline-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .timeline-item {
+    position: relative;
+    display: grid;
+    grid-template-columns: 18px 1fr;
+    gap: 12px;
+    padding-bottom: 20px;
+  }
+
+  .timeline-item:not(:last-child)::before {
+    content: "";
+    position: absolute;
+    left: 7px;
+    top: 15px;
+    bottom: 0;
+    width: 2px;
+    background: var(--color-border);
+  }
+
+  .timeline-marker {
+    width: 12px;
+    height: 12px;
+    margin-top: 3px;
+    border: 2px solid var(--color-primary-hover);
+    border-radius: 50%;
+    background: #fff;
+    z-index: 1;
+  }
+
+  .timeline-item.completed .timeline-marker {
+    background: var(--color-primary);
+  }
+
+  .timeline-item p {
+    margin: 4px 0 0;
+    color: var(--color-text-muted);
+    line-height: 1.45;
+  }
+
+  .timeline-item a {
+    color: var(--color-link);
+    text-decoration: none;
+  }
+
+  .timeline-item a:hover {
+    text-decoration: underline;
+  }
+
+  .timeline-result {
+    color: var(--color-text) !important;
+    font-weight: 700;
+  }
+</style>

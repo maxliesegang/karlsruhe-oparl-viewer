@@ -12,11 +12,14 @@ Reusable UI components. Prefer extending existing components over creating new o
 | `PaperList.astro`          | Paper cards, summary text, filter panel mount point     |
 | `PaperFilters.astro`       | Filter controls panel                                   |
 | `FilterSelect.astro`       | Reusable dropdown for a single filter                   |
+| `MeetingFilters.astro`     | Meeting-specific filter controls and status             |
 | `LegacyRedirectPage.astro` | Noindex redirect shell for legacy routes                |
 | `KeyInfo.astro`            | Paper metadata (date, type, reference) — detail page    |
-| `Consultations.astro`      | Meeting consultations list — detail page                |
 | `AuxiliaryFiles.astro`     | File attachments — detail page                          |
 | `StadtteilHint.astro`      | District hint — detail page                             |
+| `MeetingAgenda.astro`      | Public agenda with links to matching papers             |
+| `PaperTimeline.astro`      | Paper lifecycle, consultations, and decisions           |
+| `RelatedPapers.astro`      | Parent, amendment, and follow-up paper links            |
 
 ## Reuse Rules
 
@@ -34,6 +37,15 @@ filter-year  filter-type  filter-org  filter-role  filter-result  filter-stadtte
 ```
 
 And reads data from table row `data-*` attributes that match these names.
+
+Meeting filter IDs are defined in `src/shared/meeting-filter-definitions.ts`:
+
+`meeting-filter-body-type` · `meeting-filter-organization` ·
+`meeting-filter-district` · `meeting-filter-time-range` ·
+`meeting-filter-agenda` · `meeting-filter-search` · `meeting-filter-reset`
+
+On the meeting list, `meeting-filter-body-type` is the always-visible segmented
+control. The remaining meeting filters live in the collapsible advanced panel.
 
 **Pagefind**
 

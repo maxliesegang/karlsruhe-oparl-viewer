@@ -1,4 +1,4 @@
-import { getPagefindResultCount } from "./pagefind-client";
+import { getPagefindFreshnessStats } from "./pagefind-client";
 import {
   buildSavedSearchUrl,
   getBrowserStorage,
@@ -9,6 +9,7 @@ import {
 } from "./saved-searches";
 
 const ITEM_FADE_MS = 300;
+const DEFAULT_SEARCH_CHECKPOINT = new Date(0).toISOString();
 
 const BOOKMARK_SVG = `<svg class="empty-icon" width="48" height="48" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5V2z"/></svg>`;
 
@@ -18,6 +19,7 @@ interface SearchItem {
   element: HTMLLIElement;
   query: string;
   countBadge: HTMLSpanElement;
+  freshnessBadge: HTMLSpanElement;
 }
 
 function createSearchItem(search: SavedSearch, baseUrl: string): SearchItem {
@@ -38,7 +40,13 @@ function createSearchItem(search: SavedSearch, baseUrl: string): SearchItem {
   countBadge.setAttribute("aria-live", "polite");
   countBadge.setAttribute("aria-label", "Treffer werden geladen");
 
-  link.append(queryLabel, countBadge);
+  const freshnessBadge = document.createElement("span");
+  freshnessBadge.className = "saved-search-freshness-badge";
+  freshnessBadge.dataset.state = "loading";
+  freshnessBadge.setAttribute("aria-live", "polite");
+  freshnessBadge.setAttribute("aria-label", "Neue Treffer werden ermittelt");
+
+  link.append(queryLabel, freshnessBadge, countBadge);
 
   const removeButton = document.createElement("button");
   removeButton.type = "button";
@@ -50,29 +58,61 @@ function createSearchItem(search: SavedSearch, baseUrl: string): SearchItem {
 
   item.append(link, removeButton);
 
-  return { element: item, query: search.query, countBadge };
+  return { element: item, query: search.query, countBadge, freshnessBadge };
+}
+
+function setUnavailableBadge(badge: HTMLSpanElement, label: string): void {
+  badge.textContent = "–";
+  badge.dataset.state = "error";
+  badge.setAttribute("aria-label", label);
 }
 
 async function loadResultCounts(
   items: SearchItem[],
   baseUrl: string,
+  searches: SavedSearch[],
 ): Promise<void> {
+  const searchesByQuery = new Map(
+    searches.map((search) => [search.query, search]),
+  );
   const results = await Promise.allSettled(
-    items.map(({ query }) => getPagefindResultCount(baseUrl, query)),
+    items.map(({ query }) => {
+      const search = searchesByQuery.get(query);
+      return getPagefindFreshnessStats(
+        baseUrl,
+        query,
+        search?.lastViewedAt ?? search?.savedAt ?? DEFAULT_SEARCH_CHECKPOINT,
+      );
+    }),
   );
 
   for (const [i, result] of results.entries()) {
-    const badge = items[i]!.countBadge;
+    const item = items[i];
+    if (!item) continue;
+
+    const { countBadge: badge, freshnessBadge } = item;
 
     if (result.status === "fulfilled") {
-      const count = result.value;
+      const { total: count, newCount, updatedCount } = result.value;
       badge.textContent = count === 1 ? "1 Treffer" : `${count} Treffer`;
       badge.dataset.state = "ok";
       badge.setAttribute("aria-label", `${count} Treffer`);
+      const freshnessParts = [
+        newCount > 0 ? `${newCount} neu` : "",
+        updatedCount > 0 ? `${updatedCount} aktualisiert` : "",
+      ].filter(Boolean);
+      freshnessBadge.textContent =
+        freshnessParts.length > 0 ? freshnessParts.join(" · ") : "Nichts Neues";
+      freshnessBadge.dataset.state = freshnessParts.length > 0 ? "fresh" : "ok";
+      freshnessBadge.setAttribute(
+        "aria-label",
+        freshnessParts.length > 0
+          ? freshnessParts.join(", ")
+          : "Keine neuen oder aktualisierten Treffer",
+      );
     } else {
-      badge.textContent = "\u2013";
-      badge.dataset.state = "error";
-      badge.setAttribute("aria-label", "Treffer nicht verfügbar");
+      setUnavailableBadge(badge, "Treffer nicht verfügbar");
+      setUnavailableBadge(freshnessBadge, "Neuigkeiten nicht verfügbar");
     }
   }
 }
@@ -190,7 +230,6 @@ export function initSavedSearchesPage(): void {
   }
 
   let searches = readSavedSearches(storage);
-  let countRequestVersion = 0;
 
   const renderSearches = (): void => {
     if (searches.length === 0) {
@@ -205,19 +244,14 @@ export function initSavedSearchesPage(): void {
     updateSummary(searches.length);
 
     if (!pagefindEnabled) {
-      for (const { countBadge } of items) {
-        countBadge.textContent = "\u2013";
-        countBadge.dataset.state = "error";
-        countBadge.setAttribute("aria-label", "Treffer nicht verfügbar");
+      for (const { countBadge, freshnessBadge } of items) {
+        setUnavailableBadge(countBadge, "Treffer nicht verfügbar");
+        setUnavailableBadge(freshnessBadge, "Neuigkeiten nicht verfügbar");
       }
       return;
     }
 
-    const currentVersion = ++countRequestVersion;
-
-    void loadResultCounts(items, baseUrl).then(() => {
-      if (currentVersion !== countRequestVersion) return;
-    });
+    void loadResultCounts(items, baseUrl, searches);
   };
 
   listEl.addEventListener("click", (event) => {
@@ -262,7 +296,6 @@ export function initSavedSearchesPage(): void {
     if (!cleared) return;
 
     searches = [];
-    countRequestVersion += 1;
     showEmptyState("cleared");
   });
 

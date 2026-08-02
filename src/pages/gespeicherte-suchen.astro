@@ -202,6 +202,33 @@ const baseUrl = import.meta.env.BASE_URL;
       border-color 0.2s;
   }
 
+  .saved-searches-panel .saved-search-freshness-badge {
+    flex-shrink: 0;
+    border-radius: 999px;
+    padding: 4px 9px;
+    background: #f2f2f2;
+    color: var(--color-text-muted);
+    font-size: 0.78rem;
+    font-weight: 700;
+  }
+
+  .saved-searches-panel .saved-search-freshness-badge[data-state="fresh"] {
+    background: #e8f5ec;
+    color: #176b3a;
+  }
+
+  .saved-searches-panel .saved-search-freshness-badge[data-state="loading"] {
+    min-width: 72px;
+    color: transparent;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e4e4e4 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: badge-pulse 1.4s ease-in-out infinite;
+  }
+
+  .saved-searches-panel .saved-search-freshness-badge[data-state="error"] {
+    color: #999;
+  }
+
   .saved-searches-panel .saved-search-count-badge[data-state="loading"] {
     color: transparent;
     background: linear-gradient(90deg, #f0f0f0 25%, #e4e4e4 50%, #f0f0f0 75%);

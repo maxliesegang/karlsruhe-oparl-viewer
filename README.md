@@ -14,6 +14,9 @@ It builds from an OParl-based JSON mirror and publishes to GitHub Pages.
 - Browse papers by district (`/stadtteile`, `/stadtteil/[name]`).
 - Filter list pages by year, type, organization, role, result, and mentioned district.
 - Open paper detail pages with key metadata, consultations, and auxiliary files.
+- Follow paper status, decisions, and related-paper chains.
+- Browse upcoming meetings and public agendas.
+- See new and updated results for saved searches since they were last opened.
 
 ## Stack
 
@@ -70,6 +73,8 @@ npm run format
 - `/vorlagen` -> papers list with filters (including `year` query param)
 - `/vorlagen{year}` -> legacy redirect to `/vorlagen?year={year}`
 - `/vorlagen/[reference]` -> paper details
+- `/sitzungen` -> upcoming meetings and public agenda status
+- `/sitzungen/[id]` -> meeting details and public agenda
 - `/stadtteile` -> district overview
 - `/stadtteil/[name]` -> papers for one district
 - `/vorlage/[reference]` -> legacy redirect to `/vorlagen/[reference]`

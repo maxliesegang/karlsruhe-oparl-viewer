@@ -4,10 +4,25 @@ interface FilterPanelContext {
   toggle: HTMLButtonElement;
   isCollapsible: boolean;
   isExpanded: boolean;
+  alwaysCollapsible: boolean;
+  expandedLabel: string;
+  collapsedLabel: string;
 }
 
-function getFilterPanel(container: HTMLElement): FilterPanelContext | null {
-  const panel = container.querySelector<HTMLElement>("[data-filters-panel]");
+export interface ResponsiveFilterPanelOptions {
+  initiallyExpanded?: boolean;
+  alwaysCollapsible?: boolean;
+  expandedLabel?: string;
+  collapsedLabel?: string;
+}
+
+function getFilterPanel(
+  container: HTMLElement,
+  options: ResponsiveFilterPanelOptions,
+): FilterPanelContext | null {
+  const panel = container.matches("[data-filters-panel]")
+    ? container
+    : container.querySelector<HTMLElement>("[data-filters-panel]");
   const row = panel?.querySelector<HTMLElement>("[data-filter-row]");
   const toggle = panel?.querySelector<HTMLButtonElement>(
     "[data-filters-toggle]",
@@ -19,8 +34,11 @@ function getFilterPanel(container: HTMLElement): FilterPanelContext | null {
     panel,
     row,
     toggle,
-    isCollapsible: false,
-    isExpanded: true,
+    isCollapsible: options.alwaysCollapsible ?? false,
+    isExpanded: options.initiallyExpanded ?? true,
+    alwaysCollapsible: options.alwaysCollapsible ?? false,
+    expandedLabel: options.expandedLabel ?? "Filter ausblenden",
+    collapsedLabel: options.collapsedLabel ?? "Filter anzeigen",
   };
 }
 
@@ -51,11 +69,17 @@ function renderFilterPanel(panel: FilterPanelContext): void {
     panel.isExpanded ? "true" : "false",
   );
   panel.toggle.textContent = panel.isExpanded
-    ? "Filter ausblenden"
-    : "Filter anzeigen";
+    ? panel.expandedLabel
+    : panel.collapsedLabel;
 }
 
 function refreshFilterPanel(panel: FilterPanelContext): void {
+  if (panel.alwaysCollapsible) {
+    panel.isCollapsible = true;
+    renderFilterPanel(panel);
+    return;
+  }
+
   const shouldCollapse = countFilterRows(panel.row) > 1;
 
   if (!shouldCollapse) {
@@ -73,8 +97,11 @@ function refreshFilterPanel(panel: FilterPanelContext): void {
   renderFilterPanel(panel);
 }
 
-export function initResponsiveFilterPanel(container: HTMLElement): void {
-  const panel = getFilterPanel(container);
+export function initResponsiveFilterPanel(
+  container: HTMLElement,
+  options: ResponsiveFilterPanelOptions = {},
+): void {
+  const panel = getFilterPanel(container, options);
   if (!panel) return;
 
   const refreshPanel = () => refreshFilterPanel(panel);

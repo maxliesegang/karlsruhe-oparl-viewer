@@ -2,17 +2,26 @@
 interface Props {
   id: string;
   label: string;
-  options: string[];
+  options: ReadonlyArray<string | { value: string; label: string }>;
+  emptyLabel?: string;
 }
 
-const { id, label, options } = Astro.props;
+const { id, label, options, emptyLabel = "Alle" } = Astro.props;
+
+const normalizedOptions = options.map((option) =>
+  typeof option === "string" ? { value: option, label: option } : option,
+);
 ---
 
 <div class="filter-group">
   <label for={id}>{label}</label>
   <select id={id}>
-    <option value="">Alle</option>
-    {options.map((option) => <option value={option}>{option}</option>)}
+    <option value="">{emptyLabel}</option>
+    {
+      normalizedOptions.map(({ value, label: optionLabel }) => (
+        <option value={value}>{optionLabel}</option>
+      ))
+    }
   </select>
 </div>
 

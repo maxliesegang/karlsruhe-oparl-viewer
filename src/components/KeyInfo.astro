@@ -10,6 +10,7 @@ interface Props {
 const { paper, organizations } = Astro.props;
 
 const pagefindSortAtt = `date:${new Date(paper.date).toISOString()}`;
+const pagefindModifiedSortAtt = `modified:${new Date(paper.modified).toISOString()}`;
 ---
 
 <section class="section-card">
@@ -25,13 +26,25 @@ const pagefindSortAtt = `date:${new Date(paper.date).toISOString()}`;
       </tr>
       <tr>
         <th>Datum:</th>
-        <td data-pagefind-sort={pagefindSortAtt}
-          >{formatDateShort(paper.date)}</td
-        >
+        <td data-pagefind-sort={pagefindSortAtt}>
+          <time datetime={paper.date}>{formatDateShort(paper.date)}</time>
+        </td>
       </tr>
       <tr>
         <th>Letzte Änderung:</th>
-        <td>{formatDateShort(paper.modified)}</td>
+        <td>
+          <time
+            datetime={paper.modified}
+            data-pagefind-meta="paper-modified[datetime]"
+            data-pagefind-sort={pagefindModifiedSortAtt}
+            >{formatDateShort(paper.modified)}</time
+          >
+          <time
+            datetime={paper.created}
+            data-pagefind-meta="paper-created[datetime]"
+            hidden>{paper.created}</time
+          >
+        </td>
       </tr>
       <tr>
         <th>Unter Leitung von:</th>

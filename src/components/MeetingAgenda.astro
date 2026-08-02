@@ -1,0 +1,101 @@
+---
+import type { ResolvedAgendaItem } from "../shared/types";
+import { buildPaperDetailUrl } from "../shared/utils";
+
+interface Props {
+  items: ResolvedAgendaItem[];
+}
+
+const { items } = Astro.props;
+const baseUrl = import.meta.env.BASE_URL;
+---
+
+<section class="section-card" data-pagefind-ignore>
+  <h2 class="section-heading">Öffentliche Tagesordnung</h2>
+  {
+    items.length > 0 ? (
+      <ol class="agenda-list">
+        {items.map(({ agendaItem, paper }) => (
+          <li class="agenda-item">
+            <span class="agenda-number">
+              {agendaItem.number ? `TOP ${agendaItem.number}` : "Hinweis"}
+            </span>
+            <div class="agenda-content">
+              {paper ? (
+                <a href={buildPaperDetailUrl(baseUrl, paper.routeReference)}>
+                  {agendaItem.name}
+                </a>
+              ) : (
+                <strong>{agendaItem.name}</strong>
+              )}
+              {paper && <span class="paper-reference">{paper.reference}</span>}
+              {agendaItem.result && (
+                <span class="agenda-result">Ergebnis: {agendaItem.result}</span>
+              )}
+            </div>
+          </li>
+        ))}
+      </ol>
+    ) : (
+      <p class="empty-agenda">
+        Die öffentliche Tagesordnung ist noch nicht veröffentlicht.
+      </p>
+    )
+  }
+</section>
+
+<style>
+  .agenda-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .agenda-item {
+    display: grid;
+    grid-template-columns: minmax(72px, auto) 1fr;
+    gap: 14px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .agenda-item:last-child {
+    border-bottom: 0;
+  }
+
+  .agenda-number {
+    color: var(--color-text-muted);
+    font-size: 0.85rem;
+    font-weight: 700;
+  }
+
+  .agenda-content {
+    display: grid;
+    gap: 5px;
+    line-height: 1.45;
+  }
+
+  .agenda-content a {
+    color: var(--color-link);
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .agenda-content a:hover {
+    text-decoration: underline;
+  }
+
+  .paper-reference,
+  .agenda-result,
+  .empty-agenda {
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+  }
+
+  @media screen and (max-width: 600px) {
+    .agenda-item {
+      grid-template-columns: 1fr;
+      gap: 5px;
+    }
+  }
+</style>

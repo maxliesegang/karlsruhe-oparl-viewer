@@ -5,8 +5,17 @@ export type { Entity } from "./entity.ts";
 export type { FileContent } from "./file-content.ts";
 export type { Location } from "./location.ts";
 export type { Meeting } from "./meeting.ts";
+export { MEETING_BODY_TYPES } from "./meeting-filters.ts";
+export type {
+  MeetingBodyType,
+  MeetingFilterOptions,
+  MeetingFilterValues,
+} from "./meeting-filters.ts";
 export type { Organization } from "./organization.ts";
 export type { Paper } from "./paper.ts";
 export type { PaperFilterValues, PaperFilterOptions } from "./paper-filters.ts";
-export type { ResolvedConsultation } from "./resolved-consultation.ts";
+export type {
+  ResolvedAgendaItem,
+  ResolvedConsultation,
+} from "./resolved-consultation.ts";
 export type { ResolvedAuxiliaryFile } from "./resolved-auxiliary-file.ts";

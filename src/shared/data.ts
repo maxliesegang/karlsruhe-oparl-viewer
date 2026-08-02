@@ -1,12 +1,17 @@
 import { BULK_MODIFIED_DATE } from "./constants";
 import { dataSource } from "./data-source";
 import { mapConcurrent, memoizeAsync } from "./async-utils";
-import { normalizeStringList } from "./utils";
+import {
+  compareDateStrings,
+  getEffectiveMeetingEnd,
+  normalizeStringList,
+} from "./utils";
 import type {
   FileContent,
   Meeting,
   Organization,
   Paper,
+  ResolvedAgendaItem,
   ResolvedConsultation,
   ResolvedAuxiliaryFile,
 } from "./types";
@@ -43,7 +48,7 @@ export const loadPapers = memoizeAsync(async (): Promise<Paper[]> => {
       routeReference: paper.reference.replaceAll("/", "-"),
       stadtteile: districtsByPaperReference.get(paper.reference) ?? [],
     }))
-    .sort((a, b) => b.modified.localeCompare(a.modified));
+    .sort((a, b) => compareDateStrings(b.modified, a.modified));
 
   return activePapers;
 });
@@ -51,7 +56,11 @@ export const loadPapers = memoizeAsync(async (): Promise<Paper[]> => {
 export const loadMeetings = memoizeAsync(
   async (): Promise<Map<string, Meeting>> => {
     const meetings = await dataSource.loadArray<Meeting>("meetings");
-    return new Map(meetings.map((meeting) => [meeting.id, meeting]));
+    return new Map(
+      meetings
+        .filter((meeting) => !meeting.deleted)
+        .map((meeting) => [meeting.id, meeting]),
+    );
   },
 );
 
@@ -132,6 +141,23 @@ export const getAvailableYears = memoizeAsync(async (): Promise<string[]> => {
   return [...new Set(papers.map((paper) => getPaperYear(paper)))].sort();
 });
 
+export const getMeetings = memoizeAsync(async (): Promise<Meeting[]> => {
+  const meetingsById = await loadMeetings();
+  return [...meetingsById.values()].sort((a, b) =>
+    compareDateStrings(a.start, b.start),
+  );
+});
+
+export const getUpcomingMeetings = memoizeAsync(
+  async (): Promise<Meeting[]> => {
+    const meetings = await getMeetings();
+    const now = new Date();
+    return meetings.filter(
+      (meeting) => getEffectiveMeetingEnd(meeting.start, meeting.end) >= now,
+    );
+  },
+);
+
 export const getAvailableDistricts = memoizeAsync(
   async (): Promise<string[]> => {
     const paperCountsByDistrict = await getPaperCountsByDistrict();
@@ -148,16 +174,27 @@ export const getPaperCountsByDistrict = memoizeAsync(
 
 // --- Per-paper resolvers ---
 
+function resolveEntityIds<T>(
+  ids: readonly string[] | null | undefined,
+  entitiesById: Map<string, T>,
+): T[] {
+  return (ids ?? [])
+    .map((id) => entitiesById.get(id))
+    .filter((entity): entity is T => entity !== undefined);
+}
+
 export async function resolveOrganizations(
   paper: Paper,
 ): Promise<Organization[]> {
   const organizationsById = await loadOrganizations();
-  return (paper.underDirectionOf || [])
-    .map((organizationId) => organizationsById.get(organizationId))
-    .filter(
-      (organization): organization is Organization =>
-        organization !== undefined,
-    );
+  return resolveEntityIds(paper.underDirectionOf, organizationsById);
+}
+
+export async function resolveMeetingOrganizations(
+  meeting: Meeting,
+): Promise<Organization[]> {
+  const organizationsById = await loadOrganizations();
+  return resolveEntityIds(meeting.organization, organizationsById);
 }
 
 export async function resolveConsultations(
@@ -181,4 +218,49 @@ export async function resolveAuxiliaryFiles(
     file: auxiliaryFile,
     content: fileContentsById.get(auxiliaryFile.id),
   }));
+}
+
+const loadPapersById = memoizeAsync(async (): Promise<Map<string, Paper>> => {
+  const papers = await loadPapers();
+  return new Map(papers.map((paper) => [paper.id, paper]));
+});
+
+const loadPapersByConsultationId = memoizeAsync(
+  async (): Promise<Map<string, Paper>> => {
+    const papers = await loadPapers();
+    return new Map(
+      papers.flatMap((paper) =>
+        (paper.consultation ?? []).map(
+          (consultation) => [consultation.id, paper] as const,
+        ),
+      ),
+    );
+  },
+);
+
+export async function resolveMeetingAgenda(
+  meeting: Meeting,
+): Promise<ResolvedAgendaItem[]> {
+  const papersByConsultationId = await loadPapersByConsultationId();
+  return (meeting.agendaItem ?? [])
+    .filter((agendaItem) => agendaItem.public !== false)
+    .sort((left, right) => left.order - right.order)
+    .map((agendaItem) => ({
+      agendaItem,
+      paper: agendaItem.consultation
+        ? papersByConsultationId.get(agendaItem.consultation)
+        : undefined,
+    }));
+}
+
+export async function resolveRelatedPapers(paper: Paper): Promise<{
+  superordinated: Paper[];
+  subordinated: Paper[];
+}> {
+  const papersById = await loadPapersById();
+
+  return {
+    superordinated: resolveEntityIds(paper.superordinatedPaper, papersById),
+    subordinated: resolveEntityIds(paper.subordinatedPaper, papersById),
+  };
 }

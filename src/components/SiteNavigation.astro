@@ -20,6 +20,7 @@ const papersUrl = buildPapersUrl(baseUrl);
     <ul id="nav-menu">
       <li><a href={baseUrl}>GemeinderatsRadar</a></li>
       <li><a href={papersUrl}>Vorlagen</a></li>
+      <li><a href={`${baseUrl}sitzungen`}>Sitzungen</a></li>
       <li><a href={`${baseUrl}stadtteile`}>Stadtteile</a></li>
       <li><a href={`${baseUrl}gespeicherte-suchen`}>Gespeicherte Suchen</a></li>
       <li>
@@ -120,7 +121,7 @@ const papersUrl = buildPapersUrl(baseUrl);
     display: none;
   }
 
-  @media (max-width: 768px) {
+  @media (max-width: 1100px) {
     .burger {
       display: flex;
     }
@@ -221,7 +222,7 @@ const papersUrl = buildPapersUrl(baseUrl);
     });
 
     window.addEventListener("resize", () => {
-      if (window.innerWidth > 768) {
+      if (window.innerWidth > 1100) {
         setMenuState(false);
       }
     });

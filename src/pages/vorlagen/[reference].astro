@@ -2,12 +2,14 @@
 import Layout from "../../layouts/Layout.astro";
 import PageContainer from "../../components/PageContainer.astro";
 import KeyInfo from "../../components/KeyInfo.astro";
-import Consultations from "../../components/Consultations.astro";
+import PaperTimeline from "../../components/PaperTimeline.astro";
+import RelatedPapers from "../../components/RelatedPapers.astro";
 import AuxiliaryFiles from "../../components/AuxiliaryFiles.astro";
 import {
   resolveOrganizations,
   resolveConsultations,
   resolveAuxiliaryFiles,
+  resolveRelatedPapers,
 } from "../../shared/data";
 import { getPaperDetailStaticPaths } from "../../shared/paper-detail-paths";
 import type { Paper } from "../../shared/types";
@@ -22,11 +24,13 @@ interface Props {
 
 const { paper } = Astro.props;
 
-const [organizations, consultations, auxiliaryFiles] = await Promise.all([
-  resolveOrganizations(paper),
-  resolveConsultations(paper),
-  resolveAuxiliaryFiles(paper),
-]);
+const [organizations, consultations, auxiliaryFiles, relatedPapers] =
+  await Promise.all([
+    resolveOrganizations(paper),
+    resolveConsultations(paper),
+    resolveAuxiliaryFiles(paper),
+    resolveRelatedPapers(paper),
+  ]);
 ---
 
 <Layout title={paper.name}>
@@ -34,7 +38,8 @@ const [organizations, consultations, auxiliaryFiles] = await Promise.all([
     <h1 class="page-header">{paper.name}</h1>
 
     <KeyInfo paper={paper} organizations={organizations} />
-    <Consultations consultations={consultations} />
+    <PaperTimeline paper={paper} consultations={consultations} />
+    <RelatedPapers {...relatedPapers} />
     <AuxiliaryFiles auxiliaryFiles={auxiliaryFiles} />
   </PageContainer>
 </Layout>

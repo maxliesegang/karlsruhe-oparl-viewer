@@ -14,6 +14,8 @@ export interface Paper extends Entity {
   auxiliaryFile: AuxiliaryFile[];
   underDirectionOf: string[];
   consultation: Consultation[];
+  superordinatedPaper?: string[] | null;
+  subordinatedPaper?: string[] | null;
   created: string;
   modified: string;
   deleted?: boolean;

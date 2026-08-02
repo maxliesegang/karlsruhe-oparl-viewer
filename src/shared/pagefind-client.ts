@@ -1,7 +1,22 @@
 import { normalizeSavedSearchQuery } from "./saved-searches";
+import { getDateTimestamp } from "./utils";
+
+interface PagefindResultData {
+  meta?: Record<string, string | undefined>;
+}
+
+interface PagefindSearchResult {
+  data?: () => Promise<PagefindResultData>;
+}
 
 interface PagefindSearchResponse {
-  results?: unknown[];
+  results?: PagefindSearchResult[];
+}
+
+export interface PagefindFreshnessStats {
+  total: number;
+  newCount: number;
+  updatedCount: number;
 }
 
 interface PagefindModule {
@@ -33,14 +48,34 @@ async function loadPagefindModule(baseUrl: string): Promise<PagefindModule> {
   return modulePromise;
 }
 
-export async function getPagefindResultCount(
+export async function getPagefindFreshnessStats(
   baseUrl: string,
   query: string,
-): Promise<number> {
+  since: string,
+): Promise<PagefindFreshnessStats> {
   const normalizedQuery = normalizeSavedSearchQuery(query);
-  if (!normalizedQuery) return 0;
+  if (!normalizedQuery) return { total: 0, newCount: 0, updatedCount: 0 };
 
   const pagefindModule = await loadPagefindModule(baseUrl);
-  const result = await pagefindModule.search(normalizedQuery);
-  return Array.isArray(result.results) ? result.results.length : 0;
+  const response = await pagefindModule.search(normalizedQuery, {
+    sort: { modified: "desc" },
+  });
+  const results = Array.isArray(response.results) ? response.results : [];
+  const cutoff = getDateTimestamp(since) ?? 0;
+  let newCount = 0;
+  let updatedCount = 0;
+
+  for (const result of results) {
+    const data = await result.data?.().catch(() => undefined);
+    const created = getDateTimestamp(data?.meta?.["paper-created"]);
+    const modified = getDateTimestamp(data?.meta?.["paper-modified"]);
+    if (modified !== undefined && modified <= cutoff) break;
+    if (created !== undefined && created > cutoff) {
+      newCount += 1;
+    } else if (modified !== undefined && modified > cutoff) {
+      updatedCount += 1;
+    }
+  }
+
+  return { total: results.length, newCount, updatedCount };
 }
