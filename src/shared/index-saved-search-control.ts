@@ -1,12 +1,10 @@
-import {
-  PAGEFIND_INPUT_SELECTOR,
-  PAGEFIND_ROOT_SELECTOR,
-} from "./pagefind-config";
+import { SEARCH_INPUT_SELECTOR } from "./pagefind-config";
 import {
   getBrowserStorage,
   isSameSavedSearchQuery,
   normalizeSavedSearchQuery,
   readSavedSearches,
+  SAVED_SEARCH_QUERY_PARAM,
   type SavedSearch,
   upsertSavedSearch,
   writeSavedSearches,
@@ -14,6 +12,11 @@ import {
 
 const STATUS_AUTO_DISMISS_MS = 4_000;
 const BOOKMARK_SVG = `<svg class="saved-search-icon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5V2z"/></svg>`;
+
+function getUrlQuery(): string {
+  const params = new URLSearchParams(window.location.search);
+  return normalizeSavedSearchQuery(params.get(SAVED_SEARCH_QUERY_PARAM) ?? "");
+}
 
 function isQuerySaved(searches: SavedSearch[], query: string): boolean {
   return searches.some((search) => isSameSavedSearchQuery(search.query, query));
@@ -45,7 +48,9 @@ export function initIndexSavedSearchControl(): void {
   }
 
   let searches = readSavedSearches(storage);
-  let inputElement: HTMLInputElement | null = null;
+  const inputElement = document.querySelector<HTMLInputElement>(
+    SEARCH_INPUT_SELECTOR,
+  );
   let statusDismissTimer: ReturnType<typeof setTimeout> | undefined;
 
   const handleInputUpdate = (): void => {
@@ -76,8 +81,9 @@ export function initIndexSavedSearchControl(): void {
       count > 0 ? `Gespeicherte Suchen (${count})` : "Gespeicherte Suchen";
   };
 
-  const syncButtonState = (): void => {
-    const query = normalizeSavedSearchQuery(inputElement?.value ?? "");
+  const syncButtonState = (queryOverride?: string): void => {
+    const query =
+      queryOverride ?? normalizeSavedSearchQuery(inputElement?.value ?? "");
     if (!query) {
       saveButton.disabled = true;
       saveButton.innerHTML = `${BOOKMARK_SVG} Suche speichern`;
@@ -91,29 +97,12 @@ export function initIndexSavedSearchControl(): void {
       : `${BOOKMARK_SVG} Suche speichern`;
   };
 
-  const attachInputListener = (): void => {
-    const next = document.querySelector<HTMLInputElement>(
-      PAGEFIND_INPUT_SELECTOR,
-    );
-    if (!next || next === inputElement) return;
-
-    inputElement?.removeEventListener("input", handleInputUpdate);
-    inputElement = next;
-    inputElement.addEventListener("input", handleInputUpdate);
-    syncButtonState();
-  };
-
-  const pagefindRoot = document.querySelector<HTMLElement>(
-    PAGEFIND_ROOT_SELECTOR,
+  inputElement?.addEventListener("input", handleInputUpdate);
+  // The panel may fill the input from `?q=` before or after this runs, so the
+  // initial state falls back to the URL query.
+  syncButtonState(
+    normalizeSavedSearchQuery(inputElement?.value ?? "") || getUrlQuery(),
   );
-  if (pagefindRoot) {
-    new MutationObserver(attachInputListener).observe(pagefindRoot, {
-      childList: true,
-      subtree: true,
-    });
-  }
-
-  attachInputListener();
   syncLinkBadge();
 
   saveButton.addEventListener("click", () => {

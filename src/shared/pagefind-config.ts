@@ -3,10 +3,12 @@
 export type PagefindSortDirection = "asc" | "desc";
 export type PagefindSort = Readonly<Record<string, PagefindSortDirection>>;
 
-export const PAGEFIND_ROOT_SELECTOR = "pagefind-searchbox.pagefind-ui";
-export const PAGEFIND_INPUT_SELECTOR =
-  "pagefind-searchbox.pagefind-ui input[type='text']";
-export const PAGEFIND_NEWEST_FIRST_SORT = { date: "desc" } as const;
+/** Search panel markup contract — see `src/components/SearchPanel.astro`. */
+export const SEARCH_PANEL_SELECTOR = "[data-search-panel]";
+export const SEARCH_INPUT_SELECTOR = "[data-search-input]";
+
+/** Saved searches behave as a "what changed since I last looked" feed. */
+export const PAGEFIND_MODIFIED_FIRST_SORT = { modified: "desc" } as const;
 
 export function isPagefindEnabled(skipPagefindValue: unknown): boolean {
   const normalized = String(skipPagefindValue ?? "")

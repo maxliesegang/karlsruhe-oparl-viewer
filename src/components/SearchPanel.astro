@@ -1,0 +1,263 @@
+---
+import type { SearchSortMode } from "../shared/search-panel-controller";
+
+interface Props {
+  /** `relevance` for the main search, `modified` for saved-search feeds. */
+  sortMode?: SearchSortMode;
+  placeholder?: string;
+  emptyHint?: string;
+}
+
+const {
+  sortMode = "relevance",
+  placeholder = "Vorlagen durchsuchen …",
+  emptyHint = "Versuchen Sie es mit einem anderen Begriff oder weniger Wörtern.",
+} = Astro.props;
+const baseUrl = import.meta.env.BASE_URL;
+---
+
+<section
+  class="search-panel"
+  data-pagefind-ignore
+  data-search-panel
+  data-base-url={baseUrl}
+  data-sort-mode={sortMode}
+>
+  <form class="search-form" role="search" data-search-form>
+    <svg
+      class="search-icon"
+      width="18"
+      height="18"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      aria-hidden="true"
+    >
+      <circle cx="7" cy="7" r="5"></circle>
+      <path d="M11 11l4 4" stroke-linecap="round"></path>
+    </svg>
+    <input
+      class="search-input"
+      type="search"
+      name="q"
+      autocomplete="off"
+      enterkeyhint="search"
+      aria-label="Suchbegriff"
+      placeholder={placeholder}
+      data-search-input
+    />
+    <button
+      type="button"
+      class="search-clear"
+      aria-label="Suche zurücksetzen"
+      data-search-clear
+      hidden>×</button
+    >
+  </form>
+
+  <p class="search-status" role="status" aria-live="polite" data-search-status>
+  </p>
+
+  <ol class="search-results" data-search-results></ol>
+
+  <p class="search-empty" data-search-empty hidden>{emptyHint}</p>
+
+  <p class="search-load-trigger" data-search-load-trigger hidden>
+    Weitere Treffer werden geladen …
+  </p>
+</section>
+
+<style>
+  .search-panel {
+    display: grid;
+    gap: 12px;
+  }
+
+  /* --- Search box --- */
+
+  .search-form {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background: #fff;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-card);
+  }
+
+  .search-form:focus-within {
+    border-color: var(--color-primary-hover);
+  }
+
+  .search-icon {
+    flex-shrink: 0;
+    color: #999;
+  }
+
+  .search-input {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-family: var(--font-family);
+    font-size: 1.05rem;
+    color: var(--color-text);
+    padding: 4px 0;
+  }
+
+  .search-input::-webkit-search-cancel-button {
+    display: none;
+  }
+
+  .search-clear {
+    flex-shrink: 0;
+    border: none;
+    background: transparent;
+    color: #999;
+    font-size: 1.4rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0 4px;
+  }
+
+  .search-clear:hover {
+    color: var(--color-text);
+  }
+
+  /* --- Status / empty state --- */
+
+  .search-status {
+    margin: 0;
+    padding: 0 2px;
+    min-height: 1.2em;
+    color: var(--color-text-muted);
+    font-size: 0.88rem;
+    font-weight: 600;
+  }
+
+  .search-empty {
+    margin: 0;
+    padding: 24px;
+    text-align: center;
+    color: var(--color-text-muted);
+    font-style: italic;
+    background: #fff;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+  }
+
+  .search-load-trigger {
+    margin: 0;
+    padding: 14px;
+    text-align: center;
+    color: var(--color-text-muted);
+    font-size: 0.85rem;
+  }
+
+  /* --- Result list (items are created client-side) --- */
+
+  .search-results:empty {
+    display: none;
+  }
+
+  .search-results {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    background: #fff;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-card);
+    overflow: hidden;
+  }
+</style>
+
+<style is:global>
+  .search-panel .search-result {
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .search-panel .search-result:last-child {
+    border-bottom: none;
+  }
+
+  .search-panel .search-result-link {
+    display: grid;
+    gap: 6px;
+    padding: 16px 24px;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .search-panel .search-result-link:hover {
+    background: #fafafa;
+  }
+
+  .search-panel .search-result-title {
+    font-size: 1.05rem;
+    font-weight: 600;
+    line-height: 1.5;
+    color: var(--color-link);
+    overflow-wrap: anywhere;
+  }
+
+  .search-panel .search-result-link:hover .search-result-title {
+    color: var(--color-link-hover);
+    text-decoration: underline;
+  }
+
+  .search-panel .search-result-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .search-panel .search-result-chip {
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    background: #f8f9fa;
+    padding: 2px 9px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+  }
+
+  .search-panel .search-result-excerpt {
+    font-size: 0.92rem;
+    line-height: 1.6;
+    color: var(--color-text-muted);
+    overflow-wrap: anywhere;
+  }
+
+  .search-panel .search-result-excerpt mark {
+    background: #fff2b8;
+    color: var(--color-text);
+    padding: 0 1px;
+    border-radius: 2px;
+  }
+
+  .search-panel .search-result-footer {
+    font-size: 0.8rem;
+    color: #888;
+  }
+
+  .search-panel .search-result-footer[data-emphasis="modified"] {
+    color: var(--color-text-muted);
+    font-weight: 600;
+  }
+
+  @media screen and (max-width: 768px) {
+    .search-panel .search-result-link {
+      padding: 14px 16px;
+    }
+  }
+</style>
+
+<script>
+  import { initSearchPanel } from "../shared/search-panel-controller";
+
+  initSearchPanel();
+</script>

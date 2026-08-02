@@ -1,8 +1,7 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import PageContainer from "../components/PageContainer.astro";
-import Search from "astro-pagefind/components/Search.astro";
-import { PAGEFIND_NEWEST_FIRST_SORT } from "../shared/pagefind-config";
+import SearchPanel from "../components/SearchPanel.astro";
 import { resolvePagefindAvailability } from "../shared/pagefind-server";
 
 const pagefind = resolvePagefindAvailability(import.meta.env.SKIP_PAGEFIND, {
@@ -18,9 +17,9 @@ const pagefind = resolvePagefindAvailability(import.meta.env.SKIP_PAGEFIND, {
         <>
           <p class="subtitle">
             Diese Seite ist für gespeicherte Suchlinks gedacht und führt die
-            Anfrage direkt aus.
+            Anfrage direkt aus — zuletzt geänderte Vorlagen zuerst.
           </p>
-          <Search id="saved-search-results" className="pagefind-ui" />
+          <SearchPanel sortMode="modified" />
         </>
       ) : (
         <p class="search-disabled" role="status">
@@ -34,11 +33,6 @@ const pagefind = resolvePagefindAvailability(import.meta.env.SKIP_PAGEFIND, {
 <style>
   .search-results-page {
     max-width: 900px;
-  }
-
-  :global(pagefind-searchbox.pagefind-ui) {
-    width: 100%;
-    --pf-searchbox-max-width: 100%;
   }
 
   .subtitle {
@@ -60,20 +54,7 @@ const pagefind = resolvePagefindAvailability(import.meta.env.SKIP_PAGEFIND, {
 </style>
 
 <script>
-  import { configurePagefindResultSort } from "../shared/pagefind-result-sort";
-  import { initPagefindQueryFromUrl } from "../shared/pagefind-url-query";
   import { markCurrentSavedSearchViewed } from "../shared/saved-searches";
 
-  async function initSavedSearchResults(): Promise<void> {
-    try {
-      await configurePagefindResultSort(PAGEFIND_NEWEST_FIRST_SORT);
-    } catch (error) {
-      console.warn("Pagefind result sorting could not be configured.", error);
-    }
-
-    initPagefindQueryFromUrl();
-    markCurrentSavedSearchViewed();
-  }
-
-  void initSavedSearchResults();
+  markCurrentSavedSearchViewed();
 </script>

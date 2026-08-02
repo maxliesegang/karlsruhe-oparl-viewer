@@ -17,7 +17,9 @@ Data fetching, caching, filtering logic, utilities, and TypeScript types.
 | `paper-detail-paths.ts`         | Maps paper references to URL slugs                        |
 | `meeting-paths.ts`              | Maps OParl meeting IDs to meeting detail routes           |
 | `utils.ts`                      | URL, date, and slug helpers                               |
-| `pagefind-client.ts`            | Pagefind search integration                               |
+| `pagefind-client.ts`            | Pagefind module loading, search types, freshness stats    |
+| `pagefind-config.ts`            | Search panel selectors, sort presets, build-time flag     |
+| `search-panel-controller.ts`    | Search box behaviour and result card rendering            |
 | `saved-searches.ts`             | Saved search logic                                        |
 | `responsive-filters-panel.ts`   | Responsive filter panel UI behaviour                      |
 | `types/`                        | All TypeScript type contracts                             |
@@ -58,6 +60,14 @@ derives stable values from the OParl organization relation,
 `meeting-filter-controller.ts` only matches rendered data attributes. Keep title
 parsing as a fallback for meetings without a resolvable organization; do not
 use title variants as the primary organization source.
+
+## Search Result Sorting
+
+- Main search (`/`): plain Pagefind relevance, no sort option
+- Saved search results (`/suche`): `PAGEFIND_MODIFIED_FIRST_SORT`
+  (`{ modified: "desc" }`), so the page reads as a "what changed" feed
+- Results render in batches of `SEARCH_RESULT_BATCH_SIZE` (20) with
+  IntersectionObserver-driven follow-up batches
 
 ## Pitfalls
 

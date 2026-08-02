@@ -1,12 +1,21 @@
 import { normalizeSavedSearchQuery } from "./saved-searches";
 import { getDateTimestamp } from "./utils";
 
-interface PagefindResultData {
+export interface PagefindResultData {
+  url?: string;
+  excerpt?: string;
   meta?: Record<string, string | undefined>;
+  word_count?: number;
 }
 
-interface PagefindSearchResult {
+export interface PagefindSearchResult {
+  id?: string;
   data?: () => Promise<PagefindResultData>;
+}
+
+export interface PagefindSearchOptions {
+  sort?: Record<string, "asc" | "desc">;
+  filters?: Record<string, string[]>;
 }
 
 interface PagefindSearchResponse {
@@ -19,11 +28,12 @@ export interface PagefindFreshnessStats {
   updatedCount: number;
 }
 
-interface PagefindModule {
+export interface PagefindModule {
   search: (
     term: string,
-    options?: Record<string, unknown>,
+    options?: PagefindSearchOptions,
   ) => Promise<PagefindSearchResponse>;
+  options?: (options: Record<string, unknown>) => Promise<void>;
 }
 
 const pagefindModulePromises = new Map<string, Promise<PagefindModule>>();
@@ -33,7 +43,9 @@ function getPagefindBundlePath(baseUrl: string): string {
   return `${normalizedBaseUrl}pagefind/`;
 }
 
-async function loadPagefindModule(baseUrl: string): Promise<PagefindModule> {
+export async function loadPagefindModule(
+  baseUrl: string,
+): Promise<PagefindModule> {
   const bundlePath = getPagefindBundlePath(baseUrl);
   let modulePromise = pagefindModulePromises.get(bundlePath);
 

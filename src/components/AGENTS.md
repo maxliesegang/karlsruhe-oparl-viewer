@@ -13,6 +13,7 @@ Reusable UI components. Prefer extending existing components over creating new o
 | `PaperFilters.astro`       | Filter controls panel                                   |
 | `FilterSelect.astro`       | Reusable dropdown for a single filter                   |
 | `MeetingFilters.astro`     | Meeting-specific filter controls and status             |
+| `SearchPanel.astro`        | Pagefind search box + rich result cards (custom UI)     |
 | `LegacyRedirectPage.astro` | Noindex redirect shell for legacy routes                |
 | `KeyInfo.astro`            | Paper metadata (date, type, reference) — detail page    |
 | `AuxiliaryFiles.astro`     | File attachments — detail page                          |
@@ -51,6 +52,19 @@ control. The remaining meeting filters live in the collapsible advanced panel.
 
 - Wrap interactive list UIs with `data-pagefind-ignore`
 - Preserve `data-pagefind-sort` on date metadata in `KeyInfo`
+- Search results are rendered by `SearchPanel.astro` +
+  `search-panel-controller.ts` against the Pagefind JS API — the
+  `astro-pagefind` `<Search>` component is intentionally not used
+- Result cards read these `data-pagefind-meta` names, all set in `KeyInfo`:
+  `paper-reference` · `paper-type` · `paper-date` · `paper-organizations` ·
+  `paper-districts` · `paper-modified` · `paper-created`
+  (`paper-created` uses the literal `name:value` form so the raw timestamp
+  stays out of search excerpts)
+- Panel markup contract (selectors in `pagefind-config.ts`):
+  `data-search-panel` (with `data-base-url` + `data-sort-mode`) ·
+  `data-search-form` · `data-search-input` · `data-search-clear` ·
+  `data-search-status` · `data-search-results` · `data-search-empty` ·
+  `data-search-load-trigger`
 
 **Internal links**
 

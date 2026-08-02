@@ -11,6 +11,15 @@ const { paper, organizations } = Astro.props;
 
 const pagefindSortAtt = `date:${new Date(paper.date).toISOString()}`;
 const pagefindModifiedSortAtt = `modified:${new Date(paper.modified).toISOString()}`;
+
+/** Search result cards read these as Pagefind meta — keep the names in sync
+ * with `search-panel-controller.ts`. */
+const organizationNames =
+  organizations
+    ?.map((item) => item?.name)
+    .filter(Boolean)
+    .join(", ") ?? "";
+const districtNames = paper.stadtteile?.join(", ") ?? "";
 ---
 
 <section class="section-card">
@@ -18,16 +27,20 @@ const pagefindModifiedSortAtt = `modified:${new Date(paper.modified).toISOString
     <tbody>
       <tr>
         <th>Vorlage:</th>
-        <td>{paper.reference}</td>
+        <td data-pagefind-meta="paper-reference">{paper.reference}</td>
       </tr>
       <tr>
         <th>Art:</th>
-        <td>{paper.paperType}</td>
+        <td data-pagefind-meta={paper.paperType ? "paper-type" : undefined}
+          >{paper.paperType}</td
+        >
       </tr>
       <tr>
         <th>Datum:</th>
         <td data-pagefind-sort={pagefindSortAtt}>
-          <time datetime={paper.date}>{formatDateShort(paper.date)}</time>
+          <time datetime={paper.date} data-pagefind-meta="paper-date[datetime]"
+            >{formatDateShort(paper.date)}</time
+          >
         </td>
       </tr>
       <tr>
@@ -39,25 +52,23 @@ const pagefindModifiedSortAtt = `modified:${new Date(paper.modified).toISOString
             data-pagefind-sort={pagefindModifiedSortAtt}
             >{formatDateShort(paper.modified)}</time
           >
-          <time
-            datetime={paper.created}
-            data-pagefind-meta="paper-created[datetime]"
-            hidden>{paper.created}</time
-          >
+          {/* Literal meta value — keeps the raw timestamp out of excerpts. */}
+          <span data-pagefind-meta={`paper-created:${paper.created}`}></span>
         </td>
       </tr>
       <tr>
         <th>Unter Leitung von:</th>
         <td
-          >{
-            organizations?.map((item) => item?.name).join(", ") ||
-              "Keine Angaben"
-          }</td
+          data-pagefind-meta={organizationNames
+            ? "paper-organizations"
+            : undefined}>{organizationNames || "Keine Angaben"}</td
         >
       </tr>
       <tr>
         <th>Erwähnte Stadtteile:</th>
-        <td>{paper.stadtteile?.join(", ") || "Keine Angaben"}</td>
+        <td data-pagefind-meta={districtNames ? "paper-districts" : undefined}
+          >{districtNames || "Keine Angaben"}</td
+        >
       </tr>
     </tbody>
   </table>
