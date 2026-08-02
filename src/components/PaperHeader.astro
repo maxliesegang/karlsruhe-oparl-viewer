@@ -73,8 +73,9 @@ const pagefindSortAtt = `date:${new Date(paper.date).toISOString()}`;
 
   .paper-title {
     /* Council paper titles are full sentences — left aligned and capped at a
-       readable measure, unlike the centred `.page-header` used elsewhere. */
-    max-width: 40ch;
+       readable measure, unlike the centred `.page-header` used elsewhere. The
+       cap is in `ch`, so it tracks the clamped font size across viewports. */
+    max-width: 55ch;
     margin: 0;
     font-size: clamp(1.6rem, 1.1rem + 1.8vw, 2.25rem);
     font-weight: bold;

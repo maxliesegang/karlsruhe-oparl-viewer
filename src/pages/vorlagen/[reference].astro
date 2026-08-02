@@ -41,7 +41,7 @@ const status = derivePaperStatus(consultations);
 ---
 
 <Layout title={paper.name} navigationSection="papers">
-  <PageContainer width="narrow">
+  <PageContainer>
     <PaperHeader paper={paper} status={status} />
 
     {
@@ -76,6 +76,15 @@ const status = derivePaperStatus(consultations);
   @media (min-width: 60rem) {
     .detail-layout {
       grid-template-columns: minmax(0, 1fr) 21rem;
+      column-gap: 32px;
+    }
+  }
+
+  /* On wide screens the extra room goes to the sidebar too — the main column
+     alone would only stretch its tables, since its prose is capped at 68ch. */
+  @media (min-width: 85rem) {
+    .detail-layout {
+      grid-template-columns: minmax(0, 1fr) 25rem;
     }
   }
 
