@@ -1,18 +1,27 @@
 ---
 interface Props {
   class?: string;
+  /** `narrow` keeps long-form pages at a readable measure. */
+  width?: "wide" | "narrow";
 }
 
-const { class: className } = Astro.props;
+const { class: className, width = "wide" } = Astro.props;
 ---
 
-<div class:list={["page-container", className]}>
+<div class:list={["page-container", `width-${width}`, className]}>
   <slot />
 </div>
 
 <style>
   .page-container {
-    max-width: 1400px;
     margin: 0 auto;
+  }
+
+  .width-wide {
+    max-width: 1400px;
+  }
+
+  .width-narrow {
+    max-width: 1120px;
   }
 </style>

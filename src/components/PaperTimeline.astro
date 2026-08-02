@@ -1,10 +1,9 @@
 ---
 import type { Paper, ResolvedConsultation } from "../shared/types";
+import { isUpcomingMeeting, orderConsultations } from "../shared/paper-status";
 import {
   buildMeetingDetailUrl,
-  compareDateStrings,
   formatDateTime,
-  getDateTimestamp,
   getOParlEntityId,
 } from "../shared/utils";
 
@@ -17,39 +16,11 @@ const { paper, consultations } = Astro.props;
 const baseUrl = import.meta.env.BASE_URL;
 const now = Date.now();
 
-function isUpcomingMeeting(meeting: ResolvedConsultation["meeting"]): boolean {
-  return Boolean(
-    meeting &&
-    (getDateTimestamp(meeting.start) ?? Number.NEGATIVE_INFINITY) > now,
-  );
-}
-
-const orderedConsultations = [...consultations].sort((left, right) =>
-  compareDateStrings(
-    left.meeting?.start ?? left.consultation.created,
-    right.meeting?.start ?? right.consultation.created,
-  ),
-);
-const hasDecision = orderedConsultations.some(({ agendaItem }) =>
-  Boolean(agendaItem?.result?.trim()),
-);
-const hasUpcomingMeeting = orderedConsultations.some(({ meeting }) =>
-  isUpcomingMeeting(meeting),
-);
-const status = hasDecision
-  ? "Entschieden"
-  : hasUpcomingMeeting
-    ? "Zur Beratung vorgesehen"
-    : orderedConsultations.length > 0
-      ? "Beraten"
-      : "Veröffentlicht";
+const orderedConsultations = orderConsultations(consultations);
 ---
 
-<section class="section-card paper-timeline">
-  <div class="timeline-heading-row">
-    <h2 class="section-heading">Verlauf</h2>
-    <span class="status-badge">{status}</span>
-  </div>
+<section class="section-card paper-timeline" aria-labelledby="paper-timeline">
+  <h2 class="section-heading" id="paper-timeline">Verlauf</h2>
 
   <ol class="timeline-list">
     <li class="timeline-item completed">
@@ -61,7 +32,7 @@ const status = hasDecision
     </li>
     {
       orderedConsultations.map(({ consultation, meeting, agendaItem }) => {
-        const meetingIsUpcoming = isUpcomingMeeting(meeting);
+        const meetingIsUpcoming = isUpcomingMeeting(meeting, now);
         const result = agendaItem?.result?.trim();
         const title = result
           ? "Entscheidung"
@@ -101,24 +72,8 @@ const status = hasDecision
 </section>
 
 <style>
-  .timeline-heading-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-  }
-
-  .timeline-heading-row .section-heading {
+  .section-heading {
     margin-top: 0;
-  }
-
-  .status-badge {
-    padding: 5px 10px;
-    border-radius: 999px;
-    background: #e8f5ec;
-    color: #176b3a;
-    font-size: 0.82rem;
-    font-weight: 700;
   }
 
   .timeline-list {

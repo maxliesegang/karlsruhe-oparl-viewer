@@ -1,0 +1,111 @@
+---
+import type { PaperSummary } from "../shared/types";
+import { formatDateLong } from "../shared/utils";
+
+interface Props {
+  summary: PaperSummary | undefined;
+}
+
+const { summary } = Astro.props;
+const keyPoints = summary?.keyPoints?.filter(Boolean) ?? [];
+---
+
+{
+  summary && (
+    <section class="section-card summary-card" aria-labelledby="paper-summary">
+      <div class="summary-header">
+        <h2 class="section-heading" id="paper-summary">
+          Zusammenfassung
+        </h2>
+        <span class="summary-badge">KI-generiert</span>
+      </div>
+
+      {/* Summaries are a few sentences by design (~400 characters), so they are
+          shown in full — collapsing them would cost a click and save no space. */}
+      <p class="summary-text">{summary.summary}</p>
+
+      {keyPoints.length > 0 && (
+        <>
+          <h3 class="summary-points-heading">Kernpunkte</h3>
+          <ul class="summary-points">
+            {keyPoints.map((keyPoint) => (
+              <li>{keyPoint}</li>
+            ))}
+          </ul>
+        </>
+      )}
+
+      <p class="summary-note" data-pagefind-ignore>
+        Automatisch erzeugt am {formatDateLong(summary.generatedAt)}. Kann
+        Fehler enthalten — maßgeblich ist der Originaltext der Vorlage.
+      </p>
+    </section>
+  )
+}
+
+<style>
+  .summary-card {
+    /* The lead element of the page: same card shell as its siblings, marked out
+       by the brand accent rather than by a different background. */
+    border-left: 4px solid var(--color-primary);
+  }
+
+  .summary-header {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .summary-header .section-heading {
+    margin: 0;
+  }
+
+  .summary-badge {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-text-muted);
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    padding: 3px 9px;
+  }
+
+  .summary-text {
+    max-width: 68ch;
+    margin: 14px 0 0;
+    font-size: 1.0625rem;
+    line-height: 1.6;
+  }
+
+  .summary-points-heading {
+    margin: 22px 0 8px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-text-muted);
+  }
+
+  .summary-points {
+    max-width: 68ch;
+    margin: 0;
+    padding-left: 1.2em;
+    display: grid;
+    gap: 10px;
+    line-height: 1.55;
+  }
+
+  .summary-points li::marker {
+    color: var(--color-primary-hover);
+  }
+
+  .summary-note {
+    margin: 20px 0 0;
+    padding-top: 14px;
+    border-top: 1px solid var(--color-border);
+    font-size: 0.8125rem;
+    color: var(--color-text-muted);
+  }
+</style>

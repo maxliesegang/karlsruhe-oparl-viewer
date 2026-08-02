@@ -47,8 +47,17 @@ const { auxiliaryFiles } = Astro.props;
                 </div>
               </div>
 
+              {/* Extracted PDF text runs to thousands of words, so it stays
+                  collapsed and scrolls within a fixed height once opened. */}
               <details class="file-text-details">
-                <summary class="file-text-toggle">Extrahierter Text</summary>
+                <summary class="file-text-toggle">
+                  <span class="toggle-label toggle-show">
+                    Extrahierten Text anzeigen
+                  </span>
+                  <span class="toggle-label toggle-hide">
+                    Extrahierten Text ausblenden
+                  </span>
+                </summary>
                 <p class="file-text">{fileText}</p>
               </details>
             </li>
@@ -135,13 +144,29 @@ const { auxiliaryFiles } = Astro.props;
     background-color: var(--color-link-hover);
   }
 
+  .toggle-hide,
+  .file-text-details[open] .toggle-show {
+    display: none;
+  }
+
+  .file-text-details[open] .toggle-hide {
+    display: inline;
+  }
+
   .file-text {
+    max-height: 26rem;
+    overflow-y: auto;
     margin-top: 10px;
-    padding: 10px;
-    background-color: #fff;
+    padding: 12px;
+    background-color: var(--color-bg-card);
     border-left: 3px solid var(--color-link);
     border-radius: 4px;
     font-size: 0.875rem;
+    line-height: 1.5;
+    /* The extraction preserves the PDF's line structure — collapsing it turns
+       tables and lists into an unreadable run-on paragraph. */
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
     color: var(--color-text);
   }
 </style>

@@ -1,11 +1,10 @@
 # Local syndication data loader contract (spike)
 
-Local data is the default. `DATA_LOCAL_DIR` is resolved from the viewer working
-directory and defaults to `syndication-data/docs`. Set `DATA_SOURCE=remote` only
-for a compatible aggregate mirror.
+A local checkout is the only data path. `DATA_LOCAL_DIR` is resolved from the
+viewer working directory and defaults to `syndication-data/docs`.
 
-Run `npm run data:setup` to create the default local checkout, then use
-`npm run dev:local`, `npm run build:local`, or `npm run build:local:quick`.
+Run `npm run data:setup` to create the checkout, then use `npm run dev`,
+`npm run build`, or `npm run build:quick`.
 
 For every array store requested by the viewer, provide exactly one of:
 
@@ -21,6 +20,10 @@ objects are accepted only inside the entity directory. The current viewer
 requests `papers`, `meetings`, `organizations`, and `file-contents` as array
 stores.
 
+Optional per-record documents (currently `summaries/papers/<paper id>.json`) are
+discovered by enumerating their directory; a missing directory or file is not an
+error, since summaries are backfilled over time.
+
 `paper-stadtteile.json` remains a single UTF-8 JSON object.
 
 For extracted PDF text, `file-contents.json` is the index. For every entry whose
@@ -29,6 +32,6 @@ the entry's absolute `id` URL and reads `file-contents/<fileId>.txt` as UTF-8.
 Missing text files are tolerated and summarized as a build warning. No chunk
 directory is read.
 
-`DATA_SOURCE=remote` remains available for compatible aggregate stores and uses
-`DATA_BASE_URL`. It cannot discover per-record remote directories. Production
-therefore checks out the data repository and builds with `DATA_SOURCE=local`.
+The viewer never fetches data over the network — per-record directories cannot
+be discovered remotely without an index file, so production checks out the data
+repository and builds from it.

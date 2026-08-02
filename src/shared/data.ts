@@ -1,5 +1,5 @@
 import { BULK_MODIFIED_DATE } from "./constants";
-import { dataSource } from "./data-source";
+import { dataSource, FILE_READ_CONCURRENCY } from "./data-source";
 import { mapConcurrent, memoizeAsync } from "./async-utils";
 import {
   compareDateStrings,
@@ -11,6 +11,7 @@ import type {
   Meeting,
   Organization,
   Paper,
+  PaperSummary,
   ResolvedAgendaItem,
   ResolvedConsultation,
   ResolvedAuxiliaryFile,
@@ -86,22 +87,26 @@ export const loadFileContents = memoizeAsync(
       (fileContent) => fileContent.hasExtractedText,
     );
     let missingTextCount = 0;
-    await mapConcurrent(filesWithExtractedText, 64, async (fileContent) => {
-      const fileId = new URL(fileContent.id).pathname
-        .split("/")
-        .filter(Boolean)
-        .at(-1);
-      if (!fileId) {
-        missingTextCount++;
-        return;
-      }
-      const extractedText = await dataSource.loadText(fileId);
-      if (extractedText === undefined) {
-        missingTextCount++;
-      } else {
-        fileContent.extractedText = extractedText;
-      }
-    });
+    await mapConcurrent(
+      filesWithExtractedText,
+      FILE_READ_CONCURRENCY,
+      async (fileContent) => {
+        const fileId = new URL(fileContent.id).pathname
+          .split("/")
+          .filter(Boolean)
+          .at(-1);
+        if (!fileId) {
+          missingTextCount++;
+          return;
+        }
+        const extractedText = await dataSource.loadText(fileId);
+        if (extractedText === undefined) {
+          missingTextCount++;
+        } else {
+          fileContent.extractedText = extractedText;
+        }
+      },
+    );
     if (missingTextCount > 0) {
       console.warn(
         `Missing extracted text for ${missingTextCount} of ${filesWithExtractedText.length} indexed files`,
@@ -218,6 +223,28 @@ export async function resolveAuxiliaryFiles(
     file: auxiliaryFile,
     content: fileContentsById.get(auxiliaryFile.id),
   }));
+}
+
+/**
+ * Summaries live in `summaries/papers/<numeric paper id>.json` and are being
+ * backfilled, so only a subset of papers has one and the directory may be
+ * absent entirely. Keying by each summary's own `id` (the full paper URL)
+ * tolerates numeric file names that repeat across paper id namespaces
+ * (`.../papers/vo/1` vs `.../papers/ag/1`).
+ */
+export const loadPaperSummaries = memoizeAsync(
+  async (): Promise<Map<string, PaperSummary>> => {
+    const summaries =
+      await dataSource.loadDirectory<PaperSummary>("summaries/papers");
+    return new Map(summaries.map((summary) => [summary.id, summary]));
+  },
+);
+
+export async function resolvePaperSummary(
+  paper: Paper,
+): Promise<PaperSummary | undefined> {
+  const summariesByPaperId = await loadPaperSummaries();
+  return summariesByPaperId.get(paper.id);
 }
 
 const loadPapersById = memoizeAsync(async (): Promise<Map<string, Paper>> => {

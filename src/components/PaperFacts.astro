@@ -1,0 +1,86 @@
+---
+import type { Organization, Paper } from "../shared/types";
+import { formatDateShort } from "../shared/utils";
+
+interface Props {
+  paper: Paper;
+  organizations: Organization[];
+}
+
+const { paper, organizations } = Astro.props;
+
+/** Search result cards read these as Pagefind meta — keep the names in sync
+ * with `search-panel-controller.ts`. Reference, type, and date carry their meta
+ * in `PaperHeader.astro`, where they are actually displayed. */
+const pagefindModifiedSortAtt = `modified:${new Date(paper.modified).toISOString()}`;
+
+const organizationNames = organizations
+  .map((organization) => organization?.name)
+  .filter(Boolean)
+  .join(", ");
+const districtNames = paper.stadtteile.join(", ");
+---
+
+<section class="section-card" aria-labelledby="paper-facts">
+  <h2 class="section-heading" id="paper-facts">Eckdaten</h2>
+
+  <dl class="facts">
+    <dt>Letzte Änderung</dt>
+    <dd>
+      <time
+        datetime={paper.modified}
+        data-pagefind-meta="paper-modified[datetime]"
+        data-pagefind-sort={pagefindModifiedSortAtt}
+        >{formatDateShort(paper.modified)}</time
+      >
+      {/* Literal meta value — keeps the raw timestamp out of excerpts. */}
+      <span data-pagefind-meta={`paper-created:${paper.created}`}></span>
+    </dd>
+
+    <dt>Unter Leitung von</dt>
+    <dd
+      data-pagefind-meta={organizationNames ? "paper-organizations" : undefined}
+      class:list={[!organizationNames && "fact-empty"]}
+    >
+      {organizationNames || "Keine Angaben"}
+    </dd>
+
+    <dt>Erwähnte Stadtteile</dt>
+    <dd
+      data-pagefind-meta={districtNames ? "paper-districts" : undefined}
+      class:list={[!districtNames && "fact-empty"]}
+    >
+      {districtNames || "Keine Angaben"}
+    </dd>
+  </dl>
+</section>
+
+<style>
+  .section-heading {
+    margin-top: 0;
+  }
+
+  .facts {
+    margin: 0;
+    display: grid;
+    gap: 14px;
+  }
+
+  dt {
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-text-muted);
+  }
+
+  dd {
+    margin: 3px 0 0;
+    line-height: 1.5;
+  }
+
+  .fact-empty {
+    color: var(--color-text-muted);
+    font-style: italic;
+  }
+</style>

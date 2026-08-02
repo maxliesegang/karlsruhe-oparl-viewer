@@ -29,8 +29,6 @@ jobs:
     outputs:
       data-revision: ${{ steps.data-revision.outputs.revision }}
       should-deploy: ${{ steps.changes.outputs.should-deploy }}
-    env:
-      DATA_SOURCE: local
     steps:
       - name: Checkout your repository using git
         uses: actions/checkout@v7

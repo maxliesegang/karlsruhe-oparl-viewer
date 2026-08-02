@@ -14,7 +14,7 @@
 npm ci                    # install (preferred over npm install)
 npm run dev               # dev server → http://localhost:4321
 npm run build:quiet       # ← use this one: full build, per-page log lines filtered
-npm run build:local:quiet # quiet + local data + no Pagefind (fastest validation)
+npm run build:quick:quiet # quiet + no Pagefind (fastest validation)
 npm run build             # full build incl. Pagefind index → dist/ (~30k log lines)
 npm run build:quick       # fast build, skips Pagefind (SKIP_PAGEFIND=1)
 npm run preview           # preview built site
@@ -36,7 +36,7 @@ Do **not** edit generated artifacts: `dist/`, `.astro/`, `node_modules/`.
 2. Read the Astro release notes for the target version
 3. `npx @astrojs/upgrade` — run the official upgrader
 4. `npm outdated --long` — verify dependency state
-5. Validate both build paths: `npm run build:local:quiet` then `npm run build:quiet`
+5. Validate both build paths: `npm run build:quick:quiet` then `npm run build:quiet`
 6. Commit `package.json` and `package-lock.json` together
 
 > When touching env flags, cast `import.meta.env.*` before string operations
@@ -52,7 +52,7 @@ Do **not** edit generated artifacts: `dist/`, `.astro/`, `node_modules/`.
 
 ## Common Pitfalls
 
-- Offline builds fail unless `DATA_BASE_URL` points to a reachable mirror
+- Builds fail unless `syndication-data/docs` exists (`npm run data:setup`); there is no network fallback
 - Missing `BASE_URL` prefixes break GitHub Pages subpath routing
 - Astro upgrades can expose implicit `import.meta.env` type assumptions — cast before calling string methods
 

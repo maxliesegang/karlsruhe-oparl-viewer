@@ -43,15 +43,25 @@ const groups = [
 }
 
 <style>
+  .section-heading {
+    margin-top: 0;
+  }
+
+  /* Sits in the detail sidebar, so it stacks by default and only spreads out
+     where the column is genuinely wide. */
   .related-groups {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
     gap: 20px;
   }
 
   h3 {
-    margin: 0 0 10px;
-    font-size: 1rem;
+    margin: 0 0 8px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-text-muted);
   }
 
   ul {

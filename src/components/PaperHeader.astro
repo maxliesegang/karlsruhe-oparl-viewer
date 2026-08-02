@@ -1,0 +1,117 @@
+---
+import type { Paper } from "../shared/types";
+import type { PaperStatus } from "../shared/paper-status";
+import { formatDateLong } from "../shared/utils";
+
+interface Props {
+  paper: Paper;
+  status: PaperStatus;
+}
+
+const { paper, status } = Astro.props;
+
+/** Search result cards read these as Pagefind meta — keep the names in sync
+ * with `search-panel-controller.ts`. */
+const pagefindSortAtt = `date:${new Date(paper.date).toISOString()}`;
+---
+
+<header class="paper-header">
+  <p class="paper-eyebrow">
+    <span class="paper-reference" data-pagefind-meta="paper-reference"
+      >{paper.reference}</span
+    >
+    {
+      paper.paperType && (
+        <span class="paper-kind" data-pagefind-meta="paper-type">
+          {paper.paperType}
+        </span>
+      )
+    }
+  </p>
+
+  <h1 class="paper-title">{paper.name}</h1>
+
+  <p class="paper-header-meta">
+    <span class:list={["status-badge", `tone-${status.tone}`]}
+      >{status.label}</span
+    >
+    <time
+      datetime={paper.date}
+      data-pagefind-meta="paper-date[datetime]"
+      data-pagefind-sort={pagefindSortAtt}>{formatDateLong(paper.date)}</time
+    >
+  </p>
+</header>
+
+<style>
+  .paper-header {
+    padding-bottom: 20px;
+    border-bottom: 3px solid var(--color-primary);
+  }
+
+  .paper-eyebrow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 10px;
+    font-size: 0.85rem;
+  }
+
+  .paper-reference {
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    color: var(--color-text);
+  }
+
+  .paper-kind {
+    padding: 2px 9px;
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    color: var(--color-text-muted);
+  }
+
+  .paper-title {
+    /* Council paper titles are full sentences — left aligned and capped at a
+       readable measure, unlike the centred `.page-header` used elsewhere. */
+    max-width: 40ch;
+    margin: 0;
+    font-size: clamp(1.6rem, 1.1rem + 1.8vw, 2.25rem);
+    font-weight: bold;
+    line-height: 1.25;
+    text-wrap: balance;
+  }
+
+  .paper-header-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin: 14px 0 0;
+    color: var(--color-text-muted);
+    font-size: 0.95rem;
+  }
+
+  .status-badge {
+    padding: 4px 11px;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    font-weight: 700;
+  }
+
+  .tone-decided {
+    background: #e8f5ec;
+    color: #176b3a;
+  }
+
+  .tone-scheduled {
+    background: #e6eefa;
+    color: #14508f;
+  }
+
+  .tone-discussed,
+  .tone-published {
+    background: #f0f0f0;
+    color: #454545;
+  }
+</style>

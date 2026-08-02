@@ -37,7 +37,7 @@ It builds from an OParl-based JSON mirror and publishes to GitHub Pages.
 ```bash
 npm ci
 npm run data:setup # shallow-clone the current shard-based data store once
-npm run dev:local
+npm run dev
 ```
 
 Dev server: [http://localhost:4321](http://localhost:4321)
@@ -45,14 +45,14 @@ Dev server: [http://localhost:4321](http://localhost:4321)
 Build and preview:
 
 ```bash
-npm run build:local
+npm run build
 npm run preview
 ```
 
 Fast validation build (skips Pagefind indexing):
 
 ```bash
-npm run build:local:quick
+npm run build:quick
 ```
 
 ### Quiet Builds
@@ -64,7 +64,7 @@ code:
 
 ```bash
 npm run build:quiet       # full build, ~20 lines of output
-npm run build:local:quiet # local data, skips Pagefind — fastest validation
+npm run build:quick:quiet # skips Pagefind — fastest validation
 ```
 
 Both wrap `astro build` via `scripts/build-quiet.mjs`. Extra flags are forwarded
@@ -100,15 +100,16 @@ Local and production builds read the shard directories from
 `syndication-data/docs`. The deployment workflow checks out the data repository
 there before building. Key implementation points:
 
-- Data endpoint is configured in `src/shared/constants.ts` (`DATA_BASE_URL`).
+- The data root is the checkout at `syndication-data/docs`, overridable with `DATA_LOCAL_DIR`.
 - Fetching/caching lives in `src/shared/data.ts` (module-scoped caches).
 - `routeReference` is derived from `paper.reference` by replacing `/` with `-`.
 - Year bucketing uses `getPaperYear()` with bulk-import handling (`BULK_MODIFIED_DATE = "2025-03-03"`).
 - File content text is loaded concurrently from `file-contents/`.
 - District counts are derived and cached via `getPaperCountsByDistrict()`.
 
-The optional `DATA_SOURCE=remote` mode remains available for aggregate stores, but
-the upstream paper and meeting data now uses per-record directories.
+There is no network data path: `src/shared/data-source.ts` reads the checkout
+only. Shard directories have no index file, so records are discovered by
+enumerating the directory.
 
 ## Architecture Notes
 

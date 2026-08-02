@@ -32,5 +32,4 @@ jobs:
       - name: Build from local checkout
         run: /usr/bin/time -v npm run build
         env:
-          DATA_SOURCE: local
           DATA_LOCAL_DIR: syndication-data/docs

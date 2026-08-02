@@ -1,8 +1,9 @@
 ---
 import Layout from "../../layouts/Layout.astro";
 import PageContainer from "../../components/PageContainer.astro";
-import Breadcrumbs from "../../components/Breadcrumbs.astro";
-import KeyInfo from "../../components/KeyInfo.astro";
+import PaperHeader from "../../components/PaperHeader.astro";
+import PaperFacts from "../../components/PaperFacts.astro";
+import PaperSummary from "../../components/PaperSummary.astro";
 import PaperTimeline from "../../components/PaperTimeline.astro";
 import RelatedPapers from "../../components/RelatedPapers.astro";
 import AuxiliaryFiles from "../../components/AuxiliaryFiles.astro";
@@ -11,7 +12,9 @@ import {
   resolveConsultations,
   resolveAuxiliaryFiles,
   resolveRelatedPapers,
+  resolvePaperSummary,
 } from "../../shared/data";
+import { derivePaperStatus } from "../../shared/paper-status";
 import { getPaperDetailStaticPaths } from "../../shared/paper-detail-paths";
 import type { Paper } from "../../shared/types";
 
@@ -24,30 +27,66 @@ interface Props {
 }
 
 const { paper } = Astro.props;
-const baseUrl = import.meta.env.BASE_URL;
 
-const [organizations, consultations, auxiliaryFiles, relatedPapers] =
+const [organizations, consultations, auxiliaryFiles, relatedPapers, summary] =
   await Promise.all([
     resolveOrganizations(paper),
     resolveConsultations(paper),
     resolveAuxiliaryFiles(paper),
     resolveRelatedPapers(paper),
+    resolvePaperSummary(paper),
   ]);
+
+const status = derivePaperStatus(consultations);
 ---
 
 <Layout title={paper.name} navigationSection="papers">
-  <PageContainer>
-    <Breadcrumbs
-      items={[
-        { label: "Vorlagen", href: `${baseUrl}vorlagen` },
-        { label: paper.reference },
-      ]}
-    />
-    <h1 class="page-header">{paper.name}</h1>
+  <PageContainer width="narrow">
+    <PaperHeader paper={paper} status={status} />
 
-    <KeyInfo paper={paper} organizations={organizations} />
-    <PaperTimeline paper={paper} consultations={consultations} />
-    <RelatedPapers {...relatedPapers} />
-    <AuxiliaryFiles auxiliaryFiles={auxiliaryFiles} />
+    {
+      /* Two columns from 60rem up: the narrative (summary, course, documents)
+        beside the reference data. Below that they stack in source order, which
+        is why the header carries the facts a reader needs first. */
+    }
+    <div class="detail-layout">
+      <div class="detail-main">
+        <PaperSummary summary={summary} />
+        <PaperTimeline paper={paper} consultations={consultations} />
+        <AuxiliaryFiles auxiliaryFiles={auxiliaryFiles} />
+      </div>
+
+      <aside class="detail-side" aria-label="Weitere Angaben zur Vorlage">
+        <PaperFacts paper={paper} organizations={organizations} />
+        <RelatedPapers {...relatedPapers} />
+      </aside>
+    </div>
   </PageContainer>
 </Layout>
+
+<style>
+  /* Section spacing comes from the global `.section-card` top margin, so the
+     columns stay plain blocks rather than gapped flex containers. */
+  .detail-layout {
+    display: grid;
+    align-items: start;
+    column-gap: 24px;
+  }
+
+  @media (min-width: 60rem) {
+    .detail-layout {
+      grid-template-columns: minmax(0, 1fr) 21rem;
+    }
+  }
+
+  .detail-main,
+  .detail-side {
+    min-width: 0;
+  }
+
+  /* Sidebar cards are supporting material — quieter headings than the main
+     column, and short enough to stay on one line in a 21rem column. */
+  .detail-side :global(.section-heading) {
+    font-size: 1.2rem;
+  }
+</style>
