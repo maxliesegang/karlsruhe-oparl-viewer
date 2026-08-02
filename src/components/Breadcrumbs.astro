@@ -1,0 +1,81 @@
+---
+export interface BreadcrumbItem {
+  label: string;
+  href?: string;
+}
+
+interface Props {
+  items: BreadcrumbItem[];
+}
+
+const { items } = Astro.props;
+---
+
+<nav class="breadcrumbs" aria-label="Brotkrümelnavigation" data-pagefind-ignore>
+  <ol>
+    {
+      items.map((item, index) => {
+        const isCurrent = index === items.length - 1;
+
+        return (
+          <li>
+            {item.href && !isCurrent ? (
+              <a href={item.href}>{item.label}</a>
+            ) : (
+              <span aria-current={isCurrent ? "page" : undefined}>
+                {item.label}
+              </span>
+            )}
+          </li>
+        );
+      })
+    }
+  </ol>
+</nav>
+
+<style>
+  .breadcrumbs {
+    margin: 0 0 18px;
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+  }
+
+  ol {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  li {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+  }
+
+  li:not(:last-child)::after {
+    content: "/";
+    margin-left: 6px;
+    color: #8a8a8a;
+  }
+
+  a {
+    color: var(--color-link);
+    text-decoration: none;
+  }
+
+  a:hover {
+    text-decoration: underline;
+  }
+
+  [aria-current="page"] {
+    display: block;
+    max-width: min(60ch, 70vw);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+</style>

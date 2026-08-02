@@ -1,6 +1,7 @@
 ---
 import Layout from "../../layouts/Layout.astro";
 import PageContainer from "../../components/PageContainer.astro";
+import Breadcrumbs from "../../components/Breadcrumbs.astro";
 import MeetingAgenda from "../../components/MeetingAgenda.astro";
 import {
   resolveMeetingAgenda,
@@ -54,11 +55,14 @@ const documents = rawDocuments.filter(({ file }) => {
 });
 ---
 
-<Layout title={meeting.name} pagefindIgnore>
+<Layout title={meeting.name} pagefindIgnore navigationSection="meetings">
   <PageContainer class="meeting-detail-page">
-    <p class="back-link" data-pagefind-ignore>
-      <a href={`${baseUrl}sitzungen`}>← Alle kommenden Sitzungen</a>
-    </p>
+    <Breadcrumbs
+      items={[
+        { label: "Sitzungen", href: `${baseUrl}sitzungen` },
+        { label: meeting.name },
+      ]}
+    />
     <h1 class="page-header">{meeting.name}</h1>
 
     <section class="section-card meeting-key-info" data-pagefind-ignore>
@@ -134,13 +138,11 @@ const documents = rawDocuments.filter(({ file }) => {
     max-width: 1000px;
   }
 
-  .back-link a,
   .document-list a {
     color: var(--color-link);
     text-decoration: none;
   }
 
-  .back-link a:hover,
   .document-list a:hover {
     text-decoration: underline;
   }

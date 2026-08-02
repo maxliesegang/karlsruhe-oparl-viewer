@@ -1,12 +1,15 @@
 ---
 import SiteNavigation from "../components/SiteNavigation.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import type { NavigationSection } from "../shared/navigation";
 
 interface Props {
   title?: string;
   pagefindIgnore?: boolean;
+  navigationSection?: NavigationSection;
 }
 
-const { title, pagefindIgnore = false } = Astro.props;
+const { title, pagefindIgnore = false, navigationSection } = Astro.props;
 const baseUrl = import.meta.env.BASE_URL;
 const pageTitle = title ? `${title} | GemeinderatsRadar` : "GemeinderatsRadar";
 ---
@@ -21,10 +24,12 @@ const pageTitle = title ? `${title} | GemeinderatsRadar` : "GemeinderatsRadar";
     <title>{pageTitle}</title>
   </head>
   <body>
-    <SiteNavigation />
-    <main>
+    <a class="skip-link" href="#main-content">Zum Inhalt springen</a>
+    <SiteNavigation currentSection={navigationSection} />
+    <main id="main-content">
       <slot />
     </main>
+    <SiteFooter />
   </body>
 </html>
 
@@ -44,8 +49,52 @@ const pageTitle = title ? `${title} | GemeinderatsRadar` : "GemeinderatsRadar";
   }
 
   body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
     margin: 0;
     padding: 0;
+    color: var(--color-text);
+    background: #fff;
+  }
+
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible,
+  select:focus-visible {
+    outline: 3px solid #175f94;
+    outline-offset: 3px;
+  }
+
+  .skip-link {
+    position: fixed;
+    top: 8px;
+    left: 8px;
+    z-index: 2000;
+    padding: 10px 14px;
+    border-radius: var(--radius);
+    background: #171717;
+    color: #fff;
+    font-family: var(--font-family);
+    font-weight: 700;
+    text-decoration: none;
+    transform: translateY(-160%);
+  }
+
+  .skip-link:focus {
+    transform: translateY(0);
+  }
+
+  .visually-hidden {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
   }
 
   .page-header {
@@ -75,6 +124,9 @@ const pageTitle = title ? `${title} | GemeinderatsRadar` : "GemeinderatsRadar";
 
 <style>
   main {
+    flex: 1;
+    width: 100%;
+    box-sizing: border-box;
     padding: 20px;
     font-family: var(--font-family);
   }

@@ -1,0 +1,104 @@
+---
+import PageContainer from "./PageContainer.astro";
+
+const baseUrl = import.meta.env.BASE_URL;
+---
+
+<footer class="site-footer" data-pagefind-ignore>
+  <PageContainer class="footer-container">
+    <div class="footer-about">
+      <a class="footer-brand" href={baseUrl}>GemeinderatsRadar</a>
+      <p>
+        Öffentliche Vorlagen und Sitzungen des Karlsruher Gemeinderats einfacher
+        finden und verfolgen.
+      </p>
+    </div>
+    <div class="footer-links">
+      <h2>Daten &amp; Quellen</h2>
+      <ul>
+        <li>
+          <a
+            href="https://maxliesegang.github.io/karlsruhe-oparl-syndication/tagesordnungspunkte.xml"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Tagesordnungspunkte als RSS
+            <span class="visually-hidden"> (öffnet in neuem Tab)</span>
+          </a>
+        </li>
+        <li>
+          <a
+            href="https://sitzungskalender.karlsruhe.de/db/ratsinformation/start"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Offizielles Ratsinformationssystem
+            <span class="visually-hidden"> (öffnet in neuem Tab)</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+  </PageContainer>
+</footer>
+
+<style>
+  .site-footer {
+    margin-top: 48px;
+    border-top: 1px solid var(--color-border);
+    background: #f7f7f7;
+    color: var(--color-text-muted);
+    font-family: var(--font-family);
+  }
+
+  .site-footer :global(.footer-container) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 32px 64px;
+    padding: 30px 20px 36px;
+  }
+
+  .footer-about {
+    max-width: 560px;
+  }
+
+  .footer-brand {
+    color: var(--color-text);
+    font-size: 1.05rem;
+    font-weight: 800;
+    text-decoration: none;
+  }
+
+  p {
+    margin: 8px 0 0;
+    line-height: 1.5;
+  }
+
+  h2 {
+    margin: 0 0 10px;
+    color: var(--color-text);
+    font-size: 0.9rem;
+  }
+
+  ul {
+    display: grid;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  li a {
+    color: var(--color-link);
+    text-decoration: none;
+  }
+
+  li a:hover {
+    text-decoration: underline;
+  }
+
+  @media screen and (max-width: 700px) {
+    .site-footer :global(.footer-container) {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

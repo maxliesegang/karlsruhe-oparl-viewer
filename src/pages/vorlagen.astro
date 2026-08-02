@@ -6,7 +6,7 @@ import { loadPaperFilterModel } from "../shared/paper-filters";
 const { papers, valuesByReference, options } = await loadPaperFilterModel();
 ---
 
-<Layout title="Vorlagen">
+<Layout title="Vorlagen" navigationSection="papers">
   <PaperListPage
     title="Vorlagen"
     papers={papers}
