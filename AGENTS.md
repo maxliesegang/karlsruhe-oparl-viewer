@@ -11,13 +11,22 @@
 ## Run Book
 
 ```
-npm ci              # install (preferred over npm install)
-npm run dev         # dev server → http://localhost:4321
-npm run build       # full build incl. Pagefind index → dist/
-npm run build:quick # fast build, skips Pagefind (SKIP_PAGEFIND=1)
-npm run preview     # preview built site
-npm run format      # Prettier
+npm ci                    # install (preferred over npm install)
+npm run dev               # dev server → http://localhost:4321
+npm run build:quiet       # ← use this one: full build, per-page log lines filtered
+npm run build:local:quiet # quiet + local data + no Pagefind (fastest validation)
+npm run build             # full build incl. Pagefind index → dist/ (~30k log lines)
+npm run build:quick       # fast build, skips Pagefind (SKIP_PAGEFIND=1)
+npm run preview           # preview built site
+npm run format            # Prettier
 ```
+
+**Always prefer `build:quiet` over `build`.** The site generates ~30,000 pages
+and `astro build` logs one line per page: ~30,000 lines / 1.5 MB (~370k tokens)
+per run, of which ~17 lines carry information. `build:quick` does _not_ help —
+`SKIP_PAGEFIND=1` only skips indexing, the per-page logging is identical.
+`build:quiet` (`scripts/build-quiet.mjs`) drops those lines, keeps the summary,
+errors, and exit code, and reports how many lines it suppressed.
 
 Do **not** edit generated artifacts: `dist/`, `.astro/`, `node_modules/`.
 
@@ -27,7 +36,7 @@ Do **not** edit generated artifacts: `dist/`, `.astro/`, `node_modules/`.
 2. Read the Astro release notes for the target version
 3. `npx @astrojs/upgrade` — run the official upgrader
 4. `npm outdated --long` — verify dependency state
-5. Validate both build paths: `npm run build:quick` then `npm run build`
+5. Validate both build paths: `npm run build:local:quiet` then `npm run build:quiet`
 6. Commit `package.json` and `package-lock.json` together
 
 > When touching env flags, cast `import.meta.env.*` before string operations
@@ -46,6 +55,18 @@ Do **not** edit generated artifacts: `dist/`, `.astro/`, `node_modules/`.
 - Offline builds fail unless `DATA_BASE_URL` points to a reachable mirror
 - Missing `BASE_URL` prefixes break GitHub Pages subpath routing
 - Astro upgrades can expose implicit `import.meta.env` type assumptions — cast before calling string methods
+
+### Output-Volume Traps
+
+`dist/` (~45k files, 858 MB) and `syndication-data/` (~93k files, 773 MB) are
+gitignored, so Grep and Glob correctly ignore them — the searchable source tree
+is ~80 files. Bash and Read do **not** consult `.gitignore`, so these still bite:
+
+- `npm run build` — see the Run Book; use `build:quiet`
+- **Never read `dist/vorlagen.html`** — it is a single ~11 MB file
+- Do not `ls`/`find` inside `syndication-data/docs/file-contents/` (76k files) or
+  `syndication-data/docs/papers/` (14k files) without a `head`/`-name` filter
+- Inspect data shape from one shard file (~4–9 KB each), not from a directory listing
 
 ## Sub-directory Guides
 

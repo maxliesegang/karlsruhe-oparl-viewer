@@ -55,6 +55,21 @@ Fast validation build (skips Pagefind indexing):
 npm run build:local:quick
 ```
 
+### Quiet Builds
+
+The site generates ~30,000 pages and `astro build` logs one line per page, so a
+normal build emits ~30,000 lines (~1.5 MB) of scrollback. The quiet variants
+filter those per-page lines and keep the summary, warnings, errors, and exit
+code:
+
+```bash
+npm run build:quiet       # full build, ~20 lines of output
+npm run build:local:quiet # local data, skips Pagefind — fastest validation
+```
+
+Both wrap `astro build` via `scripts/build-quiet.mjs`. Extra flags are forwarded
+(`npm run build:quiet -- --verbose`). CI keeps using plain `npm run build`.
+
 The upstream repository stores papers and meetings as individual JSON files in
 `docs/papers/` and `docs/meetings/`; the former aggregate files no longer exist.
 `npm run data:setup` clones that repository into the ignored
@@ -121,7 +136,7 @@ Do not commit generated output (`dist/`).
 1. Create a feature branch.
 2. Keep links base-aware with `import.meta.env.BASE_URL`.
 3. Run `npm run format`.
-4. Run `npm run build` if you touched page/data logic.
+4. Run `npm run build:quiet` if you touched page/data logic.
 
 ## License
 
