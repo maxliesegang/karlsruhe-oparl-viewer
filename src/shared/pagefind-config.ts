@@ -1,8 +1,12 @@
 /** Shared Pagefind configuration — build-time helpers and client-side selectors. */
 
+export type PagefindSortDirection = "asc" | "desc";
+export type PagefindSort = Readonly<Record<string, PagefindSortDirection>>;
+
 export const PAGEFIND_ROOT_SELECTOR = "pagefind-searchbox.pagefind-ui";
 export const PAGEFIND_INPUT_SELECTOR =
   "pagefind-searchbox.pagefind-ui input[type='text']";
+export const PAGEFIND_NEWEST_FIRST_SORT = { date: "desc" } as const;
 
 export function isPagefindEnabled(skipPagefindValue: unknown): boolean {
   const normalized = String(skipPagefindValue ?? "")
@@ -10,24 +14,3 @@ export function isPagefindEnabled(skipPagefindValue: unknown): boolean {
     .toLowerCase();
   return !["1", "true", "yes"].includes(normalized);
 }
-
-export const pagefindUiOptions = {
-  showImages: false,
-  pageSize: 10,
-  sort: { date: "dsc" },
-  translations: {
-    placeholder: "Suchen",
-    clear_search: "Löschen",
-    load_more: "Mehr Ergebnisse laden",
-    search_label: "Diese Seite durchsuchen",
-    filters_label: "Filter",
-    zero_results: "Keine Ergebnisse für [SEARCH_TERM]",
-    many_results: "[COUNT] Ergebnisse für [SEARCH_TERM]",
-    one_result: "[COUNT] Ergebnis für [SEARCH_TERM]",
-    alt_search:
-      "Keine Ergebnisse für [SEARCH_TERM]. Stattdessen werden Ergebnisse für [DIFFERENT_TERM] angezeigt",
-    search_suggestion:
-      "Keine Ergebnisse für [SEARCH_TERM]. Versuchen Sie eine der folgenden Suchen:",
-    searching: "Suche nach [SEARCH_TERM]...",
-  },
-} as const;

@@ -2,7 +2,7 @@
 import Layout from "../layouts/Layout.astro";
 import PageContainer from "../components/PageContainer.astro";
 import Search from "astro-pagefind/components/Search.astro";
-import { pagefindUiOptions } from "../shared/pagefind-config";
+import { PAGEFIND_NEWEST_FIRST_SORT } from "../shared/pagefind-config";
 import { resolvePagefindAvailability } from "../shared/pagefind-server";
 
 const pagefind = resolvePagefindAvailability(import.meta.env.SKIP_PAGEFIND, {
@@ -55,11 +55,7 @@ const baseUrl = import.meta.env.BASE_URL;
               aria-live="polite"
             />
           </div>
-          <Search
-            id="search"
-            className="pagefind-ui"
-            uiOptions={pagefindUiOptions}
-          />
+          <Search id="search" className="pagefind-ui" />
         </>
       ) : (
         <p class="search-disabled" role="status">
@@ -179,8 +175,19 @@ const baseUrl = import.meta.env.BASE_URL;
 
 <script>
   import { initIndexSavedSearchControl } from "../shared/index-saved-search-control";
+  import { configurePagefindHybridRanking } from "../shared/pagefind-result-sort";
   import { initPagefindQueryFromUrl } from "../shared/pagefind-url-query";
 
-  initPagefindQueryFromUrl();
-  initIndexSavedSearchControl();
+  async function initMainSearch(): Promise<void> {
+    try {
+      await configurePagefindHybridRanking(PAGEFIND_NEWEST_FIRST_SORT);
+    } catch (error) {
+      console.warn("Pagefind ranking could not be configured.", error);
+    }
+
+    initPagefindQueryFromUrl();
+    initIndexSavedSearchControl();
+  }
+
+  void initMainSearch();
 </script>

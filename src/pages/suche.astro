@@ -2,7 +2,7 @@
 import Layout from "../layouts/Layout.astro";
 import PageContainer from "../components/PageContainer.astro";
 import Search from "astro-pagefind/components/Search.astro";
-import { pagefindUiOptions } from "../shared/pagefind-config";
+import { PAGEFIND_NEWEST_FIRST_SORT } from "../shared/pagefind-config";
 import { resolvePagefindAvailability } from "../shared/pagefind-server";
 
 const pagefind = resolvePagefindAvailability(import.meta.env.SKIP_PAGEFIND, {
@@ -20,11 +20,7 @@ const pagefind = resolvePagefindAvailability(import.meta.env.SKIP_PAGEFIND, {
             Diese Seite ist für gespeicherte Suchlinks gedacht und führt die
             Anfrage direkt aus.
           </p>
-          <Search
-            id="saved-search-results"
-            className="pagefind-ui"
-            uiOptions={pagefindUiOptions}
-          />
+          <Search id="saved-search-results" className="pagefind-ui" />
         </>
       ) : (
         <p class="search-disabled" role="status">
@@ -64,7 +60,18 @@ const pagefind = resolvePagefindAvailability(import.meta.env.SKIP_PAGEFIND, {
 </style>
 
 <script>
+  import { configurePagefindResultSort } from "../shared/pagefind-result-sort";
   import { initPagefindQueryFromUrl } from "../shared/pagefind-url-query";
 
-  initPagefindQueryFromUrl();
+  async function initSavedSearchResults(): Promise<void> {
+    try {
+      await configurePagefindResultSort(PAGEFIND_NEWEST_FIRST_SORT);
+    } catch (error) {
+      console.warn("Pagefind result sorting could not be configured.", error);
+    }
+
+    initPagefindQueryFromUrl();
+  }
+
+  void initSavedSearchResults();
 </script>
