@@ -4,15 +4,23 @@ import type { SearchSortMode } from "../shared/search-panel-controller";
 interface Props {
   /** `relevance` for the main search, `modified` for saved-search feeds. */
   sortMode?: SearchSortMode;
+  /** Lets visitors switch between relevance and recency at runtime. */
+  showSortToggle?: boolean;
   placeholder?: string;
   emptyHint?: string;
 }
 
 const {
   sortMode = "relevance",
+  showSortToggle = false,
   placeholder = "Vorlagen durchsuchen …",
   emptyHint = "Versuchen Sie es mit einem anderen Begriff oder weniger Wörtern.",
 } = Astro.props;
+
+const sortOptions: { mode: SearchSortMode; label: string }[] = [
+  { mode: "relevance", label: "Relevanz" },
+  { mode: "modified", label: "Neueste" },
+];
 const baseUrl = import.meta.env.BASE_URL;
 ---
 
@@ -56,8 +64,31 @@ const baseUrl = import.meta.env.BASE_URL;
     >
   </form>
 
-  <p class="search-status" role="status" aria-live="polite" data-search-status>
-  </p>
+  <div class="search-toolbar">
+    <p
+      class="search-status"
+      role="status"
+      aria-live="polite"
+      data-search-status
+    >
+    </p>
+    {
+      showSortToggle && (
+        <div class="search-sort" role="group" aria-label="Sortierung">
+          {sortOptions.map((option) => (
+            <button
+              type="button"
+              class="search-sort-option"
+              data-search-sort={option.mode}
+              aria-pressed={String(option.mode === sortMode)}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      )
+    }
+  </div>
 
   <ol class="search-results" data-search-results></ol>
 
@@ -127,9 +158,47 @@ const baseUrl = import.meta.env.BASE_URL;
     color: var(--color-text);
   }
 
-  /* --- Status / empty state --- */
+  /* --- Status / sort toggle / empty state --- */
+
+  .search-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .search-sort {
+    display: flex;
+    flex-shrink: 0;
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    background: #fff;
+    overflow: hidden;
+  }
+
+  .search-sort-option {
+    border: none;
+    background: transparent;
+    color: var(--color-text-muted);
+    padding: 5px 14px;
+    font-family: var(--font-family);
+    font-size: 0.84rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .search-sort-option:hover {
+    background: #f3f3f3;
+  }
+
+  .search-sort-option[aria-pressed="true"] {
+    background: var(--color-primary);
+    color: var(--color-text);
+  }
 
   .search-status {
+    flex: 1 1 200px;
     margin: 0;
     padding: 0 2px;
     min-height: 1.2em;

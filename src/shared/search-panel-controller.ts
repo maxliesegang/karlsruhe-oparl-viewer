@@ -35,6 +35,7 @@ interface SearchPanelElements {
   list: HTMLElement;
   loadTrigger: HTMLElement;
   empty: HTMLElement;
+  sortButtons: HTMLButtonElement[];
 }
 
 interface SearchPanelContext extends SearchPanelElements {
@@ -206,9 +207,10 @@ function buildSearchOptions(sortMode: SearchSortMode) {
 async function runSearch(
   context: SearchPanelContext,
   pagefindPromise: Promise<PagefindModule>,
+  { force = false }: { force?: boolean } = {},
 ): Promise<void> {
   const query = normalizeSavedSearchQuery(context.input.value);
-  if (query === context.query) return;
+  if (query === context.query && !force) return;
 
   context.query = query;
   const token = ++context.searchToken;
@@ -283,7 +285,33 @@ function resolveElements(root: HTMLElement): SearchPanelElements | null {
     list,
     loadTrigger,
     empty,
+    sortButtons: [
+      ...root.querySelectorAll<HTMLButtonElement>("[data-search-sort]"),
+    ],
   };
+}
+
+function initSortToggle(
+  context: SearchPanelContext,
+  pagefindPromise: Promise<PagefindModule>,
+): void {
+  for (const button of context.sortButtons) {
+    button.addEventListener("click", () => {
+      const sortMode: SearchSortMode =
+        button.dataset.searchSort === "modified" ? "modified" : "relevance";
+      if (sortMode === context.sortMode) return;
+
+      context.sortMode = sortMode;
+      for (const other of context.sortButtons) {
+        other.setAttribute(
+          "aria-pressed",
+          String(other.dataset.searchSort === sortMode),
+        );
+      }
+
+      void runSearch(context, pagefindPromise, { force: true });
+    });
+  }
 }
 
 export function initSearchPanel(): void {
@@ -334,6 +362,7 @@ export function initSearchPanel(): void {
     context.input.focus();
   });
 
+  initSortToggle(context, pagefindPromise);
   initLoadTriggerObserver(context);
 
   const initialQuery = getQueryFromUrl();
