@@ -64,6 +64,10 @@ const DATE_LONG_FORMATTER = new Intl.DateTimeFormat("de-DE", {
   month: "long",
   day: "numeric",
 });
+const MONTH_LONG_FORMATTER = new Intl.DateTimeFormat("de-DE", {
+  year: "numeric",
+  month: "long",
+});
 
 export function getDateTimestamp(date: string | undefined): number | undefined {
   if (!date) return undefined;
@@ -125,6 +129,12 @@ export function formatDateShort(date: string | undefined): string {
 export function formatDateLong(date: string | undefined): string {
   const timestamp = getDateTimestamp(date);
   return timestamp === undefined ? "" : DATE_LONG_FORMATTER.format(timestamp);
+}
+
+/** Formats a date string as "MMMM yyyy" in German locale. */
+export function formatMonthLong(date: string | undefined): string {
+  const timestamp = getDateTimestamp(date);
+  return timestamp === undefined ? "" : MONTH_LONG_FORMATTER.format(timestamp);
 }
 
 /** Converts a display string (e.g. Stadtteil name) into a URL-safe slug. */

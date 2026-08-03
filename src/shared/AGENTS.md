@@ -10,6 +10,7 @@ Data fetching, caching, filtering logic, utilities, and TypeScript types.
 | `data-source.ts`                | Reads the local data checkout (single files and shards)  |
 | `data.ts`                       | All build-time loaders, caches, and entity resolvers     |
 | `paper-filters.ts`              | Derives filter values and options from loaded papers     |
+| `paper-grouping.ts`             | Paper list ordering and date-group headings              |
 | `paper-status.ts`               | Consultation ordering and the paper's process status     |
 | `paper-filter-definitions.ts`   | Static filter field definitions                          |
 | `paper-list-controller.ts`      | Client-side paper-list filtering and incremental loading |
@@ -52,7 +53,15 @@ syndication-data/docs (data-source.ts, DATA_LOCAL_DIR)
   basename, and separates `primary` from `mentioned` matches. The viewer
   combines both for browsing and uses the published district registry so routes
   remain stable even when a district currently has no matches.
-- `getPaperYear()` handles the bulk-import date `BULK_MODIFIED_DATE = "2025-03-03"`
+- The bulk import flattened `modified` onto `BULK_MODIFIED_DATE = "2025-03-03"`
+  for ~87% of papers (12,228 of 14,004), so anything ordered or bucketed by
+  `modified` must fall back to the paper's own `date`. `getPaperYear()` does
+  this for the year filter; `paper-grouping.ts` does it for the list, which
+  sorts by `comparePapersForList()` and groups genuine modifications by day
+  ("Aktualisiert am …") and bulk-imported records by Vorlagendatum month
+  ("Vorlage vom …"). Both keys must stay consistent or headings and the year
+  filter disagree. The comparator orders groups by the last day they cover so
+  each group stays contiguous — the client filter shows one heading per key
 - Paper summaries (`summaries/papers/<numeric paper id>.json`) are LLM-generated
   by the scraper and backfilled over time, so most papers have none and every
   consumer must treat them as optional. `loadPaperSummaries()` keys the result

@@ -1,5 +1,5 @@
-import { BULK_MODIFIED_DATE } from "./constants";
 import { dataSource, FILE_READ_CONCURRENCY } from "./data-source";
+import { comparePapersForList, isBulkImportedPaper } from "./paper-grouping";
 import { mapConcurrent, memoizeAsync } from "./async-utils";
 import {
   compareDateStrings,
@@ -141,7 +141,7 @@ export const loadPapers = memoizeAsync(async (): Promise<Paper[]> => {
         paperDistrictData.byPaperKey.get(paper.reference) ??
         [],
     }))
-    .sort((a, b) => compareDateStrings(b.modified, a.modified));
+    .sort(comparePapersForList);
 
   return activePapers;
 });
@@ -281,7 +281,7 @@ export const getPaperCountsBySubmitter = memoizeAsync(
 // --- Derived data ---
 
 export function getPaperYear(paper: Paper): string {
-  if (paper.modified.startsWith(BULK_MODIFIED_DATE)) {
+  if (isBulkImportedPaper(paper) && paper.date) {
     return paper.date.slice(0, 4);
   }
   return paper.modified.slice(0, 4);
