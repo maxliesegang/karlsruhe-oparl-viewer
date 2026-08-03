@@ -48,7 +48,10 @@ syndication-data/docs (data-source.ts, DATA_LOCAL_DIR)
   back to `loadDirectory()`, erroring when neither layout yields records
 - Files are read concurrently (`FILE_READ_CONCURRENCY = 64`, exported by
   `data-source.ts` so every bulk read shares one budget)
-- District counts: `getStadtteilCounts()` is cached and reused by district pages
+- District data: `paper-stadtteile.json` is versioned, keyed by paper record
+  basename, and separates `primary` from `mentioned` matches. The viewer
+  combines both for browsing and uses the published district registry so routes
+  remain stable even when a district currently has no matches.
 - `getPaperYear()` handles the bulk-import date `BULK_MODIFIED_DATE = "2025-03-03"`
 - Paper summaries (`summaries/papers/<numeric paper id>.json`) are LLM-generated
   by the scraper and backfilled over time, so most papers have none and every

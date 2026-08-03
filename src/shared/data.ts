@@ -12,6 +12,8 @@ import type {
   Meeting,
   Organization,
   Paper,
+  PaperDistrictEntry,
+  PaperDistrictIndex,
   PaperSummary,
   PaperSubmitter,
   PaperSubmitterIndex,
@@ -27,6 +29,78 @@ const EMPTY_PAPER_SUBMITTER_INDEX: PaperSubmitterIndex = {
   factions: {},
   papers: {},
 };
+
+interface LoadedPaperDistrictData {
+  byPaperKey: Map<string, string[]>;
+  districts: string[];
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function normalizeUnknownStringList(value: unknown): string[] {
+  if (Array.isArray(value)) {
+    return normalizeStringList(
+      value.filter((entry): entry is string => typeof entry === "string"),
+    );
+  }
+  return normalizeStringList(typeof value === "string" ? value : null);
+}
+
+function normalizePaperDistrictEntry(value: unknown): string[] {
+  if (!isRecord(value)) return normalizeUnknownStringList(value);
+
+  const entry = value as Partial<PaperDistrictEntry>;
+  return normalizeStringList([
+    ...normalizeUnknownStringList(entry.primary),
+    ...normalizeUnknownStringList(entry.mentioned),
+  ]);
+}
+
+function isPaperDistrictIndex(value: unknown): value is PaperDistrictIndex {
+  if (!isRecord(value)) return false;
+
+  return (
+    Array.isArray(value.districts) &&
+    isRecord(value.papers) &&
+    Object.values(value.papers).every(
+      (entry) => isRecord(entry) || entry === undefined,
+    )
+  );
+}
+
+const loadPaperDistrictData = memoizeAsync(
+  async (): Promise<LoadedPaperDistrictData> => {
+    const rawData = await dataSource.loadRecord<unknown>("paper-stadtteile");
+
+    if (isPaperDistrictIndex(rawData)) {
+      const byPaperKey = new Map(
+        Object.entries(rawData.papers).map(([recordId, entry]) => [
+          recordId,
+          normalizePaperDistrictEntry(entry),
+        ]),
+      );
+      return {
+        byPaperKey,
+        districts: normalizeUnknownStringList(rawData.districts),
+      };
+    }
+
+    // Version 1 keyed the map by paper.reference. Keep it readable for local
+    // checkouts that have not regenerated the syndication artifact yet.
+    const byPaperKey = new Map(
+      Object.entries(rawData).map(([paperReference, rawValue]) => [
+        paperReference,
+        normalizePaperDistrictEntry(rawValue),
+      ]),
+    );
+    return {
+      byPaperKey,
+      districts: [...new Set([...byPaperKey.values()].flat())],
+    };
+  },
+);
 
 function buildPaperCountsByDistrict(papers: Paper[]): Map<string, number> {
   const paperCountsByDistrict = new Map<string, number>();
@@ -49,16 +123,19 @@ function buildPaperCountsByDistrict(papers: Paper[]): Map<string, number> {
 // --- Loaders ---
 
 export const loadPapers = memoizeAsync(async (): Promise<Paper[]> => {
-  const [papers, districtsByPaperReference] = await Promise.all([
+  const [papers, paperDistrictData] = await Promise.all([
     dataSource.loadArray<Paper>("papers"),
-    loadPaperDistricts(),
+    loadPaperDistrictData(),
   ]);
   const activePapers = papers
     .filter((paper) => !paper.deleted)
     .map((paper) => ({
       ...paper,
       routeReference: paper.reference.replaceAll("/", "-"),
-      stadtteile: districtsByPaperReference.get(paper.reference) ?? [],
+      stadtteile:
+        paperDistrictData.byPaperKey.get(getOParlEntityId(paper.id)) ??
+        paperDistrictData.byPaperKey.get(paper.reference) ??
+        [],
     }))
     .sort((a, b) => compareDateStrings(b.modified, a.modified));
 
@@ -130,16 +207,8 @@ export const loadFileContents = memoizeAsync(
 
 export const loadPaperDistricts = memoizeAsync(
   async (): Promise<Map<string, string[]>> => {
-    const districtsByReference = await dataSource.loadRecord<
-      string[] | string | null
-    >("paper-stadtteile");
-
-    return new Map(
-      Object.entries(districtsByReference).map(([reference, rawValue]) => [
-        reference,
-        normalizeStringList(rawValue),
-      ]),
-    );
+    const { byPaperKey } = await loadPaperDistrictData();
+    return byPaperKey;
   },
 );
 
@@ -226,8 +295,16 @@ export const getUpcomingMeetings = memoizeAsync(
 
 export const getAvailableDistricts = memoizeAsync(
   async (): Promise<string[]> => {
-    const paperCountsByDistrict = await getPaperCountsByDistrict();
-    return [...paperCountsByDistrict.keys()].sort();
+    const [paperDistrictData, paperCountsByDistrict] = await Promise.all([
+      loadPaperDistrictData(),
+      getPaperCountsByDistrict(),
+    ]);
+    return [
+      ...new Set([
+        ...paperDistrictData.districts,
+        ...paperCountsByDistrict.keys(),
+      ]),
+    ].sort();
   },
 );
 

@@ -24,7 +24,12 @@ Optional per-record documents (currently `summaries/papers/<paper id>.json`) are
 discovered by enumerating their directory; a missing directory or file is not an
 error, since summaries are backfilled over time.
 
-`paper-stadtteile.json` remains a single UTF-8 JSON object.
+`paper-stadtteile.json` remains a single UTF-8 JSON object with the shape
+`{ version, districts, papers }`. `districts` is the complete district registry;
+`papers` is keyed by the paper record basename (the same final id segment used
+by `papers/<id>.json`) and each value may contain `primary` and `mentioned`
+string arrays. The viewer combines both arrays for its district browsing pages.
+Older reference-keyed objects are still accepted for local compatibility.
 
 For extracted PDF text, `file-contents.json` is the index. For every entry whose
 `hasExtractedText` is true, the loader takes the final non-empty path segment of
