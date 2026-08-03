@@ -5,6 +5,8 @@ export interface PaperFilterValues {
   consultationResult: string;
   districtLabel: string;
   districts: string;
+  submitterLabel: string;
+  submitters: string;
 }
 
 export interface PaperFilterOptions {
@@ -14,4 +16,5 @@ export interface PaperFilterOptions {
   roles: string[];
   results: string[];
   districts: string[];
+  submitters: Array<{ value: string; label: string }>;
 }

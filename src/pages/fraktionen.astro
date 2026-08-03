@@ -1,0 +1,84 @@
+---
+import Layout from "../layouts/Layout.astro";
+import PageContainer from "../components/PageContainer.astro";
+import {
+  getAvailablePaperSubmitters,
+  getPaperCountsBySubmitter,
+} from "../shared/data";
+
+const submitters = await getAvailablePaperSubmitters();
+const paperCountsBySubmitter = await getPaperCountsBySubmitter();
+const baseUrl = import.meta.env.BASE_URL;
+---
+
+<Layout title="Fraktionen" pagefindIgnore navigationSection="submitters">
+  <PageContainer class="submitters-page">
+    <h1 class="page-header">Vorlagen nach antragstellender Fraktion</h1>
+    <p class="subtitle">
+      {submitters.length} Fraktionen mit eingereichten Vorlagen
+    </p>
+    <div class="submitters-grid">
+      {
+        submitters.map((submitter) => (
+          <a href={`${baseUrl}fraktion/${submitter.id}`} class="submitter-card">
+            <span class="submitter-name">{submitter.name}</span>
+            <span class="submitter-count">
+              {paperCountsBySubmitter.get(submitter.id) ?? 0} Vorlagen
+            </span>
+          </a>
+        ))
+      }
+    </div>
+  </PageContainer>
+</Layout>
+
+<style>
+  .subtitle {
+    text-align: center;
+    color: var(--color-text-muted);
+    margin-bottom: 14px;
+  }
+
+  .submitters-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+  }
+
+  .submitter-card {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 18px 20px;
+    background: #fff;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    text-decoration: none;
+    color: inherit;
+    transition:
+      box-shadow 0.2s,
+      transform 0.2s;
+  }
+
+  .submitter-card:hover {
+    box-shadow: var(--shadow-card);
+    transform: translateY(-2px);
+  }
+
+  .submitter-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--color-text);
+  }
+
+  .submitter-count {
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+  }
+
+  @media screen and (max-width: 768px) {
+    .submitters-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

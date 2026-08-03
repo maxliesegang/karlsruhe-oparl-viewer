@@ -4,27 +4,27 @@ Reusable UI components. Prefer extending existing components over creating new o
 
 ## Component Catalog
 
-| Component                  | Role                                                    |
-| -------------------------- | ------------------------------------------------------- |
-| `SiteNavigation.astro`     | Top nav — desktop/mobile + overlay                      |
-| `SiteFooter.astro`         | Site context and external data/source links             |
-| `Breadcrumbs.astro`        | Canonical hierarchy on detail and scoped list pages     |
-| `PageContainer.astro`      | Shared max-width wrapper (`width="wide" \| "narrow"`)   |
-| `PaperListPage.astro`      | Reusable list-page skeleton (title + intro slot + list) |
-| `PaperList.astro`          | Paper cards, summary text, filter panel mount point     |
-| `PaperFilters.astro`       | Filter controls panel                                   |
-| `FilterSelect.astro`       | Reusable dropdown for a single filter                   |
-| `MeetingFilters.astro`     | Meeting-specific filter controls and status             |
-| `SearchPanel.astro`        | Pagefind search box + rich result cards (custom UI)     |
-| `LegacyRedirectPage.astro` | Noindex redirect shell for legacy routes                |
-| `PaperHeader.astro`        | Detail-page title block: reference, type, status, date  |
-| `PaperFacts.astro`         | "Eckdaten" sidebar card — modified, bodies, districts   |
-| `PaperSummary.astro`       | LLM summary + key points, rendered only when one exists |
-| `AuxiliaryFiles.astro`     | File attachments — detail page                          |
-| `StadtteilHint.astro`      | District hint — detail page                             |
-| `MeetingAgenda.astro`      | Public agenda with links to matching papers             |
-| `PaperTimeline.astro`      | Paper lifecycle, consultations, and decisions           |
-| `RelatedPapers.astro`      | Parent, amendment, and follow-up paper links            |
+| Component                  | Role                                                              |
+| -------------------------- | ----------------------------------------------------------------- |
+| `SiteNavigation.astro`     | Top nav — desktop/mobile + overlay                                |
+| `SiteFooter.astro`         | Site context and external data/source links                       |
+| `Breadcrumbs.astro`        | Canonical hierarchy on detail and scoped list pages               |
+| `PageContainer.astro`      | Shared max-width wrapper (`width="wide" \| "narrow"`)             |
+| `PaperListPage.astro`      | Reusable list-page skeleton (title + intro slot + list)           |
+| `PaperList.astro`          | Paper cards, summary text, filter panel mount point               |
+| `PaperFilters.astro`       | Filter controls panel                                             |
+| `FilterSelect.astro`       | Reusable dropdown for a single filter                             |
+| `MeetingFilters.astro`     | Meeting-specific filter controls and status                       |
+| `SearchPanel.astro`        | Pagefind search box + rich result cards (custom UI)               |
+| `LegacyRedirectPage.astro` | Noindex redirect shell for legacy routes                          |
+| `PaperHeader.astro`        | Detail-page title block: reference, type, status, date            |
+| `PaperFacts.astro`         | "Eckdaten" sidebar card — modified, bodies, submitters, districts |
+| `PaperSummary.astro`       | LLM summary + key points, rendered only when one exists           |
+| `AuxiliaryFiles.astro`     | File attachments — detail page                                    |
+| `StadtteilHint.astro`      | District hint — detail page                                       |
+| `MeetingAgenda.astro`      | Public agenda with links to matching papers                       |
+| `PaperTimeline.astro`      | Paper lifecycle, consultations, and decisions                     |
+| `RelatedPapers.astro`      | Parent, amendment, and follow-up paper links                      |
 
 ## Reuse Rules
 
@@ -63,7 +63,7 @@ control. The remaining meeting filters live in the collapsible advanced panel.
 - Result cards read these `data-pagefind-meta` names. Each lives on the element
   that actually displays the value, so the detail page never shows it twice:
   `PaperHeader` sets `paper-reference` · `paper-type` · `paper-date`;
-  `PaperFacts` sets `paper-organizations` · `paper-districts` ·
+  `PaperFacts` sets `paper-organizations` · `paper-submitters` · `paper-districts` ·
   `paper-modified` · `paper-created`
   (`paper-created` uses the literal `name:value` form so the raw timestamp
   stays out of search excerpts)

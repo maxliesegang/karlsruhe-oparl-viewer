@@ -7,6 +7,7 @@ export const PAPER_FILTER_IDS = {
   consultationRole: "filter-role",
   consultationResult: "filter-result",
   district: "filter-stadtteil",
+  submitter: "filter-submitter",
 } as const;
 
 export type PaperFilterKey = keyof typeof PAPER_FILTER_IDS;
@@ -62,6 +63,14 @@ export const PAPER_FILTER_FIELDS: readonly PaperFilterFieldDefinition[] = [
     label: "Erwähnter Stadtteil",
     optionsKey: "districts",
     dataAttribute: "districts",
+    multipleValues: true,
+  },
+  {
+    key: "submitter",
+    id: PAPER_FILTER_IDS.submitter,
+    label: "Antragstellende Fraktion",
+    optionsKey: "submitters",
+    dataAttribute: "submitters",
     multipleValues: true,
   },
 ];

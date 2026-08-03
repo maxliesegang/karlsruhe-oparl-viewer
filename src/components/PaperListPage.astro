@@ -10,11 +10,11 @@ import PaperList from "./PaperList.astro";
 interface Props {
   title: string;
   papers: Paper[];
-  filterValuesByReference?: Record<string, PaperFilterValues>;
+  filterValuesById?: Record<string, PaperFilterValues>;
   filterOptions?: PaperFilterOptions;
 }
 
-const { title, papers, filterValuesByReference, filterOptions } = Astro.props;
+const { title, papers, filterValuesById, filterOptions } = Astro.props;
 ---
 
 <PageContainer>
@@ -23,7 +23,7 @@ const { title, papers, filterValuesByReference, filterOptions } = Astro.props;
   <div data-pagefind-ignore>
     <PaperList
       papers={papers}
-      filterValuesByReference={filterValuesByReference}
+      filterValuesById={filterValuesById}
       filterOptions={filterOptions}
     />
   </div>

@@ -73,10 +73,15 @@ function buildMetaChips(meta: Record<string, string | undefined>): string[] {
   const paperType = getMeaningfulValue(meta["paper-type"]);
   const date = formatDateShort(getMeaningfulValue(meta["paper-date"]));
   const organizations = getMeaningfulValue(meta["paper-organizations"]);
+  const submitters = getMeaningfulValue(meta["paper-submitters"]);
 
-  return [reference, paperType, date || undefined, organizations].filter(
-    (value): value is string => Boolean(value),
-  );
+  return [
+    reference,
+    paperType,
+    date || undefined,
+    organizations,
+    submitters,
+  ].filter((value): value is string => Boolean(value));
 }
 
 function buildResultCard(

@@ -23,7 +23,7 @@ const districtPapers = allPapers.filter((paper) =>
   paper.stadtteile.includes(districtName),
 );
 
-const { papers, valuesByReference, options } =
+const { papers, valuesById, options } =
   await loadPaperFilterModel(districtPapers);
 ---
 
@@ -31,7 +31,7 @@ const { papers, valuesByReference, options } =
   <PaperListPage
     title={districtName}
     papers={papers}
-    filterValuesByReference={valuesByReference}
+    filterValuesById={valuesById}
     filterOptions={options}
   >
     <div slot="intro">

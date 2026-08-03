@@ -131,9 +131,22 @@ async function loadRecord<T>(
   );
 }
 
+/** An optional JSON object, used for data artifacts added after older checkouts. */
+async function loadOptionalObject<T>(name: string): Promise<T | undefined> {
+  const path = resolve(DATA_ROOT, `${name}${JSON_SUFFIX}`);
+  const contents = await readOptionalFile(path);
+  return contents === undefined ? undefined : parseObject<T>(contents, path);
+}
+
 /** Extracted PDF text; missing files are expected and tolerated. */
 async function loadText(fileId: string): Promise<string | undefined> {
   return readOptionalFile(resolve(DATA_ROOT, "file-contents", `${fileId}.txt`));
 }
 
-export const dataSource = { loadArray, loadDirectory, loadRecord, loadText };
+export const dataSource = {
+  loadArray,
+  loadDirectory,
+  loadRecord,
+  loadOptionalObject,
+  loadText,
+};

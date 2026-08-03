@@ -3,14 +3,14 @@ import Layout from "../layouts/Layout.astro";
 import PaperListPage from "../components/PaperListPage.astro";
 import { loadPaperFilterModel } from "../shared/paper-filters";
 
-const { papers, valuesByReference, options } = await loadPaperFilterModel();
+const { papers, valuesById, options } = await loadPaperFilterModel();
 ---
 
 <Layout title="Vorlagen" navigationSection="papers">
   <PaperListPage
     title="Vorlagen"
     papers={papers}
-    filterValuesByReference={valuesByReference}
+    filterValuesById={valuesById}
     filterOptions={options}
   />
 </Layout>

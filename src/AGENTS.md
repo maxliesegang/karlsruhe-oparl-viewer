@@ -20,6 +20,8 @@ Route entrypoints in `src/pages/`. Each file maps to a URL path.
 | `pages/vorlagen/[reference].astro` | `/vorlagen/[reference]` | Paper detail page                         |
 | `pages/stadtteile.astro`           | `/stadtteile`           | District overview                         |
 | `pages/stadtteil/[name].astro`     | `/stadtteil/[name]`     | Papers for one district                   |
+| `pages/fraktionen.astro`           | `/fraktionen`           | Submitter faction overview                |
+| `pages/fraktion/[name].astro`      | `/fraktion/[name]`      | Papers by submitter faction               |
 | `pages/vorlage/[reference].astro`  | `/vorlage/[reference]`  | Legacy redirect → `/vorlagen/[reference]` |
 | `pages/gespeicherte-suchen.astro`  | `/gespeicherte-suchen`  | Saved searches                            |
 | `pages/sitzungen.astro`            | `/sitzungen`            | Upcoming meetings                         |

@@ -4,14 +4,16 @@ import type {
   Paper,
   PaperFilterValues,
   PaperFilterOptions,
+  PaperSubmitterIndex,
 } from "./types";
 import {
   getPaperYear,
   loadMeetings,
   loadOrganizations,
   loadPapers,
+  loadPaperSubmitters,
 } from "./data";
-import { normalizeStringList } from "./utils";
+import { getOParlEntityId, normalizeStringList } from "./utils";
 
 export const FILTER_NO_VALUE = "Keine Angabe";
 export const FILTER_NO_VALUES = "Keine Angaben";
@@ -109,11 +111,16 @@ export function buildPaperFilterModel(
   papers: Paper[],
   organizations: Map<string, Organization>,
   meetings: Map<string, Meeting>,
+  submitterIndex: PaperSubmitterIndex = {
+    version: 3,
+    factions: {},
+    papers: {},
+  },
 ): {
-  valuesByReference: Record<string, PaperFilterValues>;
+  valuesById: Record<string, PaperFilterValues>;
   options: PaperFilterOptions;
 } {
-  const valuesByReference: Record<string, PaperFilterValues> = {};
+  const valuesById: Record<string, PaperFilterValues> = {};
   const paperTypeSet = new Set<string>();
   const yearSet = new Set<string>();
   const organizationSet = new Set<string>();
@@ -129,14 +136,26 @@ export function buildPaperFilterModel(
       getLatestConsultationValues(paper, agendaItemResultIndex);
     const { districtNames, districtLabel, districts } =
       getDistrictFilterValues(paper);
+    const recordId = getOParlEntityId(paper.id);
+    const submitterIds = recordId
+      ? (submitterIndex.papers[recordId] ?? [])
+      : [];
+    const submitterNames = submitterIds
+      .map((id) => submitterIndex.factions[id])
+      .filter((name): name is string => Boolean(name));
 
-    valuesByReference[paper.reference] = {
+    valuesById[paper.id] = {
       year,
       organization,
       consultationRole,
       consultationResult,
       districtLabel,
       districts,
+      submitterLabel:
+        submitterNames.length > 0
+          ? submitterNames.join(", ")
+          : FILTER_NO_VALUES,
+      submitters: submitterIds.join("|"),
     };
 
     yearSet.add(year);
@@ -156,9 +175,12 @@ export function buildPaperFilterModel(
     roles: [...roleSet].sort(),
     results: [...resultSet].sort(),
     districts: [...districtSet].sort(),
+    submitters: Object.entries(submitterIndex.factions)
+      .map(([value, label]) => ({ value, label }))
+      .sort((a, b) => a.label.localeCompare(b.label)),
   };
 
-  return { valuesByReference, options };
+  return { valuesById, options };
 }
 
 /**
@@ -171,14 +193,21 @@ export async function loadPaperFilterModel(papers?: Paper[]): Promise<
     papers: Paper[];
   } & ReturnType<typeof buildPaperFilterModel>
 > {
-  const [resolvedPapers, organizations, meetings] = await Promise.all([
-    papers ?? loadPapers(),
-    loadOrganizations(),
-    loadMeetings(),
-  ]);
+  const [resolvedPapers, organizations, meetings, submitterIndex] =
+    await Promise.all([
+      papers ?? loadPapers(),
+      loadOrganizations(),
+      loadMeetings(),
+      loadPaperSubmitters(),
+    ]);
 
   return {
     papers: resolvedPapers,
-    ...buildPaperFilterModel(resolvedPapers, organizations, meetings),
+    ...buildPaperFilterModel(
+      resolvedPapers,
+      organizations,
+      meetings,
+      submitterIndex,
+    ),
   };
 }

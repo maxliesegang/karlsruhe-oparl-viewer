@@ -16,6 +16,10 @@ export type { Paper } from "./paper.ts";
 export type { PaperFilterValues, PaperFilterOptions } from "./paper-filters.ts";
 export type { PaperSummary } from "./paper-summary.ts";
 export type {
+  PaperSubmitter,
+  PaperSubmitterIndex,
+} from "./paper-submitters.ts";
+export type {
   ResolvedAgendaItem,
   ResolvedConsultation,
 } from "./resolved-consultation.ts";

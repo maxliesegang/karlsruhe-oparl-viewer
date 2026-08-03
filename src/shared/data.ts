@@ -4,6 +4,7 @@ import { mapConcurrent, memoizeAsync } from "./async-utils";
 import {
   compareDateStrings,
   getEffectiveMeetingEnd,
+  getOParlEntityId,
   normalizeStringList,
 } from "./utils";
 import type {
@@ -12,10 +13,20 @@ import type {
   Organization,
   Paper,
   PaperSummary,
+  PaperSubmitter,
+  PaperSubmitterIndex,
   ResolvedAgendaItem,
   ResolvedConsultation,
   ResolvedAuxiliaryFile,
 } from "./types";
+
+const PAPER_SUBMITTER_INDEX_VERSION = 3;
+
+const EMPTY_PAPER_SUBMITTER_INDEX: PaperSubmitterIndex = {
+  version: PAPER_SUBMITTER_INDEX_VERSION,
+  factions: {},
+  papers: {},
+};
 
 function buildPaperCountsByDistrict(papers: Paper[]): Map<string, number> {
   const paperCountsByDistrict = new Map<string, number>();
@@ -132,6 +143,56 @@ export const loadPaperDistricts = memoizeAsync(
   },
 );
 
+export const loadPaperSubmitters = memoizeAsync(
+  async (): Promise<PaperSubmitterIndex> => {
+    const index =
+      await dataSource.loadOptionalObject<PaperSubmitterIndex>(
+        "paper-submitters",
+      );
+    if (index === undefined) return EMPTY_PAPER_SUBMITTER_INDEX;
+
+    if (index.version !== PAPER_SUBMITTER_INDEX_VERSION) {
+      throw new Error(
+        `Unsupported paper submitter index version: ${String(index.version)} (expected ${PAPER_SUBMITTER_INDEX_VERSION})`,
+      );
+    }
+
+    return index;
+  },
+);
+
+export const getAvailablePaperSubmitters = memoizeAsync(
+  async (): Promise<PaperSubmitter[]> => {
+    const index = await loadPaperSubmitters();
+    return Object.entries(index.factions)
+      .map(([id, name]) => ({ id, name }))
+      .sort((left, right) => left.name.localeCompare(right.name));
+  },
+);
+
+export const getPaperCountsBySubmitter = memoizeAsync(
+  async (): Promise<Map<string, number>> => {
+    const [papers, index] = await Promise.all([
+      loadPapers(),
+      loadPaperSubmitters(),
+    ]);
+    const counts = new Map(
+      Object.keys(index.factions).map((factionId) => [factionId, 0]),
+    );
+
+    for (const paper of papers) {
+      const recordId = getOParlEntityId(paper.id);
+      for (const factionId of index.papers[recordId] ?? []) {
+        if (counts.has(factionId)) {
+          counts.set(factionId, (counts.get(factionId) ?? 0) + 1);
+        }
+      }
+    }
+
+    return counts;
+  },
+);
+
 // --- Derived data ---
 
 export function getPaperYear(paper: Paper): string {
@@ -193,6 +254,16 @@ export async function resolveOrganizations(
 ): Promise<Organization[]> {
   const organizationsById = await loadOrganizations();
   return resolveEntityIds(paper.underDirectionOf, organizationsById);
+}
+
+export async function resolvePaperSubmitters(paper: Paper): Promise<string[]> {
+  const index = await loadPaperSubmitters();
+  const recordId = getOParlEntityId(paper.id);
+  if (!recordId) return [];
+
+  return (index.papers[recordId] ?? [])
+    .map((factionId) => index.factions[factionId])
+    .filter((name): name is string => Boolean(name));
 }
 
 export async function resolveMeetingOrganizations(

@@ -9,6 +9,7 @@ import RelatedPapers from "../../components/RelatedPapers.astro";
 import AuxiliaryFiles from "../../components/AuxiliaryFiles.astro";
 import {
   resolveOrganizations,
+  resolvePaperSubmitters,
   resolveConsultations,
   resolveAuxiliaryFiles,
   resolveRelatedPapers,
@@ -28,14 +29,21 @@ interface Props {
 
 const { paper } = Astro.props;
 
-const [organizations, consultations, auxiliaryFiles, relatedPapers, summary] =
-  await Promise.all([
-    resolveOrganizations(paper),
-    resolveConsultations(paper),
-    resolveAuxiliaryFiles(paper),
-    resolveRelatedPapers(paper),
-    resolvePaperSummary(paper),
-  ]);
+const [
+  organizations,
+  submitters,
+  consultations,
+  auxiliaryFiles,
+  relatedPapers,
+  summary,
+] = await Promise.all([
+  resolveOrganizations(paper),
+  resolvePaperSubmitters(paper),
+  resolveConsultations(paper),
+  resolveAuxiliaryFiles(paper),
+  resolveRelatedPapers(paper),
+  resolvePaperSummary(paper),
+]);
 
 const status = derivePaperStatus(consultations);
 ---
@@ -57,7 +65,11 @@ const status = derivePaperStatus(consultations);
       </div>
 
       <aside class="detail-side" aria-label="Weitere Angaben zur Vorlage">
-        <PaperFacts paper={paper} organizations={organizations} />
+        <PaperFacts
+          paper={paper}
+          organizations={organizations}
+          submitters={submitters}
+        />
         <RelatedPapers {...relatedPapers} />
       </aside>
     </div>

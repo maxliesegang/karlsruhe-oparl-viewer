@@ -1,5 +1,5 @@
 export type NavigationSection =
-  "search" | "papers" | "meetings" | "districts" | "saved";
+  "search" | "papers" | "meetings" | "districts" | "submitters" | "saved";
 
 export interface NavigationItem {
   section: NavigationSection;
@@ -22,6 +22,11 @@ export const primaryNavigation: NavigationItem[] = [
     section: "districts",
     label: "Stadtteile",
     path: "stadtteile",
+  },
+  {
+    section: "submitters",
+    label: "Fraktionen",
+    path: "fraktionen",
   },
 ];
 

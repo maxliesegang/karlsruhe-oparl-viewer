@@ -5,9 +5,10 @@ import { formatDateShort } from "../shared/utils";
 interface Props {
   paper: Paper;
   organizations: Organization[];
+  submitters: string[];
 }
 
-const { paper, organizations } = Astro.props;
+const { paper, organizations, submitters } = Astro.props;
 
 /** Search result cards read these as Pagefind meta — keep the names in sync
  * with `search-panel-controller.ts`. Reference, type, and date carry their meta
@@ -19,6 +20,7 @@ const organizationNames = organizations
   .filter(Boolean)
   .join(", ");
 const districtNames = paper.stadtteile.join(", ");
+const submitterNames = submitters.join(", ");
 ---
 
 <section class="section-card" aria-labelledby="paper-facts">
@@ -43,6 +45,14 @@ const districtNames = paper.stadtteile.join(", ");
       class:list={[!organizationNames && "fact-empty"]}
     >
       {organizationNames || "Keine Angaben"}
+    </dd>
+
+    <dt>Antragstellende Fraktion{submitters.length === 1 ? "" : "en"}</dt>
+    <dd
+      data-pagefind-meta={submitterNames ? "paper-submitters" : undefined}
+      class:list={[!submitterNames && "fact-empty"]}
+    >
+      {submitterNames || "Keine Angaben"}
     </dd>
 
     <dt>Erwähnte Stadtteile</dt>

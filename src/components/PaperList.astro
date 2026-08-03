@@ -11,13 +11,13 @@ import PaperFilters from "./PaperFilters.astro";
 
 interface Props {
   papers: Paper[];
-  filterValuesByReference?: Record<string, PaperFilterValues>;
+  filterValuesById?: Record<string, PaperFilterValues>;
   filterOptions?: PaperFilterOptions;
 }
 
-const { papers = [], filterValuesByReference, filterOptions } = Astro.props;
+const { papers = [], filterValuesById, filterOptions } = Astro.props;
 const baseUrl = import.meta.env.BASE_URL;
-const hasFilters = Boolean(filterOptions && filterValuesByReference);
+const hasFilters = Boolean(filterOptions && filterValuesById);
 const META_EMPTY_VALUES = new Set([FILTER_NO_VALUE, FILTER_NO_VALUES]);
 
 /** Extract date part (YYYY-MM-DD) from an ISO datetime string. */
@@ -42,6 +42,7 @@ function buildPaperMetaText(
     filterValues?.consultationResult,
   );
   const districtLabel = getMeaningfulMetaValue(filterValues?.districtLabel);
+  const submitterLabel = getMeaningfulMetaValue(filterValues?.submitterLabel);
 
   return [
     paper.reference,
@@ -49,6 +50,7 @@ function buildPaperMetaText(
     filterValues?.organization,
     filterValues?.consultationRole,
     consultationResult,
+    submitterLabel ? `Antragstellende Fraktion: ${submitterLabel}` : undefined,
     districtLabel ? `Erwähnte Stadtteile: ${districtLabel}` : undefined,
   ]
     .filter(Boolean)
@@ -64,7 +66,7 @@ function buildPaperMetaText(
       )}
       <ul class="paper-list">
         {papers.map((paper, i) => {
-          const filterValues = filterValuesByReference?.[paper.reference];
+          const filterValues = filterValuesById?.[paper.id];
           const dateKey = toDateKey(paper.modified);
           const prevDateKey = i > 0 ? toDateKey(papers[i - 1].modified) : null;
           const showHeader = dateKey !== prevDateKey;
@@ -96,6 +98,7 @@ function buildPaperMetaText(
                   data-role={filterValues?.consultationRole ?? ""}
                   data-result={filterValues?.consultationResult ?? ""}
                   data-districts={filterValues?.districts ?? ""}
+                  data-submitters={filterValues?.submitters ?? ""}
                 >
                   <span class="paper-title">{paper.name}</span>
                   <span class="paper-meta" title={metaText}>
