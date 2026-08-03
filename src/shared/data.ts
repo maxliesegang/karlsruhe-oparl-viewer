@@ -24,6 +24,10 @@ import type {
 
 const PAPER_SUBMITTER_INDEX_VERSION = 3;
 
+const SUBMITTER_NAME_OVERRIDES: Record<string, string> = {
+  afd: "-",
+};
+
 const EMPTY_PAPER_SUBMITTER_INDEX: PaperSubmitterIndex = {
   version: PAPER_SUBMITTER_INDEX_VERSION,
   factions: {},
@@ -226,14 +230,26 @@ export const loadPaperSubmitters = memoizeAsync(
       );
     }
 
-    return index;
+    const factions: typeof index.factions = {};
+    for (const [id, name] of Object.entries(index.factions)) {
+      factions[id] = SUBMITTER_NAME_OVERRIDES[id] ?? name;
+    }
+
+    return { ...index, factions };
   },
 );
+
+const HIDDEN_SUBMITTER_IDS = new Set(["afd"]);
+
+function isHiddenSubmitterId(id: string): boolean {
+  return HIDDEN_SUBMITTER_IDS.has(id);
+}
 
 export const getAvailablePaperSubmitters = memoizeAsync(
   async (): Promise<PaperSubmitter[]> => {
     const index = await loadPaperSubmitters();
     return Object.entries(index.factions)
+      .filter(([id]) => !isHiddenSubmitterId(id))
       .map(([id, name]) => ({ id, name }))
       .sort((left, right) => left.name.localeCompare(right.name));
   },
