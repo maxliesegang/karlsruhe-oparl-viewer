@@ -28,3 +28,7 @@ export type {
   ResolvedConsultation,
 } from "./resolved-consultation.ts";
 export type { ResolvedAuxiliaryFile } from "./resolved-auxiliary-file.ts";
+export type {
+  SyndicationFeed,
+  SyndicationFeedType,
+} from "./syndication-feed.ts";

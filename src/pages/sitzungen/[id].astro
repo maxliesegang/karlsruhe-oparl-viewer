@@ -3,7 +3,9 @@ import Layout from "../../layouts/Layout.astro";
 import PageContainer from "../../components/PageContainer.astro";
 import Breadcrumbs from "../../components/Breadcrumbs.astro";
 import MeetingAgenda from "../../components/MeetingAgenda.astro";
+import MeetingActions from "../../components/MeetingActions.astro";
 import {
+  loadSyndicationFeedCatalog,
   resolveMeetingAgenda,
   resolveMeetingOrganizations,
 } from "../../shared/data";
@@ -11,6 +13,7 @@ import { getMeetingStaticPaths } from "../../shared/meeting-paths";
 import {
   formatDateTime,
   hasPublishedMeetingEnd,
+  getOParlEntityId,
   normalizeOParlUrl,
 } from "../../shared/utils";
 import type { AuxiliaryFile, Meeting } from "../../shared/types";
@@ -24,11 +27,17 @@ interface Props {
 }
 
 const { meeting } = Astro.props;
-const [agenda, organizations] = await Promise.all([
+const [agenda, organizations, feedCatalog] = await Promise.all([
   resolveMeetingAgenda(meeting),
   resolveMeetingOrganizations(meeting),
+  loadSyndicationFeedCatalog(),
 ]);
 const baseUrl = import.meta.env.BASE_URL;
+const meetingId = getOParlEntityId(meeting.id);
+const committeeFeeds = organizations.flatMap((organization) => {
+  const feed = feedCatalog.committeeFeedByOrganizationId.get(organization.id);
+  return feed ? [{ name: organization.name, url: feed.url }] : [];
+});
 const hasPublishedEnd = hasPublishedMeetingEnd(meeting.start, meeting.end);
 const rawDocuments: { label: string; file: AuxiliaryFile }[] = [
   meeting.invitation && { label: "Einladung", file: meeting.invitation },
@@ -106,6 +115,7 @@ const documents = rawDocuments.filter(({ file }) => {
           </dd>
         </div>
       </dl>
+      <MeetingActions meetingId={meetingId} committeeFeeds={committeeFeeds} />
     </section>
 
     <MeetingAgenda items={agenda} />

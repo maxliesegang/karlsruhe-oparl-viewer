@@ -2,6 +2,10 @@ import { dataSource, FILE_READ_CONCURRENCY } from "./data-source";
 import { comparePapersForList, isBulkImportedPaper } from "./paper-grouping";
 import { mapConcurrent, memoizeAsync } from "./async-utils";
 import {
+  buildSyndicationFeedCatalog,
+  type SyndicationFeedCatalog,
+} from "./syndication-feeds";
+import {
   compareDateStrings,
   getEffectiveMeetingEnd,
   getOParlEntityId,
@@ -20,6 +24,7 @@ import type {
   ResolvedAgendaItem,
   ResolvedConsultation,
   ResolvedAuxiliaryFile,
+  SyndicationFeed,
 } from "./types";
 
 const PAPER_SUBMITTER_INDEX_VERSION = 3;
@@ -164,6 +169,13 @@ export const loadOrganizations = memoizeAsync(
     return new Map(
       organizations.map((organization) => [organization.id, organization]),
     );
+  },
+);
+
+export const loadSyndicationFeedCatalog = memoizeAsync(
+  async (): Promise<SyndicationFeedCatalog> => {
+    const feeds = await dataSource.loadArray<SyndicationFeed>("feed-index");
+    return buildSyndicationFeedCatalog(feeds);
   },
 );
 

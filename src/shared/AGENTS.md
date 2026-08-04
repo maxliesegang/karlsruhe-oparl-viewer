@@ -19,6 +19,8 @@ Data fetching, caching, filtering logic, utilities, and TypeScript types.
 | `meeting-filter-controller.ts`  | Client-side meeting filtering and URL synchronization    |
 | `paper-detail-paths.ts`         | Maps paper references to URL slugs                       |
 | `meeting-paths.ts`              | Maps OParl meeting IDs to meeting detail routes          |
+| `meeting-calendar.ts`           | Serializes one meeting as an RFC 5545 calendar event     |
+| `syndication-feeds.ts`          | Feed catalog indexing, labels, and shared feed URL       |
 | `utils.ts`                      | URL, date, and slug helpers                              |
 | `pagefind-client.ts`            | Pagefind module loading, search types, freshness stats   |
 | `pagefind-config.ts`            | Search panel selectors, sort presets, build-time flag    |
@@ -69,6 +71,8 @@ syndication-data/docs (data-source.ts, DATA_LOCAL_DIR)
   repeating across paper namespaces (`vo/1` vs `ag/1`)
 - Stable routing key: `paper.routeReference = paper.reference.replaceAll("/", "-")`
   — this mapping must remain stable or all detail page URLs break
+- Feed metadata comes from `feed-index.json`; `loadSyndicationFeedCatalog()`
+  indexes committee and district feeds for contextual links and `/feeds`
 
 ## Adding New Data Fields
 

@@ -16,6 +16,8 @@ It builds from an OParl-based JSON mirror and publishes to GitHub Pages.
 - Open paper detail pages with key metadata, consultations, and auxiliary files.
 - Follow paper status, decisions, and related-paper chains.
 - Browse upcoming meetings and public agendas.
+- Subscribe to updates by committee or district through feeds.
+- Download an individual meeting as an `.ics` calendar event.
 - See new and updated results for saved searches since they were last opened.
 
 ## Stack
@@ -90,6 +92,8 @@ npm run format
 - `/vorlagen/[reference]` -> paper details
 - `/sitzungen` -> upcoming meetings and public agenda status
 - `/sitzungen/[id]` -> meeting details and public agenda
+- `/sitzungen/kalender/[id].ics` -> single-meeting calendar download
+- `/feeds` -> update feeds by committee and district
 - `/stadtteile` -> district overview
 - `/stadtteil/[name]` -> papers for one district
 - `/vorlage/[reference]` -> legacy redirect to `/vorlagen/[reference]`

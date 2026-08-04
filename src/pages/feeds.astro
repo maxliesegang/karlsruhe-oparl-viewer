@@ -1,0 +1,120 @@
+---
+import Layout from "../layouts/Layout.astro";
+import PageContainer from "../components/PageContainer.astro";
+import FeedSubscriptionLink from "../components/FeedSubscriptionLink.astro";
+import { loadSyndicationFeedCatalog } from "../shared/data";
+import {
+  ALL_UPDATES_FEED_URL,
+  getSyndicationFeedLabel,
+} from "../shared/syndication-feeds";
+
+const { committeeFeeds, districtFeeds } = await loadSyndicationFeedCatalog();
+const feedGroups = [
+  {
+    id: "committee-feeds",
+    heading: "Nach Gremium",
+    feeds: committeeFeeds,
+  },
+  {
+    id: "district-feeds",
+    heading: "Nach Stadtteil",
+    feeds: districtFeeds,
+  },
+];
+---
+
+<Layout title="Feeds" pagefindIgnore>
+  <PageContainer class="feeds-page">
+    <h1 class="page-header">Aktualisierungen abonnieren</h1>
+    <p class="intro">
+      Neue und geänderte Tagesordnungspunkte automatisch in einem Feedreader
+      verfolgen. Die Feeds aktualisieren sich, sobald neue Daten veröffentlicht
+      werden.
+    </p>
+
+    <section class="feed-section" aria-labelledby="all-feed-heading">
+      <h2 id="all-feed-heading">Alle Tagesordnungspunkte</h2>
+      <FeedSubscriptionLink
+        href={ALL_UPDATES_FEED_URL}
+        label="Gesamtfeed abonnieren"
+      />
+    </section>
+
+    {
+      feedGroups.map((group) => (
+        <section class="feed-section" aria-labelledby={group.id}>
+          <h2 id={group.id}>{group.heading}</h2>
+          <ul class="feed-list">
+            {group.feeds.map((feed) => (
+              <li>
+                <span>{getSyndicationFeedLabel(feed)}</span>
+                <FeedSubscriptionLink href={feed.url} />
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))
+    }
+  </PageContainer>
+</Layout>
+
+<style>
+  .feeds-page {
+    max-width: 900px;
+  }
+
+  .intro {
+    max-width: 68ch;
+    margin: 0 auto 24px;
+    color: var(--color-text-muted);
+    line-height: 1.55;
+    text-align: center;
+  }
+
+  .feed-section {
+    margin-top: 28px;
+  }
+
+  h2 {
+    margin: 0 0 12px;
+    font-size: 1.4rem;
+  }
+
+  .feed-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .feed-list li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-width: 0;
+    padding: 12px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    background: #fff;
+  }
+
+  .feed-list li > span {
+    min-width: 0;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+  }
+
+  @media screen and (max-width: 520px) {
+    .feed-list {
+      grid-template-columns: 1fr;
+    }
+
+    .feed-list li {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+  }
+</style>

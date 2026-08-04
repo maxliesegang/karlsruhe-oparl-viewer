@@ -50,6 +50,10 @@ export function buildMeetingDetailUrl(baseUrl: string, id: string): string {
   return `${baseUrl}sitzungen/${encodeURIComponent(id)}`;
 }
 
+export function buildMeetingCalendarUrl(baseUrl: string, id: string): string {
+  return `${baseUrl}sitzungen/kalender/${encodeURIComponent(id)}.ics`;
+}
+
 const DATE_TIME_FORMATTER = new Intl.DateTimeFormat("de-DE", {
   dateStyle: "long",
   timeStyle: "short",
