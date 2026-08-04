@@ -1,6 +1,10 @@
 ---
 import type { ResolvedAuxiliaryFile } from "../shared/types";
-import { formatDateLong, normalizeOParlUrl } from "../shared/utils";
+import {
+  formatDateLong,
+  getOParlEntityId,
+  normalizeOParlUrl,
+} from "../shared/utils";
 
 interface Props {
   auxiliaryFiles: ResolvedAuxiliaryFile[];
@@ -16,7 +20,13 @@ const { auxiliaryFiles } = Astro.props;
     auxiliaryFiles.length > 0 ? (
       <ul class="file-list">
         {auxiliaryFiles.map(({ file, content }) => {
-          const fileText = content?.extractedText || "Kein Text verfügbar";
+          const extractedText = content?.extractedText;
+          // Only text that the mirror actually publishes can be re-fetched, so
+          // the placeholder stays a plain, non-lazy paragraph.
+          const fileId = extractedText
+            ? getOParlEntityId(content?.id ?? "")
+            : undefined;
+          const fileText = extractedText || "Kein Text verfügbar";
 
           return (
             <li class="file-item" data-id={file.id}>
@@ -48,8 +58,12 @@ const { auxiliaryFiles } = Astro.props;
               </div>
 
               {/* Extracted PDF text runs to thousands of words, so it stays
-                  collapsed and scrolls within a fixed height once opened. */}
-              <details class="file-text-details">
+                  collapsed and scrolls within a fixed height once opened.
+
+                  It is rendered here so Pagefind indexes it, but the
+                  `pagefind-lean` integration empties `[data-file-text]` after
+                  indexing and `file-text-loader.ts` re-fetches it on open. */}
+              <details class="file-text-details" data-file-text-details>
                 <summary class="file-text-toggle">
                   <span class="toggle-label toggle-show">
                     Extrahierten Text anzeigen
@@ -58,7 +72,10 @@ const { auxiliaryFiles } = Astro.props;
                     Extrahierten Text ausblenden
                   </span>
                 </summary>
-                <p class="file-text">{fileText}</p>
+                {/* Kept on one line: `.file-text` is `pre-wrap`, so any
+                    surrounding whitespace would render. */}
+                {/* prettier-ignore */}
+                <p class="file-text" data-file-text data-file-id={fileId}>{fileText}</p>
               </details>
             </li>
           );
@@ -169,4 +186,23 @@ const { auxiliaryFiles } = Astro.props;
     overflow-wrap: anywhere;
     color: var(--color-text);
   }
+
+  /* Status messages are single sentences, not extracted layout — the
+     pre-wrap treatment that suits the text itself would misalign them. */
+  .file-text[data-file-text-state="loading"],
+  .file-text[data-file-text-state="error"] {
+    white-space: normal;
+    color: var(--color-text-muted);
+    font-style: italic;
+  }
+
+  .file-text[data-file-text-state="error"] {
+    border-left-color: var(--color-text-muted);
+  }
 </style>
+
+<script>
+  import { initFileTextLoaders } from "../shared/file-text-loader";
+
+  initFileTextLoaders();
+</script>

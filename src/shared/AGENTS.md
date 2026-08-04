@@ -6,7 +6,8 @@ Data fetching, caching, filtering logic, utilities, and TypeScript types.
 
 | File                            | Role                                                     |
 | ------------------------------- | -------------------------------------------------------- |
-| `constants.ts`                  | `BULK_MODIFIED_DATE`                                     |
+| `constants.ts`                  | `BULK_MODIFIED_DATE`, `SYNDICATION_BASE_URL`             |
+| `file-text-loader.ts`           | Fetches extracted PDF text when a disclosure is opened   |
 | `data-source.ts`                | Reads the local data checkout (single files and shards)  |
 | `data.ts`                       | All build-time loaders, caches, and entity resolvers     |
 | `paper-filters.ts`              | Derives filter values and options from loaded papers     |
@@ -73,6 +74,14 @@ syndication-data/docs (data-source.ts, DATA_LOCAL_DIR)
   — this mapping must remain stable or all detail page URLs break
 - Feed metadata comes from `feed-index.json`; `loadSyndicationFeedCatalog()`
   indexes committee and district feeds for contextual links and `/feeds`
+- Extracted PDF text is the one value read from the mirror **twice**: at build
+  time via `dataSource.loadText()` so Pagefind can index it, and again in the
+  browser via `buildFileTextUrl()` after `integrations/pagefind-lean.mjs` strips
+  it from the built HTML. Both must resolve the same document, so the file id
+  (`getOParlEntityId()`) and the `file-contents/<id>.txt` layout are a shared
+  contract — see `src/components/AGENTS.md`. This is the only runtime dependency
+  the viewer has on the mirror staying published; the loader degrades to an
+  error message beside the still-working PDF download link
 
 ## Adding New Data Fields
 

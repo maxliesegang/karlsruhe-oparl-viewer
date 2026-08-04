@@ -50,6 +50,25 @@ Do **not** edit generated artifacts: `dist/`, `.astro/`, `node_modules/`.
 - Deploy always runs `npm run build` so Pagefind assets are present in production
 - **Never commit `dist/`**
 
+### Published Size Budget
+
+GitHub Pages caps a published site at **1 GB**, and this one grows with every
+council session, so `dist/` size is a standing constraint rather than a
+one-time cleanup. Current build: **461 MB**, down from 742 MB.
+
+The largest single lever is already pulled: `integrations/pagefind-lean.mjs`
+indexes extracted PDF text but keeps it out of the deployed HTML (281.9 MB
+stripped from 13,576 of 30,141 pages), and the browser re-fetches it from the
+mirror on demand. See `src/components/AGENTS.md` for the markup contract that
+makes this work — and note that the mirror is a _separate_ Pages site, so it
+must stay published.
+
+Remaining known headroom, largest first: `data-astro-cid-*` scoping attributes
+(~50 MB, up to 27% of `sitzungen/` HTML — eliminated by moving a component's
+`<style>` into a global stylesheet, **not** by `scopedStyleStrategy`, which
+measured at only ~3 MB); and the 13.7k `dist/vorlage/*.html` legacy redirect
+files (~16 MB), replaceable by one `404.html` handler.
+
 ## Common Pitfalls
 
 - Builds fail unless `syndication-data/docs` exists (`npm run data:setup`); there is no network fallback
@@ -58,7 +77,7 @@ Do **not** edit generated artifacts: `dist/`, `.astro/`, `node_modules/`.
 
 ### Output-Volume Traps
 
-`dist/` (~45k files, 858 MB) and `syndication-data/` (~93k files, 773 MB) are
+`dist/` (~48k files, 461 MB) and `syndication-data/` (~93k files, 773 MB) are
 gitignored, so Grep and Glob correctly ignore them — the searchable source tree
 is ~80 files. Bash and Read do **not** consult `.gitignore`, so these still bite:
 

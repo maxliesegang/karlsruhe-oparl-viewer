@@ -1,3 +1,5 @@
+import { SYNDICATION_BASE_URL } from "./constants";
+
 /**
  * Trims each entry, drops empties, and de-duplicates — accepting a single
  * string, an array, or a nullish value. Preserves first-seen order.
@@ -44,6 +46,15 @@ export function buildPaperDetailUrl(
 
 export function getOParlEntityId(id: string): string {
   return id.split("/").filter(Boolean).at(-1) ?? "";
+}
+
+/**
+ * Where the syndication mirror publishes one file's extracted PDF text. Mirrors
+ * the layout `dataSource.loadText()` reads at build time, so the browser and the
+ * build resolve the same document.
+ */
+export function buildFileTextUrl(fileId: string): string {
+  return `${SYNDICATION_BASE_URL}file-contents/${encodeURIComponent(fileId)}.txt`;
 }
 
 export function buildMeetingDetailUrl(baseUrl: string, id: string): string {

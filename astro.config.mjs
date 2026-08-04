@@ -1,6 +1,6 @@
 // @ts-check
-import pagefind from "astro-pagefind";
 import { defineConfig } from "astro/config";
+import pagefindLean from "./integrations/pagefind-lean.mjs";
 
 const PAGES_BASE = "/karlsruhe-oparl-viewer/";
 const runningInCi =
@@ -9,7 +9,7 @@ const isDev = process.env.NODE_ENV === "development" && !runningInCi;
 const skipPagefind = ["1", "true", "yes"].includes(
   (process.env.SKIP_PAGEFIND ?? "").toLowerCase(),
 );
-const integrations = skipPagefind ? [] : [pagefind()];
+const integrations = skipPagefind ? [] : [pagefindLean()];
 
 // https://astro.build/config
 export default defineConfig({

@@ -1,7 +1,7 @@
+import { SYNDICATION_BASE_URL } from "./constants";
 import type { SyndicationFeed } from "./types";
 
-export const ALL_UPDATES_FEED_URL =
-  "https://maxliesegang.github.io/karlsruhe-oparl-syndication/tagesordnungspunkte.xml";
+export const ALL_UPDATES_FEED_URL = `${SYNDICATION_BASE_URL}tagesordnungspunkte.xml`;
 
 const FEED_TITLE_PREFIX = /^Tagesordnungspunkte\s+[–-]\s+/;
 

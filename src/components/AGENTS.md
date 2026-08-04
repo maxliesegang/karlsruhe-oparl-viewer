@@ -61,7 +61,8 @@ control. The remaining meeting filters live in the collapsible advanced panel.
   `modified:` in `PaperFacts`)
 - Search results are rendered by `SearchPanel.astro` +
   `search-panel-controller.ts` against the Pagefind JS API — the
-  `astro-pagefind` `<Search>` component is intentionally not used
+  `astro-pagefind` integration was replaced by `integrations/pagefind-lean.mjs`,
+  and its `<Search>` component is intentionally not used
 - Result cards read these `data-pagefind-meta` names. Each lives on the element
   that actually displays the value, so the detail page never shows it twice:
   `PaperHeader` sets `paper-reference` · `paper-type` · `paper-date`;
@@ -74,6 +75,30 @@ control. The remaining meeting filters live in the collapsible advanced panel.
   `data-search-form` · `data-search-input` · `data-search-clear` ·
   `data-search-status` · `data-search-results` · `data-search-empty` ·
   `data-search-load-trigger`
+
+**Extracted file text — indexed at build, fetched at runtime**
+
+`AuxiliaryFiles.astro` renders each attachment's full extracted PDF text. That
+text is ~61% of all paper HTML (~276 MB), so the `pagefind-lean` integration
+(`integrations/pagefind-lean.mjs`) indexes every page **as rendered** and only
+then empties the container in the written file. `file-text-loader.ts` re-fetches
+it from the syndication mirror when a reader opens the disclosure.
+
+Indexing before stripping is what makes this lossless — search coverage and
+excerpts are unchanged. Do not reorder those two steps, and keep this markup:
+
+```
+<details data-file-text-details>        ← wrapper the loader binds to
+  <p class="file-text" data-file-text data-file-id="10003">…</p>
+</details>
+```
+
+- `data-file-text` is the strip marker; the integration matches the bare flag,
+  so never rename it to a prefix like `data-file-text-…` on that element
+- `data-file-id` is the mirror's file id — omitted when no text exists, which is
+  what keeps the "Kein Text verfügbar" placeholder out of the lazy path
+- An **empty** container is the signal that stripping ran. `astro dev` does not
+  strip, so the text stays inlined there and nothing is fetched
 
 **Internal links**
 
