@@ -46,7 +46,7 @@ Do **not** edit generated artifacts: `dist/`, `.astro/`, `node_modules/`.
 
 - Workflow: `.github/workflows/deploy.yml`
 - Triggers: push to `main`; scheduled 03:00 and 15:00 UTC
-- Uses `withastro/action@v3` + `actions/deploy-pages@v4`
+- Uses `withastro/action@v6` + `actions/deploy-pages@v5`
 - Deploy always runs `npm run build` so Pagefind assets are present in production
 - **Never commit `dist/`**
 

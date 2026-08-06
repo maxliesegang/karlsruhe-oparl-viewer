@@ -45,7 +45,7 @@ jobs:
       - name: Check for an already successful scheduled build
         id: successful-build
         if: github.event_name == 'schedule'
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
           path: .build-markers
           key: successful-build-${{ github.sha }}-${{ steps.data-revision.outputs.revision }}
@@ -63,7 +63,7 @@ jobs:
 
       - name: Setup Pages
         if: steps.changes.outputs.should-deploy == 'true'
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6
       - name: Checkout council data
         if: steps.changes.outputs.should-deploy == 'true'
         uses: actions/checkout@v7
@@ -97,7 +97,7 @@ jobs:
         run: mkdir -p .build-markers && touch .build-markers/success
 
       - name: Save successful deployment marker
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v6
         with:
           path: .build-markers
           key: successful-build-${{ github.sha }}-${{ needs.build.outputs.data-revision }}
