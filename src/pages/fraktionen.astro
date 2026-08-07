@@ -5,6 +5,7 @@ import {
   getAvailablePaperSubmitters,
   getPaperCountsBySubmitter,
 } from "../shared/data";
+import { buildFactionUrl } from "../shared/utils";
 
 const submitters = await getAvailablePaperSubmitters();
 const paperCountsBySubmitter = await getPaperCountsBySubmitter();
@@ -20,7 +21,10 @@ const baseUrl = import.meta.env.BASE_URL;
     <div class="submitters-grid">
       {
         submitters.map((submitter) => (
-          <a href={`${baseUrl}fraktion/${submitter.id}`} class="submitter-card">
+          <a
+            href={buildFactionUrl(baseUrl, submitter.id)}
+            class="submitter-card"
+          >
             <span class="submitter-name">{submitter.name}</span>
             <span class="submitter-count">
               {paperCountsBySubmitter.get(submitter.id) ?? 0} Vorlagen

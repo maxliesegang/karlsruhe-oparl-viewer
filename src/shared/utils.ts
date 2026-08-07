@@ -61,6 +61,27 @@ export function buildMeetingDetailUrl(baseUrl: string, id: string): string {
   return `${baseUrl}sitzungen/${encodeURIComponent(id)}`;
 }
 
+/**
+ * Detail URL for a resolved meeting, or `undefined` when the meeting is missing
+ * or carries no usable id — callers then render its name unlinked instead of
+ * pointing at a bare `/sitzungen/`.
+ */
+export function buildMeetingUrl(
+  baseUrl: string,
+  meeting: { id: string } | undefined,
+): string | undefined {
+  const id = meeting ? getOParlEntityId(meeting.id) : "";
+  return id ? buildMeetingDetailUrl(baseUrl, id) : undefined;
+}
+
+export function buildDistrictUrl(baseUrl: string, name: string): string {
+  return `${baseUrl}stadtteil/${slugify(name)}`;
+}
+
+export function buildFactionUrl(baseUrl: string, factionId: string): string {
+  return `${baseUrl}fraktion/${encodeURIComponent(factionId)}`;
+}
+
 export function buildMeetingCalendarUrl(baseUrl: string, id: string): string {
   return `${baseUrl}sitzungen/kalender/${encodeURIComponent(id)}.ics`;
 }
@@ -109,6 +130,28 @@ export function compareDateStrings(
 export function formatDateTime(date: string | undefined): string {
   const timestamp = getDateTimestamp(date);
   return timestamp === undefined ? "" : DATE_TIME_FORMATTER.format(timestamp);
+}
+
+/**
+ * The "when" of a meeting slot as one line — date and time, then whatever
+ * further details the caller has ("TOP 5", the consultation role). Both the
+ * detail header and the timeline print this, so the separator lives here.
+ * Empty details drop out, so an undated meeting yields an empty string.
+ */
+export function formatMeetingSlot(
+  start: string | undefined,
+  ...details: (string | undefined)[]
+): string {
+  const startedAt = formatDateTime(start);
+  return [startedAt && `${startedAt} Uhr`, ...details]
+    .filter(Boolean)
+    .join(" · ");
+}
+
+/** "TOP 5", or an empty string when the agenda item is unnumbered. */
+export function formatAgendaItemLabel(number: string | undefined): string {
+  const trimmed = number?.trim();
+  return trimmed ? `TOP ${trimmed}` : "";
 }
 
 /** Some OParl meetings use midnight as a placeholder end before their start. */

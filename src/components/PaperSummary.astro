@@ -8,6 +8,13 @@ interface Props {
 
 const { summary } = Astro.props;
 const keyPoints = summary?.keyPoints?.filter(Boolean) ?? [];
+
+/* Model and prompt version are what makes a summary reproducible, so they go on
+   the record — folded into the footnote's `title` rather than spelled out, since
+   they mean nothing to most readers. */
+const provenance = [summary?.model, summary?.promptVersion, summary?.provider]
+  .filter(Boolean)
+  .join(" · ");
 ---
 
 {
@@ -17,7 +24,9 @@ const keyPoints = summary?.keyPoints?.filter(Boolean) ?? [];
         <h2 class="section-heading" id="paper-summary">
           Zusammenfassung
         </h2>
-        <span class="summary-badge">KI-generiert</span>
+        <span class="summary-badge" title={provenance || undefined}>
+          KI-generiert
+        </span>
       </div>
 
       {/* Summaries are a few sentences by design (~400 characters), so they are
@@ -27,17 +36,30 @@ const keyPoints = summary?.keyPoints?.filter(Boolean) ?? [];
       {keyPoints.length > 0 && (
         <>
           <h3 class="summary-points-heading">Kernpunkte</h3>
-          <ul class="summary-points">
-            {keyPoints.map((keyPoint) => (
-              <li>{keyPoint}</li>
+          {/* Key points run to two or three lines each, so they are numbered
+              rows rather than bullets — at that length a plain list reads as
+              one block of prose and stops being scannable. */}
+          <ol class="summary-points">
+            {keyPoints.map((keyPoint, index) => (
+              <li>
+                <span class="point-number" aria-hidden="true">
+                  {index + 1}
+                </span>
+                <span class="point-text">{keyPoint}</span>
+              </li>
             ))}
-          </ul>
+          </ol>
         </>
       )}
 
       <p class="summary-note" data-pagefind-ignore>
-        Automatisch erzeugt am {formatDateLong(summary.generatedAt)}. Kann
-        Fehler enthalten — maßgeblich ist der Originaltext der Vorlage.
+        <span class="summary-note-icon" aria-hidden="true">
+          ⚠
+        </span>
+        <span>
+          Automatisch erzeugt am {formatDateLong(summary.generatedAt)}. Kann
+          Fehler enthalten — maßgeblich ist der Originaltext der Vorlage.
+        </span>
       </p>
     </section>
   )
@@ -70,17 +92,18 @@ const keyPoints = summary?.keyPoints?.filter(Boolean) ?? [];
     border: 1px solid var(--color-border);
     border-radius: 999px;
     padding: 3px 9px;
+    cursor: help;
   }
 
   .summary-text {
-    max-width: 68ch;
-    margin: 14px 0 0;
+    max-width: 80ch;
+    margin: 10px 0 0;
     font-size: 1.0625rem;
-    line-height: 1.6;
+    line-height: 1.55;
   }
 
   .summary-points-heading {
-    margin: 22px 0 8px;
+    margin: 16px 0 8px;
     font-size: 0.78rem;
     font-weight: 700;
     text-transform: uppercase;
@@ -88,24 +111,52 @@ const keyPoints = summary?.keyPoints?.filter(Boolean) ?? [];
     color: var(--color-text-muted);
   }
 
+  /* One point per row at every width: the points are two or three lines each
+     and read in order, so a second column would break the numbered sequence
+     into a zig-zag and leave ragged row heights. */
   .summary-points {
-    max-width: 68ch;
     margin: 0;
-    padding-left: 1.2em;
+    padding: 0;
+    list-style: none;
     display: grid;
-    gap: 10px;
-    line-height: 1.55;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+    gap: 8px;
   }
 
-  .summary-points li::marker {
-    color: var(--color-primary-hover);
+  .summary-points li {
+    display: grid;
+    grid-template-columns: 22px 1fr;
+    gap: 10px;
+    padding: 9px 11px;
+    border-radius: var(--radius);
+    background: var(--color-bg-card);
+    line-height: 1.5;
+  }
+
+  .point-number {
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    color: #333;
+    font-size: 0.75rem;
+    font-weight: 700;
   }
 
   .summary-note {
-    margin: 20px 0 0;
-    padding-top: 14px;
+    display: flex;
+    gap: 8px;
+    margin: 14px 0 0;
+    padding-top: 10px;
     border-top: 1px solid var(--color-border);
     font-size: 0.8125rem;
     color: var(--color-text-muted);
+  }
+
+  .summary-note-icon {
+    flex-shrink: 0;
   }
 </style>

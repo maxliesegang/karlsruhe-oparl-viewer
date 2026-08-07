@@ -1,6 +1,7 @@
 ---
 import Layout from "../../layouts/Layout.astro";
 import PageContainer from "../../components/PageContainer.astro";
+import Breadcrumbs from "../../components/Breadcrumbs.astro";
 import PaperHeader from "../../components/PaperHeader.astro";
 import PaperFacts from "../../components/PaperFacts.astro";
 import PaperSummary from "../../components/PaperSummary.astro";
@@ -14,9 +15,11 @@ import {
   resolveAuxiliaryFiles,
   resolveRelatedPapers,
   resolvePaperSummary,
+  getPaperYear,
 } from "../../shared/data";
 import { derivePaperStatus } from "../../shared/paper-status";
 import { getPaperDetailStaticPaths } from "../../shared/paper-detail-paths";
+import { buildPapersUrl } from "../../shared/utils";
 import type { Paper } from "../../shared/types";
 
 export async function getStaticPaths() {
@@ -45,11 +48,21 @@ const [
   resolvePaperSummary(paper),
 ]);
 
+const baseUrl = import.meta.env.BASE_URL;
 const status = derivePaperStatus(consultations);
+const year = getPaperYear(paper);
 ---
 
 <Layout title={paper.name} navigationSection="papers">
   <PageContainer>
+    <Breadcrumbs
+      items={[
+        { label: "Vorlagen", href: buildPapersUrl(baseUrl) },
+        { label: year, href: buildPapersUrl(baseUrl, year) },
+        { label: paper.reference },
+      ]}
+    />
+
     <PaperHeader paper={paper} status={status} />
 
     {
@@ -85,10 +98,36 @@ const status = derivePaperStatus(consultations);
     column-gap: 24px;
   }
 
+  /* This page stacks five or six cards, so it feels padded out at the global
+     rhythm. Tightened here rather than in `Layout.astro`, where the list pages
+     show one or two cards and want the roomier default. */
+  .detail-layout :global(.section-card) {
+    margin-top: 14px;
+    padding: 16px 18px;
+  }
+
+  /* Direct children only — `PaperSummary` nests its heading in a flex row with
+     the "KI-generiert" badge and zeroes the margin itself. */
+  .detail-layout :global(.section-card > .section-heading) {
+    margin-bottom: 10px;
+    font-size: 1.35rem;
+  }
+
   @media (min-width: 60rem) {
     .detail-layout {
       grid-template-columns: minmax(0, 1fr) 21rem;
       column-gap: 32px;
+    }
+
+    /* The main column is long — extracted PDF text alone runs several screens —
+       so the reference data follows along instead of scrolling out of reach.
+       Only sticks when the sidebar is genuinely shorter than the viewport;
+       `max-height` keeps a tall sidebar scrollable rather than clipped. */
+    .detail-side {
+      position: sticky;
+      top: calc(var(--site-header-height) + 16px);
+      max-height: calc(100vh - var(--site-header-height) - 36px);
+      overflow-y: auto;
     }
   }
 

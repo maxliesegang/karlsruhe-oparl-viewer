@@ -1,14 +1,23 @@
 ---
-import type { Organization, Paper } from "../shared/types";
-import { formatDateShort } from "../shared/utils";
+import type {
+  Organization,
+  Paper,
+  ResolvedPaperSubmitter,
+} from "../shared/types";
+import {
+  buildDistrictUrl,
+  buildFactionUrl,
+  formatDateShort,
+} from "../shared/utils";
 
 interface Props {
   paper: Paper;
   organizations: Organization[];
-  submitters: string[];
+  submitters: ResolvedPaperSubmitter[];
 }
 
 const { paper, organizations, submitters } = Astro.props;
+const baseUrl = import.meta.env.BASE_URL;
 
 /** Search result cards read these as Pagefind meta — keep the names in sync
  * with `search-panel-controller.ts`. Reference, type, and date carry their meta
@@ -19,14 +28,49 @@ const organizationNames = organizations
   .map((organization) => organization?.name)
   .filter(Boolean)
   .join(", ");
-const districtNames = paper.stadtteile.join(", ");
-const submitterNames = submitters.join(", ");
+
+/* Districts and factions each have a list page of their own, so every value
+   here doubles as the entry point to "what else came from this corner of the
+   city". Pagefind reads the `dd` text, which the links leave unchanged.
+   `href` is optional: factions hidden in `data.ts` have no page. */
+const linkedFacts: {
+  term: string;
+  meta: string;
+  links: { name: string; href?: string }[];
+}[] = [
+  {
+    term: `Antragstellende Fraktion${submitters.length === 1 ? "" : "en"}`,
+    meta: "paper-submitters",
+    links: submitters.map(({ factionId, name }) => ({
+      name,
+      href: factionId ? buildFactionUrl(baseUrl, factionId) : undefined,
+    })),
+  },
+  {
+    term: "Erwähnte Stadtteile",
+    meta: "paper-districts",
+    links: paper.stadtteile.map((name) => ({
+      name,
+      href: buildDistrictUrl(baseUrl, name),
+    })),
+  },
+];
 ---
 
 <section class="section-card" aria-labelledby="paper-facts">
   <h2 class="section-heading" id="paper-facts">Eckdaten</h2>
 
   <dl class="facts">
+    {
+      /* The paper's primary identifier, and the only place it appears as page
+        text — so this is what makes a search for "2025/0152" resolve. The
+        breadcrumb shows it too but is `data-pagefind-ignore`. */
+    }
+    <dt>Vorlagen-Nr.</dt>
+    <dd class="fact-reference" data-pagefind-meta="paper-reference">
+      {paper.reference}
+    </dd>
+
     <dt>Letzte Änderung</dt>
     <dd>
       <time
@@ -47,21 +91,29 @@ const submitterNames = submitters.join(", ");
       {organizationNames || "Keine Angaben"}
     </dd>
 
-    <dt>Antragstellende Fraktion{submitters.length === 1 ? "" : "en"}</dt>
-    <dd
-      data-pagefind-meta={submitterNames ? "paper-submitters" : undefined}
-      class:list={[!submitterNames && "fact-empty"]}
-    >
-      {submitterNames || "Keine Angaben"}
-    </dd>
-
-    <dt>Erwähnte Stadtteile</dt>
-    <dd
-      data-pagefind-meta={districtNames ? "paper-districts" : undefined}
-      class:list={[!districtNames && "fact-empty"]}
-    >
-      {districtNames || "Keine Angaben"}
-    </dd>
+    {
+      linkedFacts.map(({ term, meta, links }) => (
+        <Fragment>
+          <dt>{term}</dt>
+          <dd
+            data-pagefind-meta={links.length > 0 ? meta : undefined}
+            class:list={[links.length === 0 && "fact-empty"]}
+          >
+            {links.length > 0 ? (
+              <ul class="fact-links">
+                {links.map(({ name, href }) => (
+                  <li>
+                    {href ? <a href={href}>{name}</a> : <span>{name}</span>}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              "Keine Angaben"
+            )}
+          </dd>
+        </Fragment>
+      ))
+    }
   </dl>
 </section>
 
@@ -89,8 +141,46 @@ const submitterNames = submitters.join(", ");
     line-height: 1.5;
   }
 
+  .fact-reference {
+    font-weight: 700;
+    letter-spacing: 0.03em;
+  }
+
   .fact-empty {
     color: var(--color-text-muted);
     font-style: italic;
+  }
+
+  /* Chips rather than a comma list: the values are links now, and adjacent
+     underlined names run together at this size. */
+  .fact-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .fact-links a,
+  .fact-links span {
+    display: inline-block;
+    padding: 3px 10px;
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    background: var(--color-bg-card);
+    color: var(--color-link);
+    font-size: 0.9rem;
+    text-decoration: none;
+  }
+
+  .fact-links span {
+    color: var(--color-text-muted);
+  }
+
+  .fact-links a:hover {
+    border-color: var(--color-link);
+    background: #fff;
+    text-decoration: underline;
   }
 </style>

@@ -1,10 +1,15 @@
 ---
 import type { Paper, ResolvedConsultation } from "../shared/types";
-import { isUpcomingMeeting, orderConsultations } from "../shared/paper-status";
 import {
-  buildMeetingDetailUrl,
+  getConsultationResult,
+  isUpcomingMeeting,
+  orderConsultations,
+} from "../shared/paper-status";
+import {
+  buildMeetingUrl,
+  formatAgendaItemLabel,
   formatDateTime,
-  getOParlEntityId,
+  formatMeetingSlot,
 } from "../shared/utils";
 
 interface Props {
@@ -31,34 +36,41 @@ const orderedConsultations = orderConsultations(consultations);
       </div>
     </li>
     {
-      orderedConsultations.map(({ consultation, meeting, agendaItem }) => {
+      orderedConsultations.map((resolved) => {
+        const { consultation, meeting, agendaItem } = resolved;
         const meetingIsUpcoming = isUpcomingMeeting(meeting, now);
-        const result = agendaItem?.result?.trim();
-        const title = result
-          ? "Entscheidung"
-          : meetingIsUpcoming
-            ? "Geplante Beratung"
-            : "Beratung";
-        const meetingId = meeting ? getOParlEntityId(meeting.id) : "";
+        const result = getConsultationResult(resolved);
+        const title = result ? "Entscheidung" : "Beratung";
+        const meetingUrl = buildMeetingUrl(baseUrl, meeting);
+        // `role` and `result` are frequently the same word ("Kenntnisnahme"),
+        // and the result line below is the one that carries it.
+        const role = consultation.role?.trim();
+        const meetingSlot = formatMeetingSlot(
+          meeting?.start,
+          formatAgendaItemLabel(agendaItem?.number),
+          role && role !== result ? role : "",
+        );
 
         return (
           <li class:list={["timeline-item", !meetingIsUpcoming && "completed"]}>
             <span class="timeline-marker" aria-hidden="true" />
             <div>
-              <strong>{title}</strong>
+              <strong>
+                {title}
+                {meetingIsUpcoming && <span class="timeline-tag">Geplant</span>}
+              </strong>
+              {/* Committee and date share a wrapping row — on the detail
+                  page's wide main column they fit on one line, and they still
+                  break cleanly on narrow screens. */}
               {meeting ? (
-                <>
-                  <p>
-                    <a href={buildMeetingDetailUrl(baseUrl, meetingId)}>
-                      {meeting.name}
-                    </a>
-                  </p>
-                  <p>
-                    {formatDateTime(meeting.start)} Uhr
-                    {agendaItem?.number ? ` · TOP ${agendaItem.number}` : ""}
-                    {consultation.role ? ` · ${consultation.role}` : ""}
-                  </p>
-                </>
+                <p class="timeline-meta">
+                  {meetingUrl ? (
+                    <a href={meetingUrl}>{meeting.name}</a>
+                  ) : (
+                    <span>{meeting.name}</span>
+                  )}
+                  <span>{meetingSlot}</span>
+                </p>
               ) : (
                 <p>Termin nicht verfügbar</p>
               )}
@@ -87,7 +99,11 @@ const orderedConsultations = orderConsultations(consultations);
     display: grid;
     grid-template-columns: 18px 1fr;
     gap: 12px;
-    padding-bottom: 20px;
+    padding-bottom: 14px;
+  }
+
+  .timeline-item:last-child {
+    padding-bottom: 0;
   }
 
   .timeline-item:not(:last-child)::before {
@@ -114,10 +130,40 @@ const orderedConsultations = orderConsultations(consultations);
     background: var(--color-primary);
   }
 
+  /* Everything after the last completed step is still a plan — the dashed
+     connector says so without needing a second legend. */
+  .timeline-item:not(.completed):not(:last-child)::before {
+    background: repeating-linear-gradient(
+      to bottom,
+      var(--color-border) 0 4px,
+      transparent 4px 8px
+    );
+  }
+
+  .timeline-tag {
+    margin-left: 8px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: #e6eefa;
+    color: #14508f;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    vertical-align: 1px;
+  }
+
   .timeline-item p {
-    margin: 4px 0 0;
+    margin: 2px 0 0;
     color: var(--color-text-muted);
     line-height: 1.45;
+  }
+
+  .timeline-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 2px 10px;
   }
 
   .timeline-item a {

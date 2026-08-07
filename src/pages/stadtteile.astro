@@ -6,7 +6,7 @@ import {
   getAvailableDistricts,
   getPaperCountsByDistrict,
 } from "../shared/data";
-import { slugify } from "../shared/utils";
+import { buildDistrictUrl } from "../shared/utils";
 
 const districtNames = await getAvailableDistricts();
 const paperCountsByDistrict = await getPaperCountsByDistrict();
@@ -25,7 +25,7 @@ const baseUrl = import.meta.env.BASE_URL;
       {
         districtNames.map((districtName) => (
           <a
-            href={`${baseUrl}stadtteil/${slugify(districtName)}`}
+            href={buildDistrictUrl(baseUrl, districtName)}
             class="stadtteil-card"
           >
             <span class="stadtteil-name">{districtName}</span>

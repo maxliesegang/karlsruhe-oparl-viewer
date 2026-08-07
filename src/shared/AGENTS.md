@@ -12,7 +12,7 @@ Data fetching, caching, filtering logic, utilities, and TypeScript types.
 | `data.ts`                       | All build-time loaders, caches, and entity resolvers     |
 | `paper-filters.ts`              | Derives filter values and options from loaded papers     |
 | `paper-grouping.ts`             | Paper list ordering and date-group headings              |
-| `paper-status.ts`               | Consultation ordering and the paper's process status     |
+| `paper-status.ts`               | Consultation ordering, process status + its consultation |
 | `paper-filter-definitions.ts`   | Static filter field definitions                          |
 | `paper-list-controller.ts`      | Client-side paper-list filtering and incremental loading |
 | `meeting-filters.ts`            | Canonical organization-based meeting filter model        |

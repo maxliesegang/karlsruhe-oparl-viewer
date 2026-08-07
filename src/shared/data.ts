@@ -21,6 +21,7 @@ import type {
   PaperSummary,
   PaperSubmitter,
   PaperSubmitterIndex,
+  ResolvedPaperSubmitter,
   ResolvedAgendaItem,
   ResolvedConsultation,
   ResolvedAuxiliaryFile,
@@ -361,14 +362,19 @@ export async function resolveOrganizations(
   return resolveEntityIds(paper.underDirectionOf, organizationsById);
 }
 
-export async function resolvePaperSubmitters(paper: Paper): Promise<string[]> {
+export async function resolvePaperSubmitters(
+  paper: Paper,
+): Promise<ResolvedPaperSubmitter[]> {
   const index = await loadPaperSubmitters();
   const recordId = getOParlEntityId(paper.id);
   if (!recordId) return [];
 
-  return (index.papers[recordId] ?? [])
-    .map((factionId) => index.factions[factionId])
-    .filter((name): name is string => Boolean(name));
+  return (index.papers[recordId] ?? []).flatMap((factionId) => {
+    const name = index.factions[factionId];
+    if (!name) return [];
+    // Hidden factions still get credited — they just have no page to link to.
+    return [isHiddenSubmitterId(factionId) ? { name } : { name, factionId }];
+  });
 }
 
 export async function resolveMeetingOrganizations(

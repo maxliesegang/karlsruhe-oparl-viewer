@@ -46,6 +46,10 @@ const pageTitle = title ? `${title} | GemeinderatsRadar` : "GemeinderatsRadar";
     --shadow-card: 0 4px 6px rgba(0, 0, 0, 0.1);
     --radius: 8px;
     --font-family: Arial, sans-serif;
+    /* The sticky site header's height. Anything that sticks or scrolls into
+       view below it has to clear this, so it lives here rather than in
+       `SiteNavigation.astro`, which only consumes it. */
+    --site-header-height: 68px;
   }
 
   body {

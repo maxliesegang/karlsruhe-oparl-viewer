@@ -19,9 +19,9 @@ Reusable UI components. Prefer extending existing components over creating new o
 | `SearchPanel.astro`          | Pagefind search box + rich result cards (custom UI)               |
 | `FeedSubscriptionLink.astro` | Shared link to an external update feed                            |
 | `LegacyRedirectPage.astro`   | Noindex redirect shell for legacy routes                          |
-| `PaperHeader.astro`          | Detail-page title block: reference, type, status, date            |
+| `PaperHeader.astro`          | Detail-page title block: reference, type, date, title, status bar |
 | `PaperFacts.astro`           | "Eckdaten" sidebar card — modified, bodies, submitters, districts |
-| `PaperSummary.astro`         | LLM summary + key points, rendered only when one exists           |
+| `PaperSummary.astro`         | LLM summary + key points, one per full-width row; only if present |
 | `AuxiliaryFiles.astro`       | File attachments — detail page                                    |
 | `StadtteilHint.astro`        | District hint — detail page                                       |
 | `MeetingAgenda.astro`        | Public agenda with links to matching papers                       |
@@ -63,13 +63,19 @@ control. The remaining meeting filters live in the collapsible advanced panel.
   `search-panel-controller.ts` against the Pagefind JS API — the
   `astro-pagefind` integration was replaced by `integrations/pagefind-lean.mjs`,
   and its `<Search>` component is intentionally not used
-- Result cards read these `data-pagefind-meta` names. Each lives on the element
-  that actually displays the value, so the detail page never shows it twice:
-  `PaperHeader` sets `paper-reference` · `paper-type` · `paper-date`;
-  `PaperFacts` sets `paper-organizations` · `paper-submitters` · `paper-districts` ·
-  `paper-modified` · `paper-created`
-  (`paper-created` uses the literal `name:value` form so the raw timestamp
-  stays out of search excerpts)
+- Result cards read these `data-pagefind-meta` names:
+  `PaperHeader` sets `paper-type` · `paper-date`;
+  `PaperFacts` sets `paper-reference` · `paper-organizations` ·
+  `paper-submitters` · `paper-districts` · `paper-modified` · `paper-created`
+- Where the detail page displays the value, the meta rides on that element so it
+  is never shown twice. Where it does not, it uses the literal `name:value` form
+  on an empty span, which registers the value without adding page text or search
+  excerpts — `paper-created`, plus both of `PaperHeader`'s, which have no visible
+  home since the header shows only the title and status bar
+- Meta values are **not** full-text searchable. A field that readers search by
+  needs to be page text somewhere too — this is why the "Eckdaten" card carries
+  the reference number rather than leaving it to the (Pagefind-ignored)
+  breadcrumb
 - Panel markup contract (selectors in `pagefind-config.ts`):
   `data-search-panel` (with `data-base-url` + `data-sort-mode`) ·
   `data-search-form` · `data-search-input` · `data-search-clear` ·
@@ -103,6 +109,22 @@ excerpts are unchanged. Do not reorder those two steps, and keep this markup:
 **Internal links**
 
 - Every internal `href` must be prefixed with `import.meta.env.BASE_URL` to work on GitHub Pages
+- Build route URLs with the `build*Url` helpers in `utils.ts` rather than
+  interpolating a path — they own the slugging and encoding each route expects
+  (`buildDistrictUrl` slugifies, `buildFactionUrl` percent-encodes,
+  `buildMeetingUrl` returns `undefined` for an unusable id so callers render the
+  name unlinked instead of linking to a bare `/sitzungen/`)
+- `PaperFacts` links each submitter and district to its own list page. Factions
+  hidden by `HIDDEN_SUBMITTER_IDS` in `data.ts` have no page, so
+  `resolvePaperSubmitters` omits their `factionId` and the name renders
+  unlinked — do not link on name alone
+
+**Sticky offsets**
+
+The site header is `position: sticky`. Anything that sticks or is scrolled to
+below it must clear `--site-header-height` (defined in `Layout.astro`, consumed
+by `SiteNavigation.astro`) — see `.detail-side` and the `#paper-files`
+deep-link target.
 
 ## Adding New Components
 

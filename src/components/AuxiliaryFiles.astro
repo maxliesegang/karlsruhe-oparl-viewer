@@ -13,8 +13,19 @@ interface Props {
 const { auxiliaryFiles } = Astro.props;
 ---
 
-<section class="section-card">
-  <h2 class="section-heading">Zusätzliche Dateien</h2>
+<section
+  class="section-card"
+  id="paper-files"
+  aria-labelledby="paper-files-heading"
+>
+  <h2 class="section-heading" id="paper-files-heading">
+    Zusätzliche Dateien
+    {
+      auxiliaryFiles.length > 0 && (
+        <span class="file-count">{auxiliaryFiles.length}</span>
+      )
+    }
+  </h2>
 
   {
     auxiliaryFiles.length > 0 ? (
@@ -38,11 +49,15 @@ const { auxiliaryFiles } = Astro.props;
                   class="file-name"
                   aria-label={`Download ${file.name}`}
                 >
+                  {/* The paths are drawn in a 24-unit box; without the viewBox
+                      any size other than 24 crops them instead of scaling. */}
                   <svg
                     class="download-icon"
-                    width="24"
-                    height="24"
+                    width="19"
+                    height="19"
+                    viewBox="0 0 24 24"
                     fill="currentColor"
+                    aria-hidden="true"
                     xmlns="http://www.w3.org/2000/svg"
                   >
                     <path d="M12.707 11.293l-2 2a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L11 11.586V5a1 1 0 112 0v6.586l1.293-1.293a1 1 0 111.414 1.414z" />
@@ -88,19 +103,40 @@ const { auxiliaryFiles } = Astro.props;
 </section>
 
 <style>
+  /* Deep-link target (`…#paper-files`) — clears the sticky nav. */
+  #paper-files {
+    scroll-margin-top: calc(var(--site-header-height) + 16px);
+  }
+
+  .file-count {
+    display: inline-grid;
+    place-items: center;
+    min-width: 26px;
+    height: 26px;
+    padding: 0 8px;
+    margin-left: 8px;
+    border-radius: 999px;
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--color-text-muted);
+    vertical-align: middle;
+  }
+
   .file-list {
     list-style: none;
     padding: 0;
     margin: 0;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
+    gap: 12px;
   }
 
   .file-item {
     border: 1px solid var(--color-border);
     border-radius: var(--radius);
-    padding: 15px;
+    padding: 12px 14px;
     background-color: #fff;
     transition: box-shadow 0.2s;
   }
@@ -111,7 +147,7 @@ const { auxiliaryFiles } = Astro.props;
 
   .file-name {
     font-weight: bold;
-    font-size: 1.125rem;
+    font-size: 1rem;
     color: var(--color-link);
     text-decoration: none;
     display: flex;
@@ -127,12 +163,15 @@ const { auxiliaryFiles } = Astro.props;
     flex-shrink: 0;
   }
 
+  /* Two short dates side by side rather than stacked — the cards sit in a
+     multi-column grid, so the width is there and the height is not. */
   .file-metadata {
-    margin-top: 10px;
+    margin-top: 6px;
     font-size: 0.875rem;
     color: var(--color-text-muted);
     display: flex;
-    flex-direction: column;
+    flex-wrap: wrap;
+    gap: 2px 14px;
   }
 
   .file-text-details {

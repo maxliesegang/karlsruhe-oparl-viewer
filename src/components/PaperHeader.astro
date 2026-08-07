@@ -1,7 +1,14 @@
 ---
 import type { Paper } from "../shared/types";
-import type { PaperStatus } from "../shared/paper-status";
-import { formatDateLong } from "../shared/utils";
+import {
+  getConsultationResult,
+  type PaperStatus,
+} from "../shared/paper-status";
+import {
+  buildMeetingUrl,
+  formatAgendaItemLabel,
+  formatMeetingSlot,
+} from "../shared/utils";
 
 interface Props {
   paper: Paper;
@@ -9,95 +16,138 @@ interface Props {
 }
 
 const { paper, status } = Astro.props;
+const baseUrl = import.meta.env.BASE_URL;
 
 /** Search result cards read these as Pagefind meta — keep the names in sync
  * with `search-panel-controller.ts`. */
 const pagefindSortAtt = `date:${new Date(paper.date).toISOString()}`;
+
+const { meeting, agendaItem } = status.highlight ?? {};
+const result = status.highlight ? getConsultationResult(status.highlight) : "";
+const meetingUrl = buildMeetingUrl(baseUrl, meeting);
+const meetingSlot = formatMeetingSlot(
+  meeting?.start,
+  formatAgendaItemLabel(agendaItem?.number),
+);
 ---
 
 <header class="paper-header">
-  <p class="paper-eyebrow">
-    <span class="paper-reference" data-pagefind-meta="paper-reference"
-      >{paper.reference}</span
-    >
-    {
-      paper.paperType && (
-        <span class="paper-kind" data-pagefind-meta="paper-type">
-          {paper.paperType}
-        </span>
-      )
-    }
-  </p>
+  {
+    /* Type and date are not shown here, but every search result card still
+       reads them as Pagefind meta. They therefore use the literal `name:value`
+       form on empty spans — the same trick `PaperFacts` uses for
+       `paper-created` — which registers the value without putting it back on
+       the page or into search excerpts. `paper-reference` is not among them:
+       `PaperFacts` displays it, so the meta rides on that element instead. */
+  }
+  {
+    paper.paperType && (
+      <span data-pagefind-meta={`paper-type:${paper.paperType}`} />
+    )
+  }
+  <span
+    data-pagefind-meta={`paper-date:${paper.date}`}
+    data-pagefind-sort={pagefindSortAtt}></span>
 
   <h1 class="paper-title">{paper.name}</h1>
 
-  <p class="paper-header-meta">
-    <span class:list={["status-badge", `tone-${status.tone}`]}
-      >{status.label}</span
-    >
-    <time
-      datetime={paper.date}
-      data-pagefind-meta="paper-date[datetime]"
-      data-pagefind-sort={pagefindSortAtt}>{formatDateLong(paper.date)}</time
-    >
+  {
+    /* Status and its detail are one statement — "Entschieden" answers *what*
+       and the rest answers *when and where* — so they share a single line
+       instead of stacking a badge row above a detail row. The status word
+       replaces the highlight's own label, which only ever paraphrased it.
+
+       The detail repeats the timeline below by design: the answer belongs above
+       the fold, not four sections down. Pagefind ignores it for that reason —
+       the timeline is the copy that gets indexed. */
+  }
+  <p class:list={["paper-status-bar", `tone-${status.tone}`]}>
+    <span class="status-label">{status.label}</span>
+    {
+      status.highlight && (
+        <span class="status-detail" data-pagefind-ignore>
+          {result && <strong class="status-result">{result}</strong>}
+          {meeting?.name &&
+            (meetingUrl ? (
+              <a href={meetingUrl}>{meeting.name}</a>
+            ) : (
+              <span>{meeting.name}</span>
+            ))}
+          {meetingSlot && <span class="status-when">{meetingSlot}</span>}
+        </span>
+      )
+    }
   </p>
 </header>
 
 <style>
   .paper-header {
-    padding-bottom: 20px;
+    padding-bottom: 14px;
     border-bottom: 3px solid var(--color-primary);
-  }
-
-  .paper-eyebrow {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 10px;
-    margin: 0 0 10px;
-    font-size: 0.85rem;
-  }
-
-  .paper-reference {
-    font-weight: 700;
-    letter-spacing: 0.03em;
-    color: var(--color-text);
-  }
-
-  .paper-kind {
-    padding: 2px 9px;
-    border: 1px solid var(--color-border);
-    border-radius: 999px;
-    color: var(--color-text-muted);
   }
 
   .paper-title {
     /* Council paper titles are full sentences — left aligned and capped at a
        readable measure, unlike the centred `.page-header` used elsewhere. The
        cap is in `ch`, so it tracks the clamped font size across viewports. */
-    max-width: 55ch;
+    max-width: 62ch;
     margin: 0;
-    font-size: clamp(1.6rem, 1.1rem + 1.8vw, 2.25rem);
+    font-size: clamp(1.5rem, 1.1rem + 1.5vw, 2.05rem);
     font-weight: bold;
-    line-height: 1.25;
+    line-height: 1.2;
     text-wrap: balance;
   }
 
-  .paper-header-meta {
+  /* One tinted line carrying the whole status statement. `fit-content` keeps
+     the tint wrapped around the text instead of trailing off across the column
+     — "Veröffentlicht" alone reads as a chip, a full decision as one line — and
+     the cap stops the longest committee names from running the full width. */
+  .paper-status-bar {
     display: flex;
     flex-wrap: wrap;
-    align-items: center;
-    gap: 10px;
-    margin: 14px 0 0;
-    color: var(--color-text-muted);
+    align-items: baseline;
+    gap: 4px 12px;
+    width: fit-content;
+    max-width: min(100%, 74ch);
+    margin: 12px 0 0;
+    padding: 7px 13px;
+    border-radius: var(--radius);
+    border-left: 3px solid currentColor;
     font-size: 0.95rem;
+    line-height: 1.45;
   }
 
-  .status-badge {
-    padding: 4px 11px;
-    border-radius: 999px;
-    font-size: 0.82rem;
+  .status-label {
+    flex-shrink: 0;
+    font-size: 0.75rem;
     font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .status-detail {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 2px 10px;
+    color: var(--color-text);
+  }
+
+  .status-result {
+    font-weight: 700;
+  }
+
+  .status-when {
+    color: var(--color-text-muted);
+  }
+
+  .paper-status-bar a {
+    color: var(--color-link);
+    text-decoration: none;
+  }
+
+  .paper-status-bar a:hover {
+    text-decoration: underline;
   }
 
   .tone-decided {

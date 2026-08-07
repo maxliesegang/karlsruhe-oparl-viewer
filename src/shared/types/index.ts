@@ -22,6 +22,7 @@ export type { PaperSummary } from "./paper-summary.ts";
 export type {
   PaperSubmitter,
   PaperSubmitterIndex,
+  ResolvedPaperSubmitter,
 } from "./paper-submitters.ts";
 export type {
   ResolvedAgendaItem,
