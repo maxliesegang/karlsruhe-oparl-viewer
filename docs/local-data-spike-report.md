@@ -1,9 +1,15 @@
 # Local syndication ingestion spike report
 
+> Historical benchmark record from the migration to local sharded data. The
+> local checkout became the production data path, and the manual-only spike
+> workflow was removed in August 2026 after the main deployment adopted the same
+> checkout and build path. See `AGENTS.md` and `.github/workflows/deploy.yml` for
+> the current runbook.
+
 Tested 2026-07-18 on macOS against syndication commit
 `643fc2e4d7d07b92ecddd7e62cd66d1d740b294d`.
 
-## Existing implementation
+## Baseline at the time of the spike
 
 - `DATA_BASE_URL` is a fixed raw.githubusercontent URL in
   `src/shared/constants.ts`.
@@ -16,7 +22,7 @@ Tested 2026-07-18 on macOS against syndication commit
   this is a fixed upper bound, not batches over a discovered list.
 - Consultations are not loaded from `consultations.json`; paper consultation
   references are resolved against agenda items embedded in meetings.
-- `.github/workflows/deploy.yml` builds with `withastro/action@v3`, then a
+- At the time, `.github/workflows/deploy.yml` built with `withastro/action@v3`, then a
   dependent job deploys with `actions/deploy-pages@v4`. Pushes to `main`, two
   daily schedules, and manual dispatch trigger that production workflow.
 

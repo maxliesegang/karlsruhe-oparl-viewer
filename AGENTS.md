@@ -1,4 +1,4 @@
-# Agent Guide — GemeinderatsRadar (updated Feb 2026)
+# Agent Guide — GemeinderatsRadar (updated Aug 2026)
 
 ## Project Snapshot
 
@@ -15,6 +15,7 @@ npm ci                    # install (preferred over npm install)
 npm run dev               # dev server → http://localhost:4321
 npm run build:quiet       # ← use this one: full build, per-page log lines filtered
 npm run build:quick:quiet # quiet + no Pagefind (fastest validation)
+npm run build:verify      # verify Pagefind output and the 850 MiB size budget
 npm run build             # full build incl. Pagefind index → dist/ (~30k log lines)
 npm run build:quick       # fast build, skips Pagefind (SKIP_PAGEFIND=1)
 npm run preview           # preview built site
@@ -45,20 +46,21 @@ Do **not** edit generated artifacts: `dist/`, `.astro/`, `node_modules/`.
 ## Deployment
 
 - Workflow: `.github/workflows/deploy.yml`
-- Triggers: push to `main`; scheduled 03:00 and 15:00 UTC
-- Uses `withastro/action@v6` + `actions/deploy-pages@v5`
-- Deploy always runs `npm run build` so Pagefind assets are present in production
+- Triggers: push to `main`; scheduled 03:17 and 15:17 UTC
+- Uses explicit Node/npm/build/upload steps + `actions/deploy-pages@v5`
+- Deploy runs `npm run build:quiet` and verifies Pagefind plus an 850 MiB size budget
 - **Never commit `dist/`**
 
 ### Published Size Budget
 
 GitHub Pages caps a published site at **1 GB**, and this one grows with every
 council session, so `dist/` size is a standing constraint rather than a
-one-time cleanup. Current build: **461 MB**, down from 742 MB.
+one-time cleanup. Current build: **488 MiB apparent size**, down from roughly
+772 MiB before extracted text is stripped.
 
 The largest single lever is already pulled: `integrations/pagefind-lean.mjs`
-indexes extracted PDF text but keeps it out of the deployed HTML (281.9 MB
-stripped from 13,576 of 30,141 pages), and the browser re-fetches it from the
+indexes extracted PDF text but keeps it out of the deployed HTML (281.9 MiB
+stripped from 13,576 of 30,151 pages), and the browser re-fetches it from the
 mirror on demand. See `src/components/AGENTS.md` for the markup contract that
 makes this work — and note that the mirror is a _separate_ Pages site, so it
 must stay published.
@@ -67,7 +69,7 @@ Remaining known headroom, largest first: `data-astro-cid-*` scoping attributes
 (~50 MB, up to 27% of `sitzungen/` HTML — eliminated by moving a component's
 `<style>` into a global stylesheet, **not** by `scopedStyleStrategy`, which
 measured at only ~3 MB); and the 13.7k `dist/vorlage/*.html` legacy redirect
-files (~16 MB), replaceable by one `404.html` handler.
+files (~21 MiB), replaceable by one `404.html` handler.
 
 ## Common Pitfalls
 
@@ -77,7 +79,7 @@ files (~16 MB), replaceable by one `404.html` handler.
 
 ### Output-Volume Traps
 
-`dist/` (~48k files, 461 MB) and `syndication-data/` (~93k files, 773 MB) are
+`dist/` (~48k files, 488 MiB) and `syndication-data/` (~93k files, 773 MB) are
 gitignored, so Grep and Glob correctly ignore them — the searchable source tree
 is ~80 files. Bash and Read do **not** consult `.gitignore`, so these still bite:
 

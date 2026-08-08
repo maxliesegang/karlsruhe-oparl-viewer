@@ -5,27 +5,26 @@ on:
   # Using a different branch name? Replace `main` with your branch’s name
   push:
     branches: [main]
-  # Runs at 03:00 and 15:00 UTC every day
+  # Runs at 03:17 and 15:17 UTC every day. Avoid the start-of-hour Actions peak.
   schedule:
-    - cron: "0 3 * * *"
-    - cron: "0 15 * * *"
+    - cron: "17 3 * * *"
+    - cron: "17 15 * * *"
   # Allows you to run this workflow manually from the Actions tab on GitHub.
   workflow_dispatch:
 
-# Allow this job to clone the repo and create a page deployment
+# Allow the workflow to clone the repositories and create a Pages deployment.
 permissions:
   contents: read
   pages: write
   id-token: write
 
-# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
-concurrency:
-  group: "pages"
-  cancel-in-progress: false
-
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+    concurrency:
+      group: pages-build
+      cancel-in-progress: true
     outputs:
       data-revision: ${{ steps.data-revision.outputs.revision }}
       should-deploy: ${{ steps.changes.outputs.should-deploy }}
@@ -36,7 +35,16 @@ jobs:
       - name: Resolve council data revision
         id: data-revision
         run: |
-          revision=$(git ls-remote https://github.com/maxliesegang/karlsruhe-oparl-syndication.git HEAD | cut -f1)
+          revision=""
+          for attempt in 1 2 3; do
+            if revision=$(git ls-remote https://github.com/maxliesegang/karlsruhe-oparl-syndication.git refs/heads/main | cut -f1) && [[ -n "$revision" ]]; then
+              break
+            fi
+            echo "Could not resolve council data revision (attempt $attempt of 3)."
+            if (( attempt < 3 )); then
+              sleep $((attempt * 2))
+            fi
+          done
           test -n "$revision"
           echo "revision=$revision" >> "$GITHUB_OUTPUT"
 
@@ -69,22 +77,45 @@ jobs:
         uses: actions/checkout@v7
         with:
           repository: maxliesegang/karlsruhe-oparl-syndication
+          ref: ${{ steps.data-revision.outputs.revision }}
           path: syndication-data
           sparse-checkout: docs
           fetch-depth: 1
-      - name: Install, build, and upload your site
+
+      - name: Setup Node
         if: steps.changes.outputs.should-deploy == 'true'
-        uses:
-          withastro/action@v6
-          # with:
-          # path: . # The root location of your Astro project inside the repository. (optional)
-          # node-version: 24 # The specific version of Node that should be used to build your site. Defaults to 24. (optional)
-        # package-manager: pnpm@latest # The Node package manager that should be used to install dependencies and build your site. Automatically detected based on your lockfile. (optional)
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        if: steps.changes.outputs.should-deploy == 'true'
+        run: npm ci --no-audit --no-fund
+
+      - name: Build site
+        if: steps.changes.outputs.should-deploy == 'true'
+        run: npm run build:quiet
+
+      - name: Verify build output
+        if: steps.changes.outputs.should-deploy == 'true'
+        run: npm run build:verify
+
+      - name: Upload Pages artifact
+        if: steps.changes.outputs.should-deploy == 'true'
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: dist
+          include-hidden-files: true
 
   deploy:
     needs: build
     if: needs.build.outputs.should-deploy == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    concurrency:
+      group: pages-deploy
+      cancel-in-progress: false
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

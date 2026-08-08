@@ -9,7 +9,7 @@ It builds from an OParl-based JSON mirror and publishes to GitHub Pages.
 
 ## What It Does
 
-- Full-text search on the landing page via `astro-pagefind` (German UI copy).
+- Full-text search on the landing page via Pagefind (German UI copy).
 - Browse papers on one page (`/vorlagen`) with a year filter (`?year=YYYY`).
 - Browse papers by district (`/stadtteile`, `/stadtteil/[name]`).
 - Filter list pages by year, type, organization, role, result, and mentioned district.
@@ -22,9 +22,9 @@ It builds from an OParl-based JSON mirror and publishes to GitHub Pages.
 
 ## Stack
 
-- Astro 5 (`astro build`, static output)
+- Astro 7.1 (`astro build`, static output)
 - TypeScript (strict via `astro/tsconfigs/strict`)
-- `astro-pagefind`
+- Pagefind with a custom lean indexing integration
 - Prettier 3 + `prettier-plugin-astro`
 - npm (`package-lock.json` is authoritative)
 
@@ -47,14 +47,15 @@ Dev server: [http://localhost:4321](http://localhost:4321)
 Build and preview:
 
 ```bash
-npm run build
+npm run build:quiet
+npm run build:verify
 npm run preview
 ```
 
 Fast validation build (skips Pagefind indexing):
 
 ```bash
-npm run build:quick
+npm run build:quick:quiet
 ```
 
 ### Quiet Builds
@@ -70,7 +71,9 @@ npm run build:quick:quiet # skips Pagefind — fastest validation
 ```
 
 Both wrap `astro build` via `scripts/build-quiet.mjs`. Extra flags are forwarded
-(`npm run build:quiet -- --verbose`). CI keeps using plain `npm run build`.
+(`npm run build:quiet -- --verbose`). Production uses the full quiet build and
+then runs `npm run build:verify`, which requires the Pagefind bundle and enforces
+an 850 MiB published-size budget.
 
 The upstream repository stores papers and meetings as individual JSON files in
 `docs/papers/` and `docs/meetings/`; the former aggregate files no longer exist.
@@ -130,9 +133,13 @@ enumerating the directory.
 GitHub Pages deployment is configured in `.github/workflows/deploy.yml`:
 
 - On push to `main`
-- On schedule at `03:00` and `15:00` UTC
-- Via `withastro/action@v3` + `actions/deploy-pages@v4`
-- Uses the default `npm run build` (Pagefind enabled)
+- On schedule at `03:17` and `15:17` UTC
+- Scheduled runs skip checkout/build/deploy when the viewer and data revisions
+  were already deployed successfully
+- Resolves and checks out one exact council-data revision
+- Uses Node 24, `npm ci`, `npm run build:quiet`, output verification, and
+  `actions/deploy-pages@v5`
+- Cancels superseded builds while allowing an active deployment to finish
 
 Do not commit generated output (`dist/`).
 
@@ -142,6 +149,7 @@ Do not commit generated output (`dist/`).
 2. Keep links base-aware with `import.meta.env.BASE_URL`.
 3. Run `npm run format`.
 4. Run `npm run build:quiet` if you touched page/data logic.
+5. Run `npm run build:verify` after a full build when output or indexing changed.
 
 ## License
 
