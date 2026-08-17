@@ -69,9 +69,9 @@ jobs:
             echo "should-deploy=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Setup Pages
-        if: steps.changes.outputs.should-deploy == 'true'
-        uses: actions/configure-pages@v6
+      # No actions/configure-pages step: astro.config.mjs hardcodes `site` and
+      # `base`, so its outputs go unused and it only adds a download that can
+      # fail during job setup.
       - name: Checkout council data
         if: steps.changes.outputs.should-deploy == 'true'
         uses: actions/checkout@v7
