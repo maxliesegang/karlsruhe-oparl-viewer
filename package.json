@@ -21,11 +21,11 @@
     "format": "npx prettier . --write"
   },
   "dependencies": {
-    "astro": "^7.1.6",
+    "astro": "^7.2.10",
     "pagefind": "^1.5.2"
   },
   "devDependencies": {
-    "@types/node": "^26.1.2",
+    "@types/node": "^26.4.1",
     "prettier": "^3.9.6",
     "prettier-plugin-astro": "^0.14.1"
   }
