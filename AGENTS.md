@@ -101,9 +101,9 @@ is why `twitter:*` is reduced to `twitter:card` — X falls back to `og:*`.
    `https://maxliesegang.github.io/karlsruhe-oparl-viewer/` (the HTML-file
    method works — drop the file in `public/`), then submit the sitemap.
 
-Known gap: only the ~74 upcoming meetings are linked from `/sitzungen`; the
-other ~2.5k meeting pages are reachable through the sitemap and through paper
-detail pages, but have no browsable archive index.
+Every meeting page is now browsable: `/sitzungen` lists the upcoming ones and
+`/sitzungen/archiv` the ~2.5k past ones, split into one page per calendar year
+(~27 pages, ~3 MiB total).
 
 ## Common Pitfalls
 

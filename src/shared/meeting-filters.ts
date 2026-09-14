@@ -1,4 +1,9 @@
 import {
+  buildMeetingMonthOptions,
+  getMeetingMonth,
+  hasMeetingProtocol,
+} from "./meeting-archive";
+import {
   MEETING_BODY_TYPES,
   type MeetingBodyType,
   type MeetingFilterOptions,
@@ -111,6 +116,8 @@ export function buildMeetingFilterModel(
         districts,
       ),
       publicAgendaCount,
+      month: getMeetingMonth(meeting.start),
+      hasProtocol: hasMeetingProtocol(meeting),
     };
 
     valuesById[meeting.id] = filterValues;
@@ -133,6 +140,7 @@ export function buildMeetingFilterModel(
       districts: [...districtSet].sort((left, right) =>
         left.localeCompare(right, "de-DE"),
       ),
+      months: buildMeetingMonthOptions(meetings),
     },
   };
 }

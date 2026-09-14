@@ -1,0 +1,146 @@
+---
+import Layout from "../../../layouts/Layout.astro";
+import PageContainer from "../../../components/PageContainer.astro";
+import Breadcrumbs from "../../../components/Breadcrumbs.astro";
+import MeetingFilters from "../../../components/MeetingFilters.astro";
+import MeetingList from "../../../components/MeetingList.astro";
+import { getPastMeetings, loadOrganizations } from "../../../shared/data";
+import { buildMeetingFilterModel } from "../../../shared/meeting-filters";
+import {
+  buildMeetingArchiveUrl,
+  buildMeetingArchiveYears,
+  buildMeetingArchiveYearUrl,
+  filterMeetingsByYear,
+} from "../../../shared/meeting-archive";
+import type { Meeting } from "../../../shared/types";
+
+export async function getStaticPaths() {
+  const pastMeetings = await getPastMeetings();
+  const years = buildMeetingArchiveYears(pastMeetings);
+
+  return years.map(({ year, count }, index) => ({
+    params: { jahr: year },
+    props: {
+      year,
+      count,
+      meetings: filterMeetingsByYear(pastMeetings, year),
+      // The list runs newest first, so the previous entry is the newer year.
+      newerYear: years[index - 1]?.year,
+      olderYear: years[index + 1]?.year,
+    },
+  }));
+}
+
+interface Props {
+  year: string;
+  count: number;
+  meetings: Meeting[];
+  newerYear?: string;
+  olderYear?: string;
+}
+
+const { year, count, meetings, newerYear, olderYear } = Astro.props;
+const organizationsById = await loadOrganizations();
+const { valuesById: meetingFilterValuesById, options: meetingFilterOptions } =
+  buildMeetingFilterModel(meetings, organizationsById);
+const baseUrl = import.meta.env.BASE_URL;
+const archiveUrl = buildMeetingArchiveUrl(baseUrl);
+---
+
+<Layout
+  title={`Sitzungen ${year} — Archiv`}
+  description={`Alle ${count} vergangenen Sitzungen der Karlsruher Gremien aus dem Jahr ${year} mit Tagesordnung, Unterlagen und Protokollen.`}
+  pagefindIgnore
+  navigationSection="meetings"
+>
+  <PageContainer class="archive-year-page">
+    <Breadcrumbs
+      items={[
+        { label: "Sitzungen", href: `${baseUrl}sitzungen` },
+        { label: "Archiv", href: archiveUrl },
+        { label: year },
+      ]}
+    />
+    <h1 class="page-header">Sitzungen {year}</h1>
+    <div class="page-intro" data-pagefind-ignore>
+      <p>
+        {count} vergangene Sitzungen der Karlsruher Gremien aus dem Jahr {year}.
+      </p>
+    </div>
+
+    <nav class="year-nav" aria-label="Jahre" data-pagefind-ignore>
+      {
+        olderYear ? (
+          <a href={buildMeetingArchiveYearUrl(baseUrl, olderYear)} rel="prev">
+            ← {olderYear}
+          </a>
+        ) : (
+          <span />
+        )
+      }
+      <a href={archiveUrl}>Alle Jahre</a>
+      {
+        newerYear ? (
+          <a href={buildMeetingArchiveYearUrl(baseUrl, newerYear)} rel="next">
+            {newerYear} →
+          </a>
+        ) : (
+          <span />
+        )
+      }
+    </nav>
+
+    <MeetingFilters
+      filterOptions={meetingFilterOptions}
+      meetingCount={meetings.length}
+      variant="archive"
+    />
+    <MeetingList
+      meetings={meetings}
+      filterValuesById={meetingFilterValuesById}
+      variant="archive"
+    />
+    <p class="no-results" data-meeting-no-results hidden>
+      Keine Sitzungen für die gewählten Filter gefunden.
+    </p>
+  </PageContainer>
+</Layout>
+
+<style>
+  .archive-year-page {
+    max-width: 1000px;
+  }
+
+  .page-intro {
+    margin: 0 auto 8px;
+    color: var(--color-text-muted);
+  }
+
+  .page-intro p {
+    margin: 0;
+  }
+
+  .year-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 14px;
+    font-size: 0.9rem;
+  }
+
+  .year-nav a {
+    color: var(--color-link);
+    text-decoration: none;
+  }
+
+  .year-nav a:hover {
+    text-decoration: underline;
+  }
+
+  .no-results {
+    margin: 24px 0;
+    color: var(--color-text-muted);
+    text-align: center;
+  }
+</style>

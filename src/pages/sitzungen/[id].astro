@@ -12,10 +12,16 @@ import {
 import { getMeetingStaticPaths } from "../../shared/meeting-paths";
 import {
   formatDateTime,
+  getEffectiveMeetingEnd,
   hasPublishedMeetingEnd,
   getOParlEntityId,
   normalizeOParlUrl,
 } from "../../shared/utils";
+import {
+  buildMeetingArchiveUrl,
+  buildMeetingArchiveYearUrl,
+  getMeetingYear,
+} from "../../shared/meeting-archive";
 import type { AuxiliaryFile, Meeting } from "../../shared/types";
 import { buildMeetingDescription } from "../../shared/seo";
 
@@ -39,6 +45,27 @@ const committeeFeeds = organizations.flatMap((organization) => {
   const feed = feedCatalog.committeeFeedByOrganizationId.get(organization.id);
   return feed ? [{ name: organization.name, url: feed.url }] : [];
 });
+/**
+ * Past meetings lead back into the archive year they belong to; upcoming ones
+ * back to the list they are still on. Evaluated at build time, so a meeting
+ * changes sides with the next deploy.
+ */
+const isPastMeeting =
+  getEffectiveMeetingEnd(meeting.start, meeting.end) < new Date();
+const meetingYear = getMeetingYear(meeting.start);
+const breadcrumbItems = [
+  { label: "Sitzungen", href: `${baseUrl}sitzungen` },
+  ...(isPastMeeting && meetingYear
+    ? [
+        { label: "Archiv", href: buildMeetingArchiveUrl(baseUrl) },
+        {
+          label: meetingYear,
+          href: buildMeetingArchiveYearUrl(baseUrl, meetingYear),
+        },
+      ]
+    : []),
+  { label: meeting.name },
+];
 const hasPublishedEnd = hasPublishedMeetingEnd(meeting.start, meeting.end);
 const rawDocuments: { label: string; file: AuxiliaryFile }[] = [
   meeting.invitation && { label: "Einladung", file: meeting.invitation },
@@ -99,12 +126,7 @@ const structuredData = {
   navigationSection="meetings"
 >
   <PageContainer class="meeting-detail-page">
-    <Breadcrumbs
-      items={[
-        { label: "Sitzungen", href: `${baseUrl}sitzungen` },
-        { label: meeting.name },
-      ]}
-    />
+    <Breadcrumbs items={breadcrumbItems} />
     <h1 class="page-header">{meeting.name}</h1>
 
     <section class="section-card meeting-key-info" data-pagefind-ignore>

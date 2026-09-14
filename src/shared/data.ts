@@ -322,6 +322,17 @@ export const getUpcomingMeetings = memoizeAsync(
   },
 );
 
+/** Everything the upcoming list leaves out, newest first — the archive order. */
+export const getPastMeetings = memoizeAsync(async (): Promise<Meeting[]> => {
+  const meetings = await getMeetings();
+  const now = new Date();
+  return meetings
+    .filter(
+      (meeting) => getEffectiveMeetingEnd(meeting.start, meeting.end) < now,
+    )
+    .reverse();
+});
+
 export const getAvailableDistricts = memoizeAsync(
   async (): Promise<string[]> => {
     const [paperDistrictData, paperCountsByDistrict] = await Promise.all([

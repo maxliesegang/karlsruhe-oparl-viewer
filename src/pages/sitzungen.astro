@@ -2,21 +2,25 @@
 import Layout from "../layouts/Layout.astro";
 import PageContainer from "../components/PageContainer.astro";
 import MeetingFilters from "../components/MeetingFilters.astro";
-import { getUpcomingMeetings, loadOrganizations } from "../shared/data";
-import { buildMeetingFilterModel } from "../shared/meeting-filters";
+import MeetingList from "../components/MeetingList.astro";
+import MeetingViewTabs from "../components/MeetingViewTabs.astro";
 import {
-  buildMeetingDetailUrl,
-  formatDateTime,
-  getOParlEntityId,
-} from "../shared/utils";
+  getPastMeetings,
+  getUpcomingMeetings,
+  loadOrganizations,
+} from "../shared/data";
+import { buildMeetingFilterModel } from "../shared/meeting-filters";
+import { buildMeetingArchiveUrl } from "../shared/meeting-archive";
 
-const [meetings, organizationsById] = await Promise.all([
+const [meetings, pastMeetings, organizationsById] = await Promise.all([
   getUpcomingMeetings(),
+  getPastMeetings(),
   loadOrganizations(),
 ]);
 const { valuesById: meetingFilterValuesById, options: meetingFilterOptions } =
   buildMeetingFilterModel(meetings, organizationsById);
 const baseUrl = import.meta.env.BASE_URL;
+const archiveUrl = buildMeetingArchiveUrl(baseUrl);
 ---
 
 <Layout
@@ -26,11 +30,15 @@ const baseUrl = import.meta.env.BASE_URL;
   navigationSection="meetings"
 >
   <PageContainer class="meetings-page">
-    <h1 class="page-header">Kommende Sitzungen</h1>
+    <h1 class="page-header">Sitzungen</h1>
+    <MeetingViewTabs current="upcoming" />
     <div class="page-intro" data-pagefind-ignore>
       <p>
         Öffentliche Termine und Tagesordnungen der Karlsruher Gremien. Neue
         Tagesordnungspunkte erscheinen, sobald sie veröffentlicht wurden.
+        Vergangene Sitzungen stehen im <a href={archiveUrl}>Archiv</a> ({
+          pastMeetings.length
+        } Sitzungen).
       </p>
     </div>
 
@@ -41,63 +49,19 @@ const baseUrl = import.meta.env.BASE_URL;
             filterOptions={meetingFilterOptions}
             meetingCount={meetings.length}
           />
-          <ul class="meeting-list" data-pagefind-ignore>
-            {meetings.map((meeting) => {
-              const id = getOParlEntityId(meeting.id);
-              const filterValues = meetingFilterValuesById[meeting.id];
-              return (
-                <li data-meeting-item>
-                  <article
-                    class="meeting-card"
-                    data-meeting-card
-                    data-body-types={filterValues.bodyTypes.join("|")}
-                    data-organizations={filterValues.organizations.join("|")}
-                    data-districts={filterValues.districts.join("|")}
-                    data-start={meeting.start}
-                    data-has-public-agenda={String(
-                      filterValues.publicAgendaCount > 0,
-                    )}
-                    data-search={filterValues.searchText}
-                  >
-                    <div class="meeting-date">
-                      <time datetime={meeting.start}>
-                        {formatDateTime(meeting.start)} Uhr
-                      </time>
-                      <span>
-                        {meeting.location?.description || "Ort noch offen"}
-                      </span>
-                    </div>
-                    <h2>
-                      <a href={buildMeetingDetailUrl(baseUrl, id)}>
-                        {meeting.name}
-                      </a>
-                    </h2>
-                    <p class="meeting-organization">
-                      {filterValues.organizationLabel}
-                    </p>
-                    <div class="meeting-actions">
-                      <span
-                        class:list={[
-                          "agenda-status",
-                          filterValues.publicAgendaCount > 0 && "available",
-                        ]}
-                      >
-                        {filterValues.publicAgendaCount > 0
-                          ? `${filterValues.publicAgendaCount} öffentliche Tagesordnungspunkte`
-                          : "Tagesordnung noch nicht veröffentlicht"}
-                      </span>
-                    </div>
-                  </article>
-                </li>
-              );
-            })}
-          </ul>
+          <MeetingList
+            meetings={meetings}
+            filterValuesById={meetingFilterValuesById}
+          />
           <p class="no-results" data-meeting-no-results hidden>
             Keine Sitzungen für die gewählten Filter gefunden.
           </p>
         </>
       ) : (
-        <p class="empty">Derzeit sind keine kommenden Sitzungen verfügbar.</p>
+        <p class="empty">
+          Derzeit sind keine kommenden Sitzungen verfügbar —{" "}
+          <a href={archiveUrl}>vergangene Sitzungen im Archiv</a>.
+        </p>
       )
     }
   </PageContainer>
@@ -115,65 +79,6 @@ const baseUrl = import.meta.env.BASE_URL;
 
   .page-intro p {
     margin: 0;
-  }
-
-  .meeting-list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: grid;
-    gap: 14px;
-  }
-
-  .meeting-card {
-    padding: 20px;
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius);
-    background: #fff;
-    box-shadow: var(--shadow-card);
-  }
-
-  .meeting-date,
-  .meeting-actions {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px 16px;
-    color: var(--color-text-muted);
-    font-size: 0.9rem;
-  }
-
-  .meeting-date time {
-    color: var(--color-text);
-    font-weight: 700;
-  }
-
-  h2 {
-    margin: 12px 0;
-    font-size: 1.2rem;
-  }
-
-  h2 a,
-  .meeting-actions a {
-    color: var(--color-link);
-    text-decoration: none;
-  }
-
-  h2 a:hover,
-  .meeting-actions a:hover {
-    text-decoration: underline;
-  }
-
-  .meeting-organization {
-    margin: -4px 0 14px;
-    color: var(--color-text-muted);
-    font-size: 0.9rem;
-  }
-
-  .agenda-status.available {
-    color: #176b3a;
-    font-weight: 700;
   }
 
   .empty {

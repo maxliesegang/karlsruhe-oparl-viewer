@@ -1,9 +1,11 @@
 ---
 import {
+  getMeetingSelectFilters,
   MEETING_AGENDA_OPTIONS,
   MEETING_FILTER_IDS,
-  MEETING_SELECT_FILTERS,
+  MEETING_PROTOCOL_OPTIONS,
   MEETING_TIME_RANGE_OPTIONS,
+  type MeetingListVariant,
   type MeetingSelectFilterKey,
 } from "../shared/meeting-filter-definitions";
 import type { MeetingFilterOptions } from "../shared/types";
@@ -12,9 +14,10 @@ import FilterSelect from "./FilterSelect.astro";
 interface Props {
   filterOptions: MeetingFilterOptions;
   meetingCount: number;
+  variant?: MeetingListVariant;
 }
 
-const { filterOptions, meetingCount } = Astro.props;
+const { filterOptions, meetingCount, variant = "upcoming" } = Astro.props;
 
 type FilterOption = string | { value: string; label: string };
 
@@ -25,11 +28,14 @@ const optionsByKey: Record<
   organization: filterOptions.organizations,
   district: filterOptions.districts,
   timeRange: MEETING_TIME_RANGE_OPTIONS,
+  month: filterOptions.months,
   agenda: MEETING_AGENDA_OPTIONS,
+  protocol: MEETING_PROTOCOL_OPTIONS,
 };
+const selectFilters = getMeetingSelectFilters(variant);
 ---
 
-<div class="meeting-filters" data-meeting-filters>
+<div class="meeting-filters" data-meeting-filters={variant}>
   <div class="meeting-body-type-filter">
     <span class="meeting-filter-label" id="meeting-body-type-label">
       Gremien
@@ -87,11 +93,11 @@ const optionsByKey: Record<
     </div>
     <div class="filter-row" data-filter-row>
       {
-        MEETING_SELECT_FILTERS.map(({ key, id, label }) => (
+        selectFilters.map(({ key, id, label, emptyLabel }) => (
           <FilterSelect
             id={id}
             label={label}
-            emptyLabel={key === "timeRange" ? "Alle kommenden" : undefined}
+            emptyLabel={emptyLabel}
             options={optionsByKey[key]}
           />
         ))

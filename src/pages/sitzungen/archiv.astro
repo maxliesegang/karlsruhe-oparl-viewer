@@ -1,0 +1,217 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import PageContainer from "../../components/PageContainer.astro";
+import MeetingViewTabs from "../../components/MeetingViewTabs.astro";
+import { getPastMeetings, loadOrganizations } from "../../shared/data";
+import { buildMeetingFilterModel } from "../../shared/meeting-filters";
+import {
+  buildMeetingArchiveYears,
+  buildMeetingArchiveYearUrl,
+} from "../../shared/meeting-archive";
+import {
+  buildMeetingDetailUrl,
+  formatDateShort,
+  getOParlEntityId,
+} from "../../shared/utils";
+
+/** How many of the most recent meetings the overview previews. */
+const RECENT_MEETING_COUNT = 8;
+
+const [pastMeetings, organizationsById] = await Promise.all([
+  getPastMeetings(),
+  loadOrganizations(),
+]);
+const archiveYears = buildMeetingArchiveYears(pastMeetings);
+const recentMeetings = pastMeetings.slice(0, RECENT_MEETING_COUNT);
+const { valuesById } = buildMeetingFilterModel(
+  recentMeetings,
+  organizationsById,
+);
+const baseUrl = import.meta.env.BASE_URL;
+const maximumYearCount = Math.max(
+  1,
+  ...archiveYears.map((entry) => entry.count),
+);
+---
+
+<Layout
+  title="Sitzungsarchiv"
+  description={`Archiv der vergangenen Sitzungen des Karlsruher Gemeinderats und seiner Gremien — ${pastMeetings.length} Sitzungen seit ${archiveYears.at(-1)?.year ?? ""}.`}
+  pagefindIgnore
+  navigationSection="meetings"
+>
+  <PageContainer class="archive-page">
+    <h1 class="page-header">Sitzungen</h1>
+    <MeetingViewTabs current="archive" />
+    <div class="page-intro" data-pagefind-ignore>
+      <p>
+        {pastMeetings.length} vergangene Sitzungen mit Tagesordnung, Unterlagen und
+        – wo veröffentlicht – Protokoll. Wählen Sie ein Jahr; dort lässt sich nach
+        Gremium, Ortschaft und Monat filtern.
+      </p>
+    </div>
+
+    <h2 class="section-header">Nach Jahr</h2>
+    <ul class="year-grid" data-pagefind-ignore>
+      {
+        archiveYears.map((entry) => (
+          <li>
+            <a
+              class="year-card"
+              href={buildMeetingArchiveYearUrl(baseUrl, entry.year)}
+            >
+              <span class="year-label">{entry.year}</span>
+              <span class="year-count">{entry.count} Sitzungen</span>
+              <span
+                class="year-bar"
+                style={`--fill: ${Math.round((entry.count / maximumYearCount) * 100)}%`}
+                aria-hidden="true"
+              />
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+
+    {
+      recentMeetings.length > 0 && (
+        <>
+          <h2 class="section-header">Zuletzt getagt</h2>
+          <ul class="recent-list" data-pagefind-ignore>
+            {recentMeetings.map((meeting) => {
+              const id = getOParlEntityId(meeting.id);
+              return (
+                <li>
+                  <span class="recent-date">
+                    {formatDateShort(meeting.start)}
+                  </span>
+                  <a href={buildMeetingDetailUrl(baseUrl, id)}>
+                    {meeting.name}
+                  </a>
+                  <span class="recent-organization">
+                    {valuesById[meeting.id]?.organizationLabel}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        </>
+      )
+    }
+  </PageContainer>
+</Layout>
+
+<style>
+  .archive-page {
+    max-width: 1000px;
+  }
+
+  .page-intro {
+    margin: 0 auto 20px;
+    color: var(--color-text-muted);
+  }
+
+  .page-intro p {
+    margin: 0;
+  }
+
+  .section-header {
+    margin: 28px 0 12px;
+    font-size: 1.05rem;
+  }
+
+  .year-grid {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+  }
+
+  .year-card {
+    display: grid;
+    gap: 4px;
+    padding: 12px 14px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    background: #fff;
+    color: var(--color-text);
+    text-decoration: none;
+  }
+
+  .year-card:hover {
+    border-color: var(--color-link);
+  }
+
+  .year-card:focus-visible {
+    outline: 2px solid var(--color-link);
+    outline-offset: 2px;
+  }
+
+  .year-label {
+    color: var(--color-link);
+    font-size: 1.15rem;
+    font-weight: 700;
+  }
+
+  .year-count {
+    color: var(--color-text-muted);
+    font-size: 0.82rem;
+  }
+
+  /* A bar instead of a chart: relative volume per year, no extra markup. */
+  .year-bar {
+    display: block;
+    height: 4px;
+    border-radius: 999px;
+    background: var(--color-border);
+  }
+
+  .year-bar::before {
+    content: "";
+    display: block;
+    width: var(--fill);
+    height: 100%;
+    border-radius: 999px;
+    background: var(--color-link);
+  }
+
+  .recent-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 2px;
+  }
+
+  .recent-list li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .recent-date {
+    min-width: 6.5em;
+    color: var(--color-text-muted);
+    font-size: 0.85rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .recent-list a {
+    color: var(--color-link);
+    text-decoration: none;
+  }
+
+  .recent-list a:hover {
+    text-decoration: underline;
+  }
+
+  .recent-organization {
+    color: var(--color-text-muted);
+    font-size: 0.82rem;
+  }
+</style>

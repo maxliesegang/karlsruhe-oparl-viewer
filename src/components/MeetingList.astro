@@ -1,0 +1,144 @@
+---
+import type { MeetingListVariant } from "../shared/meeting-filter-definitions";
+import type { Meeting, MeetingFilterValues } from "../shared/types";
+import {
+  buildMeetingDetailUrl,
+  formatDateTime,
+  getOParlEntityId,
+} from "../shared/utils";
+
+interface Props {
+  meetings: Meeting[];
+  filterValuesById: Record<string, MeetingFilterValues>;
+  variant?: MeetingListVariant;
+}
+
+const { meetings, filterValuesById, variant = "upcoming" } = Astro.props;
+const baseUrl = import.meta.env.BASE_URL;
+
+/**
+ * Past meetings are judged by what they left behind (protocol), upcoming ones
+ * by what is already announced (agenda) — same card, different question.
+ */
+function describeAgenda(count: number): string {
+  if (count > 0) return `${count} öffentliche Tagesordnungspunkte`;
+  return variant === "archive"
+    ? "Keine öffentliche Tagesordnung"
+    : "Tagesordnung noch nicht veröffentlicht";
+}
+---
+
+<ul class="meeting-list" data-pagefind-ignore>
+  {
+    meetings.map((meeting) => {
+      const id = getOParlEntityId(meeting.id);
+      const filterValues = filterValuesById[meeting.id];
+      return (
+        <li data-meeting-item>
+          <article
+            class="meeting-card"
+            data-meeting-card
+            data-body-types={filterValues.bodyTypes.join("|")}
+            data-organizations={filterValues.organizations.join("|")}
+            data-districts={filterValues.districts.join("|")}
+            data-start={meeting.start}
+            data-month={filterValues.month}
+            data-has-public-agenda={String(filterValues.publicAgendaCount > 0)}
+            data-has-protocol={String(filterValues.hasProtocol)}
+            data-search={filterValues.searchText}
+          >
+            <div class="meeting-date">
+              <time datetime={meeting.start}>
+                {formatDateTime(meeting.start)} Uhr
+              </time>
+              <span>{meeting.location?.description || "Ort noch offen"}</span>
+            </div>
+            <h2>
+              <a href={buildMeetingDetailUrl(baseUrl, id)}>{meeting.name}</a>
+            </h2>
+            <p class="meeting-organization">{filterValues.organizationLabel}</p>
+            <div class="meeting-actions">
+              <span
+                class:list={[
+                  "agenda-status",
+                  filterValues.publicAgendaCount > 0 && "available",
+                ]}
+              >
+                {describeAgenda(filterValues.publicAgendaCount)}
+              </span>
+              {variant === "archive" && filterValues.hasProtocol && (
+                <span class="protocol-status">Protokoll vorhanden</span>
+              )}
+            </div>
+          </article>
+        </li>
+      );
+    })
+  }
+</ul>
+
+<style>
+  .meeting-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 14px;
+  }
+
+  .meeting-card {
+    padding: 20px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    background: #fff;
+    box-shadow: var(--shadow-card);
+  }
+
+  .meeting-date,
+  .meeting-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 16px;
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+  }
+
+  .meeting-date time {
+    color: var(--color-text);
+    font-weight: 700;
+  }
+
+  h2 {
+    margin: 12px 0;
+    font-size: 1.2rem;
+  }
+
+  h2 a {
+    color: var(--color-link);
+    text-decoration: none;
+  }
+
+  h2 a:hover {
+    text-decoration: underline;
+  }
+
+  .meeting-organization {
+    margin: -4px 0 14px;
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+  }
+
+  .agenda-status.available {
+    color: #176b3a;
+    font-weight: 700;
+  }
+
+  .protocol-status {
+    padding: 2px 10px;
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    font-size: 0.8rem;
+  }
+</style>

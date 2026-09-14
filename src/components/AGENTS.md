@@ -14,7 +14,9 @@ Reusable UI components. Prefer extending existing components over creating new o
 | `PaperList.astro`            | Paper cards, summary text, filter panel mount point               |
 | `PaperFilters.astro`         | Filter controls panel                                             |
 | `FilterSelect.astro`         | Reusable dropdown for a single filter                             |
-| `MeetingFilters.astro`       | Meeting-specific filter controls and status                       |
+| `MeetingFilters.astro`       | Meeting-specific filter controls and status (`variant` aware)     |
+| `MeetingList.astro`          | Meeting cards for the upcoming list and the archive               |
+| `MeetingViewTabs.astro`      | Switches between upcoming meetings and the archive                |
 | `MeetingActions.astro`       | Single-event calendar download and committee feed links           |
 | `SearchPanel.astro`          | Pagefind search box + rich result cards (custom UI)               |
 | `FeedSubscriptionLink.astro` | Shared link to an external update feed                            |
@@ -49,10 +51,23 @@ Meeting filter IDs are defined in `src/shared/meeting-filter-definitions.ts`:
 
 `meeting-filter-body-type` · `meeting-filter-organization` ·
 `meeting-filter-district` · `meeting-filter-time-range` ·
-`meeting-filter-agenda` · `meeting-filter-search` · `meeting-filter-reset`
+`meeting-filter-month` · `meeting-filter-agenda` · `meeting-filter-protocol` ·
+`meeting-filter-search` · `meeting-filter-reset`
 
 On the meeting list, `meeting-filter-body-type` is the always-visible segmented
 control. The remaining meeting filters live in the collapsible advanced panel.
+
+Which selects are rendered depends on the list variant, declared as
+`data-meeting-filters="upcoming" | "archive"` on the panel and read back by
+`meeting-filter-controller.ts`:
+
+- `upcoming` — Gremium · Ortschaft · **Zeitraum** · **Tagesordnung**
+- `archive` — Gremium · Ortschaft · **Monat** · **Protokoll**
+
+`MeetingList.astro` emits the matching card data (`data-month`,
+`data-has-protocol` alongside the shared attributes); a new filter needs a value
+in `buildMeetingFilterModel`, an attribute on the card, and a branch in
+`matchesItem`.
 
 **Pagefind**
 

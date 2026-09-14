@@ -11,23 +11,25 @@ Source root. See sub-directory guides for focused documentation:
 
 Route entrypoints in `src/pages/`. Each file maps to a URL path.
 
-| File                               | URL                            | Notes                                     |
-| ---------------------------------- | ------------------------------ | ----------------------------------------- |
-| `pages/index.astro`                | `/`                            | Search page (Pagefind)                    |
-| `pages/suche.astro`                | `/suche`                       | Alternative search route                  |
-| `pages/vorlagen.astro`             | `/vorlagen`                    | Papers list with filters                  |
-| `pages/vorlagen[year].astro`       | `/vorlagen{year}`              | Legacy redirect → `/vorlagen?year=…`      |
-| `pages/vorlagen/[reference].astro` | `/vorlagen/[reference]`        | Paper detail page                         |
-| `pages/stadtteile.astro`           | `/stadtteile`                  | District overview                         |
-| `pages/stadtteil/[name].astro`     | `/stadtteil/[name]`            | Papers for one district                   |
-| `pages/fraktionen.astro`           | `/fraktionen`                  | Submitter faction overview                |
-| `pages/fraktion/[name].astro`      | `/fraktion/[name]`             | Papers by submitter faction               |
-| `pages/vorlage/[reference].astro`  | `/vorlage/[reference]`         | Legacy redirect → `/vorlagen/[reference]` |
-| `pages/gespeicherte-suchen.astro`  | `/gespeicherte-suchen`         | Saved searches                            |
-| `pages/feeds.astro`                | `/feeds`                       | Feeds by committee and district           |
-| `pages/sitzungen.astro`            | `/sitzungen`                   | Upcoming meetings                         |
-| `pages/sitzungen/[id].astro`       | `/sitzungen/[id]`              | Meeting details and public agenda         |
-| `pages/sitzungen/kalender/[id].ts` | `/sitzungen/kalender/[id].ics` | Single-meeting calendar download          |
+| File                                  | URL                            | Notes                                      |
+| ------------------------------------- | ------------------------------ | ------------------------------------------ |
+| `pages/index.astro`                   | `/`                            | Search page (Pagefind)                     |
+| `pages/suche.astro`                   | `/suche`                       | Alternative search route                   |
+| `pages/vorlagen.astro`                | `/vorlagen`                    | Papers list with filters                   |
+| `pages/vorlagen[year].astro`          | `/vorlagen{year}`              | Legacy redirect → `/vorlagen?year=…`       |
+| `pages/vorlagen/[reference].astro`    | `/vorlagen/[reference]`        | Paper detail page                          |
+| `pages/stadtteile.astro`              | `/stadtteile`                  | District overview                          |
+| `pages/stadtteil/[name].astro`        | `/stadtteil/[name]`            | Papers for one district                    |
+| `pages/fraktionen.astro`              | `/fraktionen`                  | Submitter faction overview                 |
+| `pages/fraktion/[name].astro`         | `/fraktion/[name]`             | Papers by submitter faction                |
+| `pages/vorlage/[reference].astro`     | `/vorlage/[reference]`         | Legacy redirect → `/vorlagen/[reference]`  |
+| `pages/gespeicherte-suchen.astro`     | `/gespeicherte-suchen`         | Saved searches                             |
+| `pages/feeds.astro`                   | `/feeds`                       | Feeds by committee and district            |
+| `pages/sitzungen.astro`               | `/sitzungen`                   | Upcoming meetings (default meeting view)   |
+| `pages/sitzungen/archiv.astro`        | `/sitzungen/archiv`            | Archive overview — years + latest sittings |
+| `pages/sitzungen/archiv/[jahr].astro` | `/sitzungen/archiv/[jahr]`     | Past meetings of one calendar year         |
+| `pages/sitzungen/[id].astro`          | `/sitzungen/[id]`              | Meeting details and public agenda          |
+| `pages/sitzungen/kalender/[id].ts`    | `/sitzungen/kalender/[id].ics` | Single-meeting calendar download           |
 
 > **Note:** Do not place non-`.astro` files directly inside `src/pages/` — Astro will try to render them as routes.
 
@@ -48,3 +50,11 @@ Current legacy routes: `pages/vorlagen[year].astro` and `pages/vorlage/[referenc
 - Keep labels and copy in German
 - If the page hosts an interactive list, wrap it with `data-pagefind-ignore`
 - Meeting pages are excluded from Pagefind so search and saved-search freshness remain paper-only
+
+## Meeting Views
+
+`/sitzungen` (upcoming) and `/sitzungen/archiv` (past) are two views of the same
+data, linked by `MeetingViewTabs`. Upcoming stays the entry point — the archive
+is one click away and never the default. Year pages are derived from
+`getPastMeetings()`; each holds at most ~190 meetings, so no pagination is
+needed. Past meeting detail pages breadcrumb back through their archive year.

@@ -1,7 +1,9 @@
 import {
+  getMeetingSelectFilters,
   MEETING_FILTER_IDS,
   MEETING_FILTER_QUERY_PARAMETERS,
-  MEETING_SELECT_FILTERS,
+  type MeetingListVariant,
+  type MeetingSelectFilterDefinition,
   type MeetingSelectFilterKey,
 } from "./meeting-filter-definitions";
 import { initResponsiveFilterPanel } from "./responsive-filters-panel";
@@ -9,16 +11,15 @@ import { getDateTimestamp } from "./utils";
 
 const INIT_DATA_KEY = "meetingFiltersInitialized";
 
-type FilterState = {
+type FilterState = Record<MeetingSelectFilterKey, string> & {
   bodyType: string;
-  organization: string;
-  district: string;
-  timeRange: string;
-  agenda: string;
   search: string;
 };
 
-type FilterControls = Record<MeetingSelectFilterKey, HTMLSelectElement> & {
+type FilterControls = Partial<
+  Record<MeetingSelectFilterKey, HTMLSelectElement>
+> & {
+  fields: readonly MeetingSelectFilterDefinition[];
   bodyTypeOptions: HTMLButtonElement[];
   search: HTMLInputElement;
   reset: HTMLButtonElement;
@@ -30,7 +31,9 @@ interface MeetingListItem {
   organizations: Set<string>;
   districts: Set<string>;
   startTimestamp?: number;
+  month: string;
   hasPublicAgenda: boolean;
+  hasProtocol: boolean;
   searchText: string;
 }
 
@@ -53,14 +56,22 @@ function hasSelectOption(select: HTMLSelectElement, value: string): boolean {
   return Array.from(select.options).some((option) => option.value === value);
 }
 
+function readVariant(container: HTMLElement): MeetingListVariant {
+  return container.dataset.meetingFilters === "archive"
+    ? "archive"
+    : "upcoming";
+}
+
 function collectControls(container: HTMLElement): FilterControls | null {
   const controls = {} as Partial<FilterControls>;
+  const fields = getMeetingSelectFilters(readVariant(container));
 
-  for (const field of MEETING_SELECT_FILTERS) {
+  for (const field of fields) {
     const control = container.querySelector<HTMLSelectElement>(`#${field.id}`);
     if (!control) return null;
     controls[field.key] = control;
   }
+  controls.fields = fields;
 
   const search = container.querySelector<HTMLInputElement>(
     `#${MEETING_FILTER_IDS.search}`,
@@ -104,7 +115,9 @@ function collectMeetingItems(container: HTMLElement): MeetingListItem[] {
         ),
         districts: parseDelimitedValues(card.getAttribute("data-districts")),
         startTimestamp: getDateTimestamp(card.dataset.start),
+        month: card.dataset.month ?? "",
         hasPublicAgenda: card.dataset.hasPublicAgenda === "true",
+        hasProtocol: card.dataset.hasProtocol === "true",
         searchText: card.dataset.search ?? "",
       },
     ];
@@ -112,17 +125,25 @@ function collectMeetingItems(container: HTMLElement): MeetingListItem[] {
 }
 
 function readFilterState(controls: FilterControls): FilterState {
-  return {
+  const state = {
     bodyType:
       controls.bodyTypeOptions.find(
         (option) => option.getAttribute("aria-pressed") === "true",
       )?.dataset.value ?? "",
-    organization: controls.organization.value,
-    district: controls.district.value,
-    timeRange: controls.timeRange.value,
-    agenda: controls.agenda.value,
+    organization: "",
+    district: "",
+    timeRange: "",
+    month: "",
+    agenda: "",
+    protocol: "",
     search: normalizeSearchValue(controls.search.value),
-  };
+  } satisfies FilterState;
+
+  for (const field of controls.fields) {
+    state[field.key] = controls[field.key]?.value ?? "";
+  }
+
+  return state;
 }
 
 function setSelectedBodyType(
@@ -149,10 +170,11 @@ function applyFilterStateFromUrl(controls: FilterControls): void {
     params.get(MEETING_FILTER_QUERY_PARAMETERS.bodyType) ?? "",
   );
 
-  for (const field of MEETING_SELECT_FILTERS) {
+  for (const field of controls.fields) {
+    const control = controls[field.key];
     const value = params.get(MEETING_FILTER_QUERY_PARAMETERS[field.key]) ?? "";
-    if (hasSelectOption(controls[field.key], value)) {
-      controls[field.key].value = value;
+    if (control && hasSelectOption(control, value)) {
+      control.value = value;
     }
   }
 
@@ -164,7 +186,7 @@ function syncFilterStateToUrl(controls: FilterControls): void {
   const url = new URL(window.location.href);
   const state = readFilterState(controls);
 
-  for (const field of MEETING_SELECT_FILTERS) {
+  for (const field of controls.fields) {
     const parameter = MEETING_FILTER_QUERY_PARAMETERS[field.key];
     const value = state[field.key];
     if (value) {
@@ -209,9 +231,12 @@ function matchesItem(
   }
   if (state.district && !item.districts.has(state.district)) return false;
   if (!matchesTimeRange(item, state.timeRange, now)) return false;
+  if (state.month && item.month !== state.month) return false;
 
   if (state.agenda === "available" && !item.hasPublicAgenda) return false;
   if (state.agenda === "missing" && item.hasPublicAgenda) return false;
+  if (state.protocol === "available" && !item.hasProtocol) return false;
+  if (state.protocol === "missing" && item.hasProtocol) return false;
   if (state.search && !item.searchText.includes(state.search)) return false;
 
   return true;
@@ -248,8 +273,9 @@ function applyFilters(context: MeetingFilterContext): void {
 
 function resetFilters(context: MeetingFilterContext): void {
   setSelectedBodyType(context.controls, "");
-  for (const field of MEETING_SELECT_FILTERS) {
-    context.controls[field.key].value = "";
+  for (const field of context.controls.fields) {
+    const control = context.controls[field.key];
+    if (control) control.value = "";
   }
   context.controls.search.value = "";
   syncFilterStateToUrl(context.controls);
@@ -300,8 +326,8 @@ function initMeetingFilterElement(container: HTMLElement): void {
     });
   }
 
-  for (const field of MEETING_SELECT_FILTERS) {
-    controls[field.key].addEventListener("change", applyAndSync);
+  for (const field of controls.fields) {
+    controls[field.key]?.addEventListener("change", applyAndSync);
   }
   controls.search.addEventListener("input", applyAndSync);
   controls.reset.addEventListener("click", () => resetFilters(context));

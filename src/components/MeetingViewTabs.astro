@@ -1,0 +1,73 @@
+---
+import { buildMeetingArchiveUrl } from "../shared/meeting-archive";
+
+interface Props {
+  current: "upcoming" | "archive";
+}
+
+const { current } = Astro.props;
+const baseUrl = import.meta.env.BASE_URL;
+const tabs = [
+  {
+    key: "upcoming" as const,
+    label: "Kommende Sitzungen",
+    href: `${baseUrl}sitzungen`,
+  },
+  {
+    key: "archive" as const,
+    label: "Archiv",
+    href: buildMeetingArchiveUrl(baseUrl),
+  },
+];
+---
+
+<nav
+  class="meeting-view-tabs"
+  aria-label="Sitzungsansicht"
+  data-pagefind-ignore
+>
+  {
+    tabs.map((tab) => (
+      <a
+        href={tab.href}
+        class:list={["meeting-view-tab", tab.key === current && "active"]}
+        aria-current={tab.key === current ? "page" : undefined}
+      >
+        {tab.label}
+      </a>
+    ))
+  }
+</nav>
+
+<style>
+  .meeting-view-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin: 0 0 18px;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .meeting-view-tab {
+    padding: 8px 14px;
+    border-bottom: 2px solid transparent;
+    color: var(--color-text-muted);
+    font-size: 0.95rem;
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .meeting-view-tab:hover {
+    color: var(--color-link);
+  }
+
+  .meeting-view-tab.active {
+    border-bottom-color: var(--color-link);
+    color: var(--color-link);
+  }
+
+  .meeting-view-tab:focus-visible {
+    outline: 2px solid var(--color-link);
+    outline-offset: 2px;
+  }
+</style>

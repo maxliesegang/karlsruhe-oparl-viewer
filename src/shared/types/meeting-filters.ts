@@ -16,10 +16,15 @@ export interface MeetingFilterValues {
   location: string;
   searchText: string;
   publicAgendaCount: number;
+  /** Zero-padded month ("01"…"12"); drives the archive month filter. */
+  month: string;
+  hasProtocol: boolean;
 }
 
 export interface MeetingFilterOptions {
   bodyTypes: MeetingBodyType[];
   organizations: string[];
   districts: string[];
+  /** Only populated for archive lists, where meetings sit inside one year. */
+  months: { value: string; label: string }[];
 }
