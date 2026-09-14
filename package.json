@@ -22,6 +22,7 @@
     "format": "npx prettier . --write"
   },
   "dependencies": {
+    "@astrojs/sitemap": "^3.7.4",
     "astro": "^7.2.10",
     "pagefind": "^1.5.2"
   },

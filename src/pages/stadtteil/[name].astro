@@ -34,7 +34,11 @@ const { papers, valuesById, options } =
   await loadPaperFilterModel(districtPapers);
 ---
 
-<Layout title={districtName} navigationSection="districts">
+<Layout
+  title={districtName}
+  description={`Vorlagen des Karlsruher Gemeinderats mit Bezug zum Stadtteil ${districtName} – ${papers.length} Einträge, nach Jahr und Status filterbar.`}
+  navigationSection="districts"
+>
   <PaperListPage
     title={districtName}
     papers={papers}

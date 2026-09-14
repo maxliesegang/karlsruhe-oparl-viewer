@@ -12,7 +12,12 @@ const paperCountsBySubmitter = await getPaperCountsBySubmitter();
 const baseUrl = import.meta.env.BASE_URL;
 ---
 
-<Layout title="Fraktionen" pagefindIgnore navigationSection="submitters">
+<Layout
+  title="Fraktionen"
+  description="Alle Fraktionen und Antragsteller im Karlsruher Gemeinderat mit ihren eingebrachten Vorlagen."
+  pagefindIgnore
+  navigationSection="submitters"
+>
   <PageContainer class="submitters-page">
     <h1 class="page-header">Vorlagen nach antragstellender Fraktion</h1>
     <p class="subtitle">

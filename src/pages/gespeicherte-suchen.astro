@@ -9,7 +9,12 @@ const pagefind = resolvePagefindAvailability(import.meta.env.SKIP_PAGEFIND, {
 const baseUrl = import.meta.env.BASE_URL;
 ---
 
-<Layout title="Gespeicherte Suchen" navigationSection="saved">
+<Layout
+  title="Gespeicherte Suchen"
+  description="Im Browser gespeicherte Suchanfragen wieder aufrufen."
+  navigationSection="saved"
+  noindex
+>
   <PageContainer class="saved-searches-page">
     <h1 class="page-header">Gespeicherte Suchen</h1>
     <p class="subtitle">

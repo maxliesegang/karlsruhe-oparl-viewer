@@ -1,0 +1,17 @@
+# GemeinderatsRadar
+#
+# Crawlers only read robots.txt from an origin root. While the site is served
+# from https://maxliesegang.github.io/karlsruhe-oparl-viewer/ this file sits at
+# a subpath and is therefore ignored — it takes effect the moment the site
+# moves to its own domain. Until then, submit the sitemap in Search Console.
+
+User-agent: *
+Allow: /
+
+# Client-rendered views with no indexable content of their own.
+Disallow: /karlsruhe-oparl-viewer/suche
+Disallow: /karlsruhe-oparl-viewer/gespeicherte-suchen
+# Legacy redirect stubs, superseded by /vorlagen/<reference>.
+Disallow: /karlsruhe-oparl-viewer/vorlage/
+
+Sitemap: https://maxliesegang.github.io/karlsruhe-oparl-viewer/sitemap-index.xml

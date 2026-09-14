@@ -17,6 +17,7 @@ import {
   normalizeOParlUrl,
 } from "../../shared/utils";
 import type { AuxiliaryFile, Meeting } from "../../shared/types";
+import { buildMeetingDescription } from "../../shared/seo";
 
 export async function getStaticPaths() {
   return getMeetingStaticPaths();
@@ -62,9 +63,41 @@ const documents = rawDocuments.filter(({ file }) => {
   seenDocumentIds.add(file.id);
   return true;
 });
+const metaDescription = buildMeetingDescription({
+  name: meeting.name,
+  start: meeting.start,
+  agendaItemCount: agenda.length,
+});
+const structuredData = {
+  "@context": "https://schema.org",
+  "@type": "Event",
+  name: meeting.name,
+  eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
+  ...(meeting.start ? { startDate: meeting.start } : {}),
+  ...(hasPublishedEnd ? { endDate: meeting.end } : {}),
+  ...(meeting.location?.description
+    ? {
+        location: {
+          "@type": "Place",
+          name: meeting.location.description,
+        },
+      }
+    : {}),
+  organizer: {
+    "@type": "GovernmentOrganization",
+    name: organizations[0]?.name ?? "Gemeinderat Karlsruhe",
+  },
+  inLanguage: "de",
+};
 ---
 
-<Layout title={meeting.name} pagefindIgnore navigationSection="meetings">
+<Layout
+  title={meeting.name}
+  description={metaDescription}
+  structuredData={structuredData}
+  pagefindIgnore
+  navigationSection="meetings"
+>
   <PageContainer class="meeting-detail-page">
     <Breadcrumbs
       items={[

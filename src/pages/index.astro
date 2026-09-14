@@ -8,9 +8,34 @@ const pagefind = resolvePagefindAvailability(import.meta.env.SKIP_PAGEFIND, {
   isDev: import.meta.env.DEV,
 });
 const baseUrl = import.meta.env.BASE_URL;
+const siteUrl = Astro.site ? new URL(baseUrl, Astro.site).href : undefined;
+const structuredData = siteUrl
+  ? {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      name: "GemeinderatsRadar",
+      alternateName: "GemeinderatsRadar Karlsruhe",
+      url: siteUrl,
+      inLanguage: "de",
+      description:
+        "Vorlagen, Sitzungen und Tagesordnungspunkte des Karlsruher Gemeinderats – durchsuchbar, verlinkt und täglich aktualisiert.",
+      potentialAction: {
+        "@type": "SearchAction",
+        target: {
+          "@type": "EntryPoint",
+          urlTemplate: `${siteUrl}suche?q={search_term_string}`,
+        },
+        "query-input": "required name=search_term_string",
+      },
+    }
+  : undefined;
 ---
 
-<Layout navigationSection="search">
+<Layout
+  description="Vorlagen, Sitzungen und Tagesordnungspunkte des Karlsruher Gemeinderats – durchsuchbar, verlinkt und täglich aktualisiert."
+  structuredData={structuredData}
+  navigationSection="search"
+>
   <PageContainer class="search-page">
     <h1 class="page-header">GemeinderatsRadar</h1>
     {

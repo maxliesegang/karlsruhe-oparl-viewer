@@ -9,7 +9,12 @@ const pagefind = resolvePagefindAvailability(import.meta.env.SKIP_PAGEFIND, {
 });
 ---
 
-<Layout title="Suchergebnisse" navigationSection="search">
+<Layout
+  title="Suchergebnisse"
+  description="Volltextsuche über Vorlagen, Tagesordnungspunkte und Dokumente des Karlsruher Gemeinderats."
+  navigationSection="search"
+  noindex
+>
   <PageContainer class="search-results-page">
     <h1 class="page-header">Suchergebnisse</h1>
     {

@@ -20,6 +20,7 @@ import {
 import { derivePaperStatus } from "../../shared/paper-status";
 import { getPaperDetailStaticPaths } from "../../shared/paper-detail-paths";
 import { buildPapersUrl } from "../../shared/utils";
+import { buildPaperDescription } from "../../shared/seo";
 import type { Paper } from "../../shared/types";
 
 export async function getStaticPaths() {
@@ -51,9 +52,41 @@ const [
 const baseUrl = import.meta.env.BASE_URL;
 const status = derivePaperStatus(consultations);
 const year = getPaperYear(paper);
+const metaDescription = buildPaperDescription({
+  reference: paper.reference,
+  name: paper.name,
+  paperType: paper.paperType,
+  date: paper.date,
+  summary: summary?.summary,
+});
+const structuredData = {
+  "@context": "https://schema.org",
+  "@type": "LegislativeDocument",
+  name: paper.name,
+  identifier: paper.reference,
+  ...(paper.paperType ? { genre: paper.paperType } : {}),
+  ...(paper.date ? { datePublished: paper.date } : {}),
+  ...(paper.modified ? { dateModified: paper.modified } : {}),
+  inLanguage: "de",
+  legislationJurisdiction: "Stadt Karlsruhe",
+  ...(submitters.length > 0
+    ? {
+        creator: submitters.map(({ name }) => ({
+          "@type": "Organization",
+          name,
+        })),
+      }
+    : {}),
+  ...(summary?.summary ? { abstract: summary.summary } : {}),
+};
 ---
 
-<Layout title={paper.name} navigationSection="papers">
+<Layout
+  title={`${paper.reference} – ${paper.name}`}
+  description={metaDescription}
+  structuredData={structuredData}
+  navigationSection="papers"
+>
   <PageContainer>
     <Breadcrumbs
       items={[

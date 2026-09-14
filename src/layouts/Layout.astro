@@ -2,16 +2,35 @@
 import SiteNavigation from "../components/SiteNavigation.astro";
 import SiteFooter from "../components/SiteFooter.astro";
 import type { NavigationSection } from "../shared/navigation";
+import { buildCanonicalUrl, truncateForMetaDescription } from "../shared/seo";
 
 interface Props {
   title?: string;
+  description?: string;
   pagefindIgnore?: boolean;
   navigationSection?: NavigationSection;
+  /** Keep the page out of search indexes (client-only or duplicate views). */
+  noindex?: boolean;
+  /** JSON-LD emitted as-is into a `application/ld+json` script tag. */
+  structuredData?: Record<string, unknown>;
 }
 
-const { title, pagefindIgnore = false, navigationSection } = Astro.props;
+const {
+  title,
+  description,
+  pagefindIgnore = false,
+  navigationSection,
+  noindex = false,
+  structuredData,
+} = Astro.props;
 const baseUrl = import.meta.env.BASE_URL;
 const pageTitle = title ? `${title} | GemeinderatsRadar` : "GemeinderatsRadar";
+const SITE_DESCRIPTION =
+  "Vorlagen, Sitzungen und Tagesordnungspunkte des Karlsruher Gemeinderats \u2013 durchsuchbar, verlinkt und t\u00e4glich aktualisiert.";
+const metaDescription = truncateForMetaDescription(
+  description ?? SITE_DESCRIPTION,
+);
+const canonicalUrl = buildCanonicalUrl(Astro.url, Astro.site);
 ---
 
 <!doctype html>
@@ -22,6 +41,33 @@ const pageTitle = title ? `${title} | GemeinderatsRadar` : "GemeinderatsRadar";
     <link rel="icon" type="image/svg+xml" href={`${baseUrl}favicon.svg`} />
     <meta name="generator" content={Astro.generator} />
     <title>{pageTitle}</title>
+    <meta name="description" content={metaDescription} />
+    {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
+    {noindex && <meta name="robots" content="noindex, follow" />}
+    <link
+      rel="sitemap"
+      type="application/xml"
+      href={`${baseUrl}sitemap-index.xml`}
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="GemeinderatsRadar" />
+    <meta property="og:locale" content="de_DE" />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={metaDescription} />
+    {canonicalUrl && <meta property="og:url" content={canonicalUrl} />}
+    {
+      /* X/Twitter falls back to the og:* tags, so only the card type is worth
+    the ~300 bytes it costs on each of the ~30k pages. */
+    }
+    <meta name="twitter:card" content="summary" />
+    {
+      structuredData && (
+        <script
+          type="application/ld+json"
+          set:html={JSON.stringify(structuredData)}
+        />
+      )
+    }
   </head>
   <body>
     <a class="skip-link" href="#main-content">Zum Inhalt springen</a>

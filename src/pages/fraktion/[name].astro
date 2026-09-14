@@ -34,7 +34,11 @@ const { papers, valuesById, options } =
   await loadPaperFilterModel(papersBySubmitter);
 ---
 
-<Layout title={submitterName} navigationSection="submitters">
+<Layout
+  title={submitterName}
+  description={`Alle ${papers.length} Vorlagen und Anträge von ${submitterName} im Karlsruher Gemeinderat, nach Jahr und Status filterbar.`}
+  navigationSection="submitters"
+>
   <PaperListPage
     title={submitterName}
     papers={papers}

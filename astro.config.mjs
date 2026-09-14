@@ -1,5 +1,6 @@
 // @ts-check
 import { defineConfig } from "astro/config";
+import sitemap from "@astrojs/sitemap";
 import pagefindLean from "./integrations/pagefind-lean.mjs";
 
 const PAGES_BASE = "/karlsruhe-oparl-viewer/";
@@ -9,7 +10,38 @@ const isDev = process.env.NODE_ENV === "development" && !runningInCi;
 const skipPagefind = ["1", "true", "yes"].includes(
   (process.env.SKIP_PAGEFIND ?? "").toLowerCase(),
 );
-const integrations = skipPagefind ? [] : [pagefindLean()];
+
+/**
+ * Routes that must stay out of the sitemap. `/vorlage/` holds the 13.7k legacy
+ * redirect stubs (they already carry `noindex` + a canonical), and the
+ * client-only pages have no server-rendered content worth indexing.
+ */
+const EXCLUDED_FROM_SITEMAP = [
+  `${PAGES_BASE}vorlage/`,
+  `${PAGES_BASE}suche`,
+  `${PAGES_BASE}gespeicherte-suchen`,
+];
+
+const integrations = [
+  sitemap({
+    filter: (page) => {
+      const { pathname } = new URL(page);
+      return !EXCLUDED_FROM_SITEMAP.some((prefix) =>
+        pathname.startsWith(prefix),
+      );
+    },
+    // Keep sitemap URLs byte-identical to the `<link rel="canonical">` the
+    // pages emit: `build.format: "file"` would otherwise advertise `.html`.
+    serialize: (item) => ({
+      ...item,
+      url: item.url.replace(/index\.html$/, "").replace(/\.html$/, ""),
+    }),
+  }),
+];
+
+if (!skipPagefind) {
+  integrations.push(pagefindLean());
+}
 
 // https://astro.build/config
 export default defineConfig({

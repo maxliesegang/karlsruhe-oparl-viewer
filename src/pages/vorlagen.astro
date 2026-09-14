@@ -6,7 +6,11 @@ import { loadPaperFilterModel } from "../shared/paper-filters";
 const { papers, valuesById, options } = await loadPaperFilterModel();
 ---
 
-<Layout title="Vorlagen" navigationSection="papers">
+<Layout
+  title="Vorlagen"
+  description="Vorlagen des Karlsruher Gemeinderats nach Jahr, Gremium und Status – mit Volltextsuche über die angehängten Dokumente."
+  navigationSection="papers"
+>
   <PaperListPage
     title="Vorlagen"
     papers={papers}

@@ -72,6 +72,39 @@ Remaining known headroom, largest first: `data-astro-cid-*` scoping attributes
 measured at only ~3 MB); and the 13.7k `dist/vorlage/*.html` legacy redirect
 files (~21 MiB), replaceable by one `404.html` handler.
 
+## Search Engine Indexing
+
+The site is fully crawlable — static HTML, no `noindex`, no auth — so nothing
+_blocks_ indexing. What was missing was discoverability, now covered by:
+
+- `@astrojs/sitemap` → `dist/sitemap-index.xml` (~16.4k URLs). The filter in
+  `astro.config.mjs` keeps out the `/vorlage/` legacy stubs and the two
+  client-only pages; `serialize` strips the `.html` that `build.format: "file"`
+  would otherwise advertise, so sitemap URLs match the canonicals byte for byte
+- `Layout.astro` emits `description`, `canonical`, Open Graph, and optional
+  `noindex` / JSON-LD per page. Descriptions come from `src/shared/seo.ts`;
+  paper pages prefer the generated summary over the bibliographic fallback
+- Structured data: `WebSite` + `SearchAction` on the home page,
+  `LegislativeDocument` on papers, `Event` on meetings
+
+Cost of the head metadata: **+25 MiB** across 30k pages (488 → 513 MiB), which
+is why `twitter:*` is reduced to `twitter:card` — X falls back to `og:*`.
+
+### Two things this repo cannot fix on its own
+
+1. **`robots.txt` is ignored.** Crawlers read it only from an origin root, i.e.
+   `https://maxliesegang.github.io/robots.txt`, which belongs to the
+   `maxliesegang.github.io` user-pages repo. `public/robots.txt` is published at
+   `/karlsruhe-oparl-viewer/robots.txt` and takes effect only after a move to a
+   custom domain.
+2. **Search Console has to be set up by hand.** Verify the URL-prefix property
+   `https://maxliesegang.github.io/karlsruhe-oparl-viewer/` (the HTML-file
+   method works — drop the file in `public/`), then submit the sitemap.
+
+Known gap: only the ~74 upcoming meetings are linked from `/sitzungen`; the
+other ~2.5k meeting pages are reachable through the sitemap and through paper
+detail pages, but have no browsable archive index.
+
 ## Common Pitfalls
 
 - Builds fail unless `syndication-data/docs` exists (`npm run data:setup`); there is no network fallback
