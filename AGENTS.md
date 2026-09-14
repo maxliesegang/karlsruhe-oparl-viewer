@@ -20,6 +20,7 @@ npm run build             # full build incl. Pagefind index → dist/ (~30k log 
 npm run build:quick       # fast build, skips Pagefind (SKIP_PAGEFIND=1)
 npm run preview           # preview built site
 npm run format            # Prettier
+npm test                  # node --test over tests/ — pure logic, no build needed
 ```
 
 **Always prefer `build:quiet` over `build`.** The site generates ~30,000 pages

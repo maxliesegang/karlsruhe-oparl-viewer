@@ -31,7 +31,9 @@ const provenance = [summary?.model, summary?.promptVersion, summary?.provider]
 
       {/* Summaries are a few sentences by design (~400 characters), so they are
           shown in full — collapsing them would cost a click and save no space. */}
-      <p class="summary-text">{summary.summary}</p>
+      <p class="summary-text" data-pagefind-weight="2">
+        {summary.summary}
+      </p>
 
       {keyPoints.length > 0 && (
         <>
@@ -45,7 +47,9 @@ const provenance = [summary?.model, summary?.promptVersion, summary?.provider]
                 <span class="point-number" aria-hidden="true">
                   {index + 1}
                 </span>
-                <span class="point-text">{keyPoint}</span>
+                <span class="point-text" data-pagefind-weight="2">
+                  {keyPoint}
+                </span>
               </li>
             ))}
           </ol>

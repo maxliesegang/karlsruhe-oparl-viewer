@@ -59,6 +59,9 @@ control. The remaining meeting filters live in the collapsible advanced panel.
 - Wrap interactive list UIs with `data-pagefind-ignore`
 - Preserve `data-pagefind-sort` on date metadata (`date:` in `PaperHeader`,
   `modified:` in `PaperFacts`)
+- Search weights reflect the source's signal: summary prose and key points `2`,
+  attachment names `1.5`, extracted PDF text `0.75`. The title already gets
+  Pagefind's default heading and title-meta boosts. PDF-only terms stay searchable.
 - Search results are rendered by `SearchPanel.astro` +
   `search-panel-controller.ts` against the Pagefind JS API — the
   `astro-pagefind` integration was replaced by `integrations/pagefind-lean.mjs`,
@@ -72,10 +75,10 @@ control. The remaining meeting filters live in the collapsible advanced panel.
   on an empty span, which registers the value without adding page text or search
   excerpts — `paper-created`, plus both of `PaperHeader`'s, which have no visible
   home since the header shows only the title and status bar
-- Meta values are **not** full-text searchable. A field that readers search by
-  needs to be page text somewhere too — this is why the "Eckdaten" card carries
-  the reference number rather than leaving it to the (Pagefind-ignored)
-  breadcrumb
+- Pagefind searches metadata fields too, but metadata-only matches may lack a
+  useful page-text excerpt. Keep fields readers search by in visible page text
+  where practical — the "Eckdaten" card carries the reference number instead
+  of leaving it only in the (Pagefind-ignored) breadcrumb
 - Panel markup contract (selectors in `pagefind-config.ts`):
   `data-search-panel` (with `data-base-url` + `data-sort-mode`) ·
   `data-search-form` · `data-search-input` · `data-search-clear` ·
@@ -90,12 +93,12 @@ text is ~61% of all paper HTML (~276 MB), so the `pagefind-lean` integration
 then empties the container in the written file. `file-text-loader.ts` re-fetches
 it from the syndication mirror when a reader opens the disclosure.
 
-Indexing before stripping is what makes this lossless — search coverage and
-excerpts are unchanged. Do not reorder those two steps, and keep this markup:
+Indexing before stripping preserves search coverage; the weights above affect
+ranking and excerpt choice. Do not reorder those two steps, and keep this markup:
 
 ```
 <details data-file-text-details>        ← wrapper the loader binds to
-  <p class="file-text" data-file-text data-file-id="10003">…</p>
+  <p class="file-text" data-file-text data-file-id="10003" data-pagefind-weight="0.75">…</p>
 </details>
 ```
 

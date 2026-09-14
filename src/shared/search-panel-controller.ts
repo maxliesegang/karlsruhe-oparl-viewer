@@ -13,9 +13,10 @@ import {
   normalizeSavedSearchQuery,
   SAVED_SEARCH_QUERY_PARAM,
 } from "./saved-searches";
+import { rankResultsByPaperDate } from "./search-ranking";
 import { formatDateShort } from "./utils";
 
-/** Result sorting per page: relevance for the main search, recency for feeds. */
+/** Main search blends relevance with paper date; saved-search feeds use edits. */
 export type SearchSortMode = "relevance" | "modified";
 
 export const SEARCH_RESULT_BATCH_SIZE = 20;
@@ -50,7 +51,7 @@ interface SearchPanelContext extends SearchPanelElements {
 function getSortLabel(sortMode: SearchSortMode): string {
   return sortMode === "modified"
     ? "sortiert nach letzter Änderung"
-    : "sortiert nach Relevanz";
+    : "sortiert nach Relevanz und Vorlagendatum";
 }
 
 function getMeaningfulValue(value: string | undefined): string | undefined {
@@ -198,6 +199,9 @@ function initLoadTriggerObserver(context: SearchPanelContext): void {
   observer.observe(context.loadTrigger);
 }
 
+/** Latched off when the index has no `date` sort key, which never recovers. */
+let dateRankingAvailable = true;
+
 function buildSearchOptions(sortMode: SearchSortMode) {
   return sortMode === "modified"
     ? { sort: { ...PAGEFIND_MODIFIED_FIRST_SORT } }
@@ -236,8 +240,28 @@ async function runSearch(
     );
     if (token !== context.searchToken) return;
 
+    let results = response.results ?? [];
+    if (
+      context.sortMode === "relevance" &&
+      results.length > 1 &&
+      dateRankingAvailable
+    ) {
+      try {
+        const byDate = await pagefind.search(query, { sort: { date: "desc" } });
+        if (token !== context.searchToken) return;
+        results = rankResultsByPaperDate(results, byDate.results ?? []);
+      } catch (error) {
+        // A date-sort failure must not make ordinary search unavailable — and
+        // an index without the sort key fails for every query, so give up on
+        // the second search rather than repeating it on each keystroke.
+        dateRankingAvailable = false;
+        console.warn("Pagefind date ranking failed; using relevance.", error);
+      }
+    }
+    if (token !== context.searchToken) return;
+
     resetResults(context);
-    context.results = response.results ?? [];
+    context.results = results;
 
     if (context.results.length === 0) {
       setStatus(context, `Keine Treffer für „${query}“.`);

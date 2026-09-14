@@ -106,7 +106,13 @@ use title variants as the primary organization source.
 
 ## Search Result Sorting
 
-- Main search (`/`): plain Pagefind relevance, no sort option
+- Main search (`/`): Pagefind relevance blended with paper recency by
+  `search-ranking.ts`. Pagefind scores every result but exposes dates only as an
+  ordering, so a second `{ date: "desc" }` search supplies recency as a rank
+  quantile — far cheaper than a `data()` fetch per result. The two multiply, so
+  a dominant match cannot be displaced while a plateau of near-equal scores is
+  ordered by date outright. Raising `RECENCY_WEIGHT` past ~0.6 starts costing
+  genuine top hits; measure against a built index before changing it
 - Saved search results (`/suche`): `PAGEFIND_MODIFIED_FIRST_SORT`
   (`{ modified: "desc" }`), so the page reads as a "what changed" feed
 - Results render in batches of `SEARCH_RESULT_BATCH_SIZE` (20) with

@@ -10,6 +10,8 @@ export interface PagefindResultData {
 
 export interface PagefindSearchResult {
   id?: string;
+  /** Pagefind's relevance score (`balanced_score`), descending in `results`. */
+  score?: number;
   data?: () => Promise<PagefindResultData>;
 }
 

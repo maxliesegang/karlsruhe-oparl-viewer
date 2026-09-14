@@ -47,6 +47,7 @@ const { auxiliaryFiles } = Astro.props;
                   target="_blank"
                   rel="noopener noreferrer"
                   class="file-name"
+                  data-pagefind-weight="1.5"
                   aria-label={`Download ${file.name}`}
                 >
                   {/* The paths are drawn in a 24-unit box; without the viewBox
@@ -90,7 +91,7 @@ const { auxiliaryFiles } = Astro.props;
                 {/* Kept on one line: `.file-text` is `pre-wrap`, so any
                     surrounding whitespace would render. */}
                 {/* prettier-ignore */}
-                <p class="file-text" data-file-text data-file-id={fileId}>{fileText}</p>
+                <p class="file-text" data-file-text data-file-id={fileId} data-pagefind-weight="0.75">{fileText}</p>
               </details>
             </li>
           );
