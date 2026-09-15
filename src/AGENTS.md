@@ -58,3 +58,8 @@ data, linked by `MeetingViewTabs`. Upcoming stays the entry point — the archiv
 is one click away and never the default. Year pages are derived from
 `getPastMeetings()`; each holds at most ~190 meetings, so no pagination is
 needed. Past meeting detail pages breadcrumb back through their archive year.
+
+A sitting detail page also carries a generated preview (`MeetingDigest.astro`),
+but only as an empty shell — the text is fetched from the mirror in the browser,
+because previews are written one to seven days before a sitting and would
+otherwise be stale between deploys. See `src/components/AGENTS.md`.

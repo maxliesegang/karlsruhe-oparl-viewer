@@ -11,9 +11,12 @@ import {
   getOParlEntityId,
   normalizeStringList,
 } from "./utils";
+import { MEETING_DIGEST_LEADS } from "./meeting-digest";
 import type {
   FileContent,
   Meeting,
+  MeetingDigest,
+  MeetingDigestLead,
   Organization,
   Paper,
   PaperDistrictEntry,
@@ -438,6 +441,39 @@ export async function resolvePaperSummary(
 ): Promise<PaperSummary | undefined> {
   const summariesByPaperId = await loadPaperSummaries();
   return summariesByPaperId.get(paper.id);
+}
+
+/**
+ * Which generated previews `digests/meetings/` held at build time, keyed by the
+ * meeting's OParl entity id. Only the lead times are kept: the preview text
+ * itself is fetched in the browser, so building it in would put ~3 kB of prose
+ * into a page that already links everything it summarizes.
+ *
+ * The directory is absent until the scraper has run with previews enabled, and
+ * `loadDirectory` answers that with `[]`.
+ */
+export const loadMeetingDigestLeads = memoizeAsync(
+  async (): Promise<Map<string, MeetingDigestLead[]>> => {
+    const digests =
+      await dataSource.loadDirectory<MeetingDigest>("digests/meetings");
+    const leadsByMeetingId = new Map<string, MeetingDigestLead[]>();
+    for (const digest of digests) {
+      if (!MEETING_DIGEST_LEADS.includes(digest.lead)) continue;
+      const meetingId = getOParlEntityId(digest.meetingId);
+      if (!meetingId) continue;
+      const leads = leadsByMeetingId.get(meetingId) ?? [];
+      if (!leads.includes(digest.lead)) leads.push(digest.lead);
+      leadsByMeetingId.set(meetingId, leads);
+    }
+    return leadsByMeetingId;
+  },
+);
+
+export async function resolveMeetingDigestLeads(
+  meeting: Meeting,
+): Promise<MeetingDigestLead[]> {
+  const leadsByMeetingId = await loadMeetingDigestLeads();
+  return leadsByMeetingId.get(getOParlEntityId(meeting.id)) ?? [];
 }
 
 const loadPapersById = memoizeAsync(async (): Promise<Map<string, Paper>> => {

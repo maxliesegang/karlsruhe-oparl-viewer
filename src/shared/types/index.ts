@@ -5,6 +5,7 @@ export type { Entity } from "./entity.ts";
 export type { FileContent } from "./file-content.ts";
 export type { Location } from "./location.ts";
 export type { Meeting } from "./meeting.ts";
+export type { MeetingDigest, MeetingDigestLead } from "./meeting-digest.ts";
 export { MEETING_BODY_TYPES } from "./meeting-filters.ts";
 export type {
   MeetingBodyType,

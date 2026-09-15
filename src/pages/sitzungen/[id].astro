@@ -4,9 +4,11 @@ import PageContainer from "../../components/PageContainer.astro";
 import Breadcrumbs from "../../components/Breadcrumbs.astro";
 import MeetingAgenda from "../../components/MeetingAgenda.astro";
 import MeetingActions from "../../components/MeetingActions.astro";
+import MeetingDigest from "../../components/MeetingDigest.astro";
 import {
   loadSyndicationFeedCatalog,
   resolveMeetingAgenda,
+  resolveMeetingDigestLeads,
   resolveMeetingOrganizations,
 } from "../../shared/data";
 import { getMeetingStaticPaths } from "../../shared/meeting-paths";
@@ -34,10 +36,11 @@ interface Props {
 }
 
 const { meeting } = Astro.props;
-const [agenda, organizations, feedCatalog] = await Promise.all([
+const [agenda, organizations, feedCatalog, digestLeads] = await Promise.all([
   resolveMeetingAgenda(meeting),
   resolveMeetingOrganizations(meeting),
   loadSyndicationFeedCatalog(),
+  resolveMeetingDigestLeads(meeting),
 ]);
 const baseUrl = import.meta.env.BASE_URL;
 const meetingId = getOParlEntityId(meeting.id);
@@ -172,6 +175,12 @@ const structuredData = {
       </dl>
       <MeetingActions meetingId={meetingId} committeeFeeds={committeeFeeds} />
     </section>
+
+    <MeetingDigest
+      meetingId={meetingId}
+      knownLeads={digestLeads}
+      isPast={isPastMeeting}
+    />
 
     <MeetingAgenda items={agenda} />
 

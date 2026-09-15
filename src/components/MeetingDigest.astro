@@ -1,0 +1,152 @@
+---
+import {
+  formatMeetingDigestLeads,
+  selectMeetingDigestLeads,
+} from "../shared/meeting-digest";
+import type { MeetingDigestLead } from "../shared/types";
+
+interface Props {
+  meetingId: string;
+  /** Lead times the checkout held at build time — see `loadMeetingDigestLeads`. */
+  knownLeads: MeetingDigestLead[];
+  isPast: boolean;
+}
+
+const { meetingId, knownLeads, isPast } = Astro.props;
+
+/* The section is a shell: the text is fetched from the mirror in the browser
+   (`meeting-digest-loader.ts`), so it renders hidden and stays hidden when the
+   sitting has no preview. Nothing is rendered at all when no lead time is worth
+   trying, which is every archived sitting from before previews existed. */
+const leads = selectMeetingDigestLeads({ knownLeads, isUpcoming: !isPast });
+---
+
+{
+  leads.length > 0 && (
+    <section
+      class="section-card digest-card"
+      aria-labelledby="meeting-digest"
+      data-meeting-digest
+      data-meeting-id={meetingId}
+      data-meeting-digest-leads={formatMeetingDigestLeads(leads)}
+      data-meeting-digest-past={String(isPast)}
+      data-pagefind-ignore
+      hidden
+    >
+      <div class="digest-header">
+        <h2 class="section-heading" id="meeting-digest">
+          {isPast ? "Vorschau vor der Sitzung" : "Vorschau zur Sitzung"}
+        </h2>
+        <span class="digest-badge" data-meeting-digest-badge>
+          KI-generiert
+        </span>
+      </div>
+
+      <p class="digest-overview" data-meeting-digest-overview />
+
+      <h3 class="digest-points-heading" data-meeting-digest-points-heading>
+        Schwerpunkte
+      </h3>
+      <ul class="digest-points" data-meeting-digest-points />
+
+      <p class="digest-note">
+        <span class="digest-note-icon" aria-hidden="true">
+          ⚠
+        </span>
+        <span data-meeting-digest-note />
+      </p>
+    </section>
+  )
+}
+
+<style>
+  /* Deliberately the same shell as `PaperSummary`: a reader meets the two in the
+     same position on their respective detail pages and should recognise both as
+     generated text. */
+  .digest-card {
+    border-left: 4px solid var(--color-primary);
+  }
+
+  .digest-header {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .digest-header .section-heading {
+    margin: 0;
+  }
+
+  .digest-badge {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-text-muted);
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    padding: 3px 9px;
+    cursor: help;
+  }
+
+  .digest-overview {
+    max-width: 80ch;
+    margin: 10px 0 0;
+    font-size: 1.0625rem;
+    line-height: 1.55;
+  }
+
+  .digest-points-heading {
+    margin: 16px 0 8px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-text-muted);
+  }
+
+  /* Unnumbered, unlike the paper summary's key points: these are highlights of
+     one sitting and carry their own "TOP n" prefix from the generator, so a
+     second number beside it would read as a competing one. */
+  .digest-points {
+    display: grid;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  /* `display: grid` would otherwise beat the `hidden` attribute the loader sets
+     on a preview without highlights. */
+  .digest-points[hidden] {
+    display: none;
+  }
+
+  .digest-points :global(li) {
+    padding: 9px 11px;
+    border-radius: var(--radius);
+    background: var(--color-bg-card);
+    line-height: 1.5;
+  }
+
+  .digest-note {
+    display: flex;
+    gap: 8px;
+    margin: 14px 0 0;
+    padding-top: 10px;
+    border-top: 1px solid var(--color-border);
+    font-size: 0.8125rem;
+    color: var(--color-text-muted);
+  }
+
+  .digest-note-icon {
+    flex-shrink: 0;
+  }
+</style>
+
+<script>
+  import { initMeetingDigestLoader } from "../shared/meeting-digest-loader";
+
+  initMeetingDigestLoader();
+</script>

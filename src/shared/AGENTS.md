@@ -21,6 +21,8 @@ Data fetching, caching, filtering logic, utilities, and TypeScript types.
 | `paper-detail-paths.ts`         | Maps paper references to URL slugs                       |
 | `meeting-paths.ts`              | Maps OParl meeting IDs to meeting detail routes          |
 | `meeting-calendar.ts`           | Serializes one meeting as an RFC 5545 calendar event     |
+| `meeting-digest.ts`             | Generated sitting previews: leads, record id, mirror URL |
+| `meeting-digest-loader.ts`      | Fetches a sitting preview from the mirror in the browser |
 | `syndication-feeds.ts`          | Feed catalog indexing, labels, and shared feed URL       |
 | `utils.ts`                      | URL, date, and slug helpers                              |
 | `pagefind-client.ts`            | Pagefind module loading, search types, freshness stats   |
@@ -74,14 +76,22 @@ syndication-data/docs (data-source.ts, DATA_LOCAL_DIR)
   — this mapping must remain stable or all detail page URLs break
 - Feed metadata comes from `feed-index.json`; `loadSyndicationFeedCatalog()`
   indexes committee and district feeds for contextual links and `/feeds`
+- Generated sitting previews (`digests/meetings/<meeting id>-<lead>.json`) are
+  the one entity the build deliberately does **not** read into the page. The
+  scraper writes them seven days and one day before a sitting — both of which
+  fall between two deploys — so a built-in preview would be stale exactly while
+  it is worth reading. The build reads the directory only for which lead times
+  exist (`loadMeetingDigestLeads()`), and `meeting-digest-loader.ts` fetches the
+  text itself. See `src/components/AGENTS.md` for the markup contract
 - Extracted PDF text is the one value read from the mirror **twice**: at build
   time via `dataSource.loadText()` so Pagefind can index it, and again in the
   browser via `buildFileTextUrl()` after `integrations/pagefind-lean.mjs` strips
   it from the built HTML. Both must resolve the same document, so the file id
   (`getOParlEntityId()`) and the `file-contents/<id>.txt` layout are a shared
-  contract — see `src/components/AGENTS.md`. This is the only runtime dependency
-  the viewer has on the mirror staying published; the loader degrades to an
-  error message beside the still-working PDF download link
+  contract — see `src/components/AGENTS.md`. Together with the sitting previews
+  above, this is what the viewer needs the mirror to keep publishing at runtime;
+  the loader degrades to an error message beside the still-working PDF download
+  link
 
 ## Adding New Data Fields
 

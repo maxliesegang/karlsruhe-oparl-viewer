@@ -26,6 +26,7 @@ Reusable UI components. Prefer extending existing components over creating new o
 | `PaperSummary.astro`         | LLM summary + key points, one per full-width row; only if present |
 | `AuxiliaryFiles.astro`       | File attachments — detail page                                    |
 | `StadtteilHint.astro`        | District hint — detail page                                       |
+| `MeetingDigest.astro`        | Generated sitting preview — shell only, filled at runtime         |
 | `MeetingAgenda.astro`        | Public agenda with links to matching papers                       |
 | `PaperTimeline.astro`        | Paper lifecycle, consultations, and decisions                     |
 | `RelatedPapers.astro`        | Parent, amendment, and follow-up paper links                      |
@@ -123,6 +124,36 @@ ranking and excerpt choice. Do not reorder those two steps, and keep this markup
   what keeps the "Kein Text verfügbar" placeholder out of the lazy path
 - An **empty** container is the signal that stripping ran. `astro dev` does not
   strip, so the text stays inlined there and nothing is fetched
+
+**Generated sitting previews — fetched at runtime, never built in**
+
+`MeetingDigest.astro` renders an empty, `hidden` shell; `meeting-digest-loader.ts`
+fetches the preview from the mirror and reveals the section only once one
+arrives. This is the opposite trade to the extracted text above: nothing is
+stripped, because nothing is ever rendered. The scraper writes a preview seven
+days and one day before a sitting, so a build-time copy would be missing exactly
+in the window it is worth reading — and most sittings have none at all, which is
+why an absent preview must leave no empty card behind.
+
+```
+<section data-meeting-digest data-meeting-id="10731"
+         data-meeting-digest-leads="day,week" data-meeting-digest-past="false" hidden>
+  <span data-meeting-digest-badge>      ← gets model/prompt provenance as `title`
+  <p    data-meeting-digest-overview>
+  <h3   data-meeting-digest-points-heading>  ← hidden together with the list
+  <ul   data-meeting-digest-points>     ← one `<li>` per highlight
+  <span data-meeting-digest-note>       ← generation date, uncovered agenda items
+</section>
+```
+
+- `data-meeting-digest-leads` is the fetch order, best first (`day` sees the
+  final agenda). An upcoming sitting always lists both lead times; a past one
+  lists only what the checkout held at build time, so archive pages do not spend
+  a pair of 404s on previews that will never be written
+- Every fetched value is written with `textContent`. The preview is a generated
+  document from another site and must never be parsed as HTML
+- Any rule that sets `display` on a container the loader hides needs a matching
+  `[hidden]` rule — `display` beats the `hidden` attribute
 
 **Internal links**
 
