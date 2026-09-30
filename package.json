@@ -23,12 +23,12 @@
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.4",
-    "astro": "^7.2.10",
+    "astro": "^7.3.5",
     "pagefind": "^1.5.2"
   },
   "devDependencies": {
-    "@types/node": "^26.4.1",
-    "prettier": "^3.9.6",
-    "prettier-plugin-astro": "^0.14.1"
+    "@types/node": "^26.6.3",
+    "prettier": "^3.9.9",
+    "prettier-plugin-astro": "^1.1.0"
   }
 }
