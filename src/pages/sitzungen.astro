@@ -4,6 +4,7 @@ import PageContainer from "../components/PageContainer.astro";
 import MeetingFilters from "../components/MeetingFilters.astro";
 import MeetingList from "../components/MeetingList.astro";
 import MeetingViewTabs from "../components/MeetingViewTabs.astro";
+import CalendarSubscription from "../components/CalendarSubscription.astro";
 import {
   getPastMeetings,
   getUpcomingMeetings,
@@ -40,6 +41,7 @@ const archiveUrl = buildMeetingArchiveUrl(baseUrl);
           pastMeetings.length
         } Sitzungen).
       </p>
+      <CalendarSubscription />
     </div>
 
     {
@@ -75,6 +77,11 @@ const archiveUrl = buildMeetingArchiveUrl(baseUrl);
   .page-intro {
     margin: 0 auto 20px;
     color: var(--color-text-muted);
+  }
+
+  .page-intro {
+    display: grid;
+    gap: 14px;
   }
 
   .page-intro p {

@@ -2,6 +2,7 @@
 import Layout from "../layouts/Layout.astro";
 import PageContainer from "../components/PageContainer.astro";
 import FeedSubscriptionLink from "../components/FeedSubscriptionLink.astro";
+import CalendarSubscription from "../components/CalendarSubscription.astro";
 import { loadSyndicationFeedCatalog } from "../shared/data";
 import {
   ALL_UPDATES_FEED_URL,
@@ -25,7 +26,7 @@ const feedGroups = [
 
 <Layout
   title="Feeds"
-  description="RSS-Feeds für neue und geänderte Tagesordnungspunkte – nach Gremium oder Stadtteil abonnierbar."
+  description="Sitzungskalender zum Abonnieren und RSS-Feeds für neue und geänderte Tagesordnungspunkte – nach Gremium oder Stadtteil."
   pagefindIgnore
 >
   <PageContainer class="feeds-page">
@@ -35,6 +36,20 @@ const feedGroups = [
       verfolgen. Die Feeds aktualisieren sich, sobald neue Daten veröffentlicht
       werden.
     </p>
+
+    <section
+      id="kalender"
+      class="feed-section"
+      aria-labelledby="calendar-feed-heading"
+    >
+      <h2 id="calendar-feed-heading">Sitzungskalender</h2>
+      <p class="section-intro">
+        Alle kommenden Sitzungen in der eigenen Kalender-App. Das Abonnement
+        aktualisiert sich automatisch; vergangene Sitzungen bleiben noch 30
+        Tage sichtbar.
+      </p>
+      <CalendarSubscription />
+    </section>
 
     <section class="feed-section" aria-labelledby="all-feed-heading">
       <h2 id="all-feed-heading">Alle Tagesordnungspunkte</h2>
@@ -82,6 +97,13 @@ const feedGroups = [
   h2 {
     margin: 0 0 12px;
     font-size: 1.4rem;
+  }
+
+  .section-intro {
+    max-width: 68ch;
+    margin: 0 0 12px;
+    color: var(--color-text-muted);
+    line-height: 1.55;
   }
 
   .feed-list {

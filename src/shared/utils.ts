@@ -1,4 +1,4 @@
-import { SYNDICATION_BASE_URL } from "./constants";
+import { SYNDICATION_BASE_URL } from "./constants.ts";
 
 /**
  * Trims each entry, drops empties, and de-duplicates — accepting a single
@@ -84,6 +84,11 @@ export function buildFactionUrl(baseUrl: string, factionId: string): string {
 
 export function buildMeetingCalendarUrl(baseUrl: string, id: string): string {
   return `${baseUrl}sitzungen/kalender/${encodeURIComponent(id)}.ics`;
+}
+
+/** The subscribable calendar with every upcoming meeting. */
+export function buildMeetingCalendarFeedUrl(baseUrl: string): string {
+  return `${baseUrl}sitzungen/kalender.ics`;
 }
 
 const DATE_TIME_FORMATTER = new Intl.DateTimeFormat("de-DE", {

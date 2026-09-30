@@ -1,0 +1,164 @@
+---
+import { buildMeetingCalendarFeedUrl } from "../shared/utils";
+
+/**
+ * Subscribe links for the meeting calendar feed. `webcal://` opens the
+ * subscription dialog in Apple Calendar and Outlook; Google Calendar needs its
+ * own link; the plain URL is there to paste into anything else.
+ */
+const feedPath = buildMeetingCalendarFeedUrl(import.meta.env.BASE_URL);
+const feedUrl = Astro.site ? new URL(feedPath, Astro.site).href : feedPath;
+const webcalUrl = feedUrl.replace(/^https?:\/\//, "webcal://");
+const googleUrl = `https://calendar.google.com/calendar/r?cid=${encodeURIComponent(webcalUrl)}`;
+---
+
+<div class="calendar-subscription">
+  <div class="calendar-subscription-links">
+    <a class="calendar-subscribe" href={webcalUrl}>
+      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+        <rect x="3" y="5" width="18" height="16" rx="2"></rect>
+        <path d="M16 3v4M8 3v4M3 10h18M12 13v5M9.5 15.5h5"></path>
+      </svg>
+      Kalender abonnieren
+    </a>
+    <a
+      class="calendar-google"
+      href={googleUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      In Google Kalender öffnen
+      <span class="visually-hidden"> (öffnet in neuem Tab)</span>
+    </a>
+  </div>
+  <div class="calendar-url">
+    <label for="calendar-feed-url">Adresse für andere Kalender-Apps</label>
+    <div class="calendar-url-row">
+      <input
+        id="calendar-feed-url"
+        type="url"
+        value={feedUrl}
+        readonly
+        data-calendar-feed-url
+      />
+      <button type="button" data-calendar-copy hidden>
+        Kopieren
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll(".calendar-subscription").forEach((container) => {
+    const input = container.querySelector<HTMLInputElement>(
+      "[data-calendar-feed-url]",
+    );
+    const button = container.querySelector<HTMLButtonElement>(
+      "[data-calendar-copy]",
+    );
+    if (!input || !button) return;
+
+    input.addEventListener("focus", () => input.select());
+    if (!navigator.clipboard) return;
+
+    button.hidden = false;
+    button.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(input.value);
+        button.textContent = "Kopiert";
+      } catch {
+        input.select();
+        button.textContent = "Bitte manuell kopieren";
+      }
+    });
+  });
+</script>
+
+<style>
+  .calendar-subscription {
+    display: grid;
+    gap: 12px;
+  }
+
+  .calendar-subscription-links {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 16px;
+  }
+
+  .calendar-subscribe {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    width: fit-content;
+    padding: 8px 12px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    background: var(--color-primary);
+    color: var(--color-text);
+    font-size: 0.9rem;
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .calendar-subscribe:hover {
+    background: var(--color-primary-hover);
+  }
+
+  .calendar-subscribe svg {
+    flex-shrink: 0;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 2;
+  }
+
+  .calendar-google {
+    color: var(--color-link);
+    font-size: 0.9rem;
+    font-weight: 700;
+  }
+
+  .calendar-url label {
+    display: block;
+    margin-bottom: 4px;
+    color: var(--color-text-muted);
+    font-size: 0.85rem;
+  }
+
+  .calendar-url-row {
+    display: flex;
+    gap: 8px;
+    max-width: 640px;
+  }
+
+  .calendar-url input {
+    flex: 1;
+    min-width: 0;
+    padding: 7px 10px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    background: #fff;
+    font: inherit;
+    font-size: 0.85rem;
+  }
+
+  .calendar-url button {
+    flex-shrink: 0;
+    padding: 7px 12px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    background: #fff;
+    color: var(--color-link);
+    font: inherit;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .calendar-url button:hover {
+    background: #fafafa;
+  }
+</style>

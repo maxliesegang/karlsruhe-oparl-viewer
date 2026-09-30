@@ -30,6 +30,7 @@ Route entrypoints in `src/pages/`. Each file maps to a URL path.
 | `pages/sitzungen/archiv/[jahr].astro` | `/sitzungen/archiv/[jahr]`     | Past meetings of one calendar year         |
 | `pages/sitzungen/[id].astro`          | `/sitzungen/[id]`              | Meeting details and public agenda          |
 | `pages/sitzungen/kalender/[id].ts`    | `/sitzungen/kalender/[id].ics` | Single-meeting calendar download           |
+| `pages/sitzungen/kalender.ics.ts`     | `/sitzungen/kalender.ics`      | Subscribable feed: upcoming + last 30 days |
 
 > **Note:** Do not place non-`.astro` files directly inside `src/pages/` — Astro will try to render them as routes.
 
