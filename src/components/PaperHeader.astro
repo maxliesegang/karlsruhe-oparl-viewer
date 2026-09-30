@@ -32,51 +32,44 @@ const meetingSlot = formatMeetingSlot(
 ---
 
 <header class="paper-header">
-  {
-    /* Type and date are not shown here, but every search result card still
+  {/* Type and date are not shown here, but every search result card still
        reads them as Pagefind meta. They therefore use the literal `name:value`
        form on empty spans — the same trick `PaperFacts` uses for
        `paper-created` — which registers the value without putting it back on
        the page or into search excerpts. `paper-reference` is not among them:
-       `PaperFacts` displays it, so the meta rides on that element instead. */
-  }
-  {
-    paper.paperType && (
-      <span data-pagefind-meta={`paper-type:${paper.paperType}`} />
-    )
-  }
+       `PaperFacts` displays it, so the meta rides on that element instead. */}
+  {paper.paperType && (
+    <span data-pagefind-meta={`paper-type:${paper.paperType}`} />
+  )}
   <span
     data-pagefind-meta={`paper-date:${paper.date}`}
-    data-pagefind-sort={pagefindSortAtt}></span>
+    data-pagefind-sort={pagefindSortAtt}
+  ></span>
 
   <h1 class="paper-title">{paper.name}</h1>
 
-  {
-    /* Status and its detail are one statement — "Entschieden" answers *what*
+  {/* Status and its detail are one statement — "Entschieden" answers *what*
        and the rest answers *when and where* — so they share a single line
        instead of stacking a badge row above a detail row. The status word
        replaces the highlight's own label, which only ever paraphrased it.
 
        The detail repeats the timeline below by design: the answer belongs above
        the fold, not four sections down. Pagefind ignores it for that reason —
-       the timeline is the copy that gets indexed. */
-  }
+       the timeline is the copy that gets indexed. */}
   <p class:list={["paper-status-bar", `tone-${status.tone}`]}>
     <span class="status-label">{status.label}</span>
-    {
-      status.highlight && (
-        <span class="status-detail" data-pagefind-ignore>
-          {result && <strong class="status-result">{result}</strong>}
-          {meeting?.name &&
-            (meetingUrl ? (
-              <a href={meetingUrl}>{meeting.name}</a>
-            ) : (
-              <span>{meeting.name}</span>
-            ))}
-          {meetingSlot && <span class="status-when">{meetingSlot}</span>}
-        </span>
-      )
-    }
+    {status.highlight && (
+      <span class="status-detail" data-pagefind-ignore>
+        {result && <strong class="status-result">{result}</strong>}
+        {meeting?.name &&
+          (meetingUrl ? (
+            <a href={meetingUrl}>{meeting.name}</a>
+          ) : (
+            <span>{meeting.name}</span>
+          ))}
+        {meetingSlot && <span class="status-when">{meetingSlot}</span>}
+      </span>
+    )}
   </p>
 </header>
 

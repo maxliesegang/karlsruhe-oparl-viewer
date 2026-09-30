@@ -25,7 +25,9 @@ const orderedConsultations = orderConsultations(consultations);
 ---
 
 <section class="section-card paper-timeline" aria-labelledby="paper-timeline">
-  <h2 class="section-heading" id="paper-timeline">Verlauf</h2>
+  <h2 class="section-heading" id="paper-timeline">
+    Verlauf
+  </h2>
 
   <ol class="timeline-list">
     <li class="timeline-item completed">
@@ -35,51 +37,49 @@ const orderedConsultations = orderConsultations(consultations);
         <p>{formatDateTime(paper.created)} Uhr</p>
       </div>
     </li>
-    {
-      orderedConsultations.map((resolved) => {
-        const { consultation, meeting, agendaItem } = resolved;
-        const meetingIsUpcoming = isUpcomingMeeting(meeting, now);
-        const result = getConsultationResult(resolved);
-        const title = result ? "Entscheidung" : "Beratung";
-        const meetingUrl = buildMeetingUrl(baseUrl, meeting);
-        // `role` and `result` are frequently the same word ("Kenntnisnahme"),
-        // and the result line below is the one that carries it.
-        const role = consultation.role?.trim();
-        const meetingSlot = formatMeetingSlot(
-          meeting?.start,
-          formatAgendaItemLabel(agendaItem?.number),
-          role && role !== result ? role : "",
-        );
+    {orderedConsultations.map((resolved) => {
+      const { consultation, meeting, agendaItem } = resolved;
+      const meetingIsUpcoming = isUpcomingMeeting(meeting, now);
+      const result = getConsultationResult(resolved);
+      const title = result ? "Entscheidung" : "Beratung";
+      const meetingUrl = buildMeetingUrl(baseUrl, meeting);
+      // `role` and `result` are frequently the same word ("Kenntnisnahme"),
+      // and the result line below is the one that carries it.
+      const role = consultation.role?.trim();
+      const meetingSlot = formatMeetingSlot(
+        meeting?.start,
+        formatAgendaItemLabel(agendaItem?.number),
+        role && role !== result ? role : "",
+      );
 
-        return (
-          <li class:list={["timeline-item", !meetingIsUpcoming && "completed"]}>
-            <span class="timeline-marker" aria-hidden="true" />
-            <div>
-              <strong>
-                {title}
-                {meetingIsUpcoming && <span class="timeline-tag">Geplant</span>}
-              </strong>
-              {/* Committee and date share a wrapping row — on the detail
+      return (
+        <li class:list={["timeline-item", !meetingIsUpcoming && "completed"]}>
+          <span class="timeline-marker" aria-hidden="true" />
+          <div>
+            <strong>
+              {title}
+              {meetingIsUpcoming && <span class="timeline-tag">Geplant</span>}
+            </strong>
+            {/* Committee and date share a wrapping row — on the detail
                   page's wide main column they fit on one line, and they still
                   break cleanly on narrow screens. */}
-              {meeting ? (
-                <p class="timeline-meta">
-                  {meetingUrl ? (
-                    <a href={meetingUrl}>{meeting.name}</a>
-                  ) : (
-                    <span>{meeting.name}</span>
-                  )}
-                  <span>{meetingSlot}</span>
-                </p>
-              ) : (
-                <p>Termin nicht verfügbar</p>
-              )}
-              {result && <p class="timeline-result">Ergebnis: {result}</p>}
-            </div>
-          </li>
-        );
-      })
-    }
+            {meeting ? (
+              <p class="timeline-meta">
+                {meetingUrl ? (
+                  <a href={meetingUrl}>{meeting.name}</a>
+                ) : (
+                  <span>{meeting.name}</span>
+                )}
+                <span>{meetingSlot}</span>
+              </p>
+            ) : (
+              <p>Termin nicht verfügbar</p>
+            )}
+            {result && <p class="timeline-result">Ergebnis: {result}</p>}
+          </div>
+        </li>
+      );
+    })}
   </ol>
 </section>
 

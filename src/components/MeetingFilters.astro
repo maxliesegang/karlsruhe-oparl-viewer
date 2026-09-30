@@ -55,19 +55,17 @@ const selectFilters = getMeetingSelectFilters(variant);
       >
         Alle
       </button>
-      {
-        filterOptions.bodyTypes.map((bodyType) => (
-          <button
-            type="button"
-            class="segmented-control-option"
-            data-meeting-body-type-option
-            data-value={bodyType}
-            aria-pressed="false"
-          >
-            {bodyType}
-          </button>
-        ))
-      }
+      {filterOptions.bodyTypes.map((bodyType) => (
+        <button
+          type="button"
+          class="segmented-control-option"
+          data-meeting-body-type-option
+          data-value={bodyType}
+          aria-pressed="false"
+        >
+          {bodyType}
+        </button>
+      ))}
     </div>
   </div>
   <div
@@ -92,16 +90,14 @@ const selectFilters = getMeetingSelectFilters(variant);
       </p>
     </div>
     <div class="filter-row" data-filter-row>
-      {
-        selectFilters.map(({ key, id, label, emptyLabel }) => (
-          <FilterSelect
-            id={id}
-            label={label}
-            emptyLabel={emptyLabel}
-            options={optionsByKey[key]}
-          />
-        ))
-      }
+      {selectFilters.map(({ key, id, label, emptyLabel }) => (
+        <FilterSelect
+          id={id}
+          label={label}
+          emptyLabel={emptyLabel}
+          options={optionsByKey[key]}
+        />
+      ))}
       <div class="filter-group meeting-search-filter">
         <label for={MEETING_FILTER_IDS.search}>Suche</label>
         <input

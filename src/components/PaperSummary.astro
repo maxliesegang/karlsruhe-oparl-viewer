@@ -17,57 +17,55 @@ const provenance = [summary?.model, summary?.promptVersion, summary?.provider]
   .join(" · ");
 ---
 
-{
-  summary && (
-    <section class="section-card summary-card" aria-labelledby="paper-summary">
-      <div class="summary-header">
-        <h2 class="section-heading" id="paper-summary">
-          Zusammenfassung
-        </h2>
-        <span class="summary-badge" title={provenance || undefined}>
-          KI-generiert
-        </span>
-      </div>
+{summary && (
+  <section class="section-card summary-card" aria-labelledby="paper-summary">
+    <div class="summary-header">
+      <h2 class="section-heading" id="paper-summary">
+        Zusammenfassung
+      </h2>
+      <span class="summary-badge" title={provenance || undefined}>
+        KI-generiert
+      </span>
+    </div>
 
-      {/* Summaries are a few sentences by design (~400 characters), so they are
+    {/* Summaries are a few sentences by design (~400 characters), so they are
           shown in full — collapsing them would cost a click and save no space. */}
-      <p class="summary-text" data-pagefind-weight="2">
-        {summary.summary}
-      </p>
+    <p class="summary-text" data-pagefind-weight="2">
+      {summary.summary}
+    </p>
 
-      {keyPoints.length > 0 && (
-        <>
-          <h3 class="summary-points-heading">Kernpunkte</h3>
-          {/* Key points run to two or three lines each, so they are numbered
+    {keyPoints.length > 0 && (
+      <>
+        <h3 class="summary-points-heading">Kernpunkte</h3>
+        {/* Key points run to two or three lines each, so they are numbered
               rows rather than bullets — at that length a plain list reads as
               one block of prose and stops being scannable. */}
-          <ol class="summary-points">
-            {keyPoints.map((keyPoint, index) => (
-              <li>
-                <span class="point-number" aria-hidden="true">
-                  {index + 1}
-                </span>
-                <span class="point-text" data-pagefind-weight="2">
-                  {keyPoint}
-                </span>
-              </li>
-            ))}
-          </ol>
-        </>
-      )}
+        <ol class="summary-points">
+          {keyPoints.map((keyPoint, index) => (
+            <li>
+              <span class="point-number" aria-hidden="true">
+                {index + 1}
+              </span>
+              <span class="point-text" data-pagefind-weight="2">
+                {keyPoint}
+              </span>
+            </li>
+          ))}
+        </ol>
+      </>
+    )}
 
-      <p class="summary-note" data-pagefind-ignore>
-        <span class="summary-note-icon" aria-hidden="true">
-          ⚠
-        </span>
-        <span>
-          Automatisch erzeugt am {formatDateLong(summary.generatedAt)}. Kann
-          Fehler enthalten — maßgeblich ist der Originaltext der Vorlage.
-        </span>
-      </p>
-    </section>
-  )
-}
+    <p class="summary-note" data-pagefind-ignore>
+      <span class="summary-note-icon" aria-hidden="true">
+        ⚠
+      </span>
+      <span>
+        Automatisch erzeugt am {formatDateLong(summary.generatedAt)}. Kann
+        Fehler enthalten — maßgeblich ist der Originaltext der Vorlage.
+      </span>
+    </p>
+  </section>
+)}
 
 <style>
   .summary-card {

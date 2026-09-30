@@ -26,17 +26,15 @@ const tabs = [
   aria-label="Sitzungsansicht"
   data-pagefind-ignore
 >
-  {
-    tabs.map((tab) => (
-      <a
-        href={tab.href}
-        class:list={["meeting-view-tab", tab.key === current && "active"]}
-        aria-current={tab.key === current ? "page" : undefined}
-      >
-        {tab.label}
-      </a>
-    ))
-  }
+  {tabs.map((tab) => (
+    <a
+      href={tab.href}
+      class:list={["meeting-view-tab", tab.key === current && "active"]}
+      aria-current={tab.key === current ? "page" : undefined}
+    >
+      {tab.label}
+    </a>
+  ))}
 </nav>
 
 <style>

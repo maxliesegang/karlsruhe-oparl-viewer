@@ -21,43 +21,41 @@ const { meetingId, knownLeads, isPast } = Astro.props;
 const leads = selectMeetingDigestLeads({ knownLeads, isUpcoming: !isPast });
 ---
 
-{
-  leads.length > 0 && (
-    <section
-      class="section-card digest-card"
-      aria-labelledby="meeting-digest"
-      data-meeting-digest
-      data-meeting-id={meetingId}
-      data-meeting-digest-leads={formatMeetingDigestLeads(leads)}
-      data-meeting-digest-past={String(isPast)}
-      data-pagefind-ignore
-      hidden
-    >
-      <div class="digest-header">
-        <h2 class="section-heading" id="meeting-digest">
-          {isPast ? "Vorschau vor der Sitzung" : "Vorschau zur Sitzung"}
-        </h2>
-        <span class="digest-badge" data-meeting-digest-badge>
-          KI-generiert
-        </span>
-      </div>
+{leads.length > 0 && (
+  <section
+    class="section-card digest-card"
+    aria-labelledby="meeting-digest"
+    data-meeting-digest
+    data-meeting-id={meetingId}
+    data-meeting-digest-leads={formatMeetingDigestLeads(leads)}
+    data-meeting-digest-past={String(isPast)}
+    data-pagefind-ignore
+    hidden
+  >
+    <div class="digest-header">
+      <h2 class="section-heading" id="meeting-digest">
+        {isPast ? "Vorschau vor der Sitzung" : "Vorschau zur Sitzung"}
+      </h2>
+      <span class="digest-badge" data-meeting-digest-badge>
+        KI-generiert
+      </span>
+    </div>
 
-      <p class="digest-overview" data-meeting-digest-overview />
+    <p class="digest-overview" data-meeting-digest-overview />
 
-      <h3 class="digest-points-heading" data-meeting-digest-points-heading>
-        Schwerpunkte
-      </h3>
-      <ul class="digest-points" data-meeting-digest-points />
+    <h3 class="digest-points-heading" data-meeting-digest-points-heading>
+      Schwerpunkte
+    </h3>
+    <ul class="digest-points" data-meeting-digest-points />
 
-      <p class="digest-note">
-        <span class="digest-note-icon" aria-hidden="true">
-          ⚠
-        </span>
-        <span data-meeting-digest-note />
-      </p>
-    </section>
-  )
-}
+    <p class="digest-note">
+      <span class="digest-note-icon" aria-hidden="true">
+        ⚠
+      </span>
+      <span data-meeting-digest-note />
+    </p>
+  </section>
+)}
 
 <style>
   /* Deliberately the same shell as `PaperSummary`: a reader meets the two in the

@@ -45,59 +45,53 @@ const maximumYearCount = Math.max(
     <MeetingViewTabs current="archive" />
     <div class="page-intro" data-pagefind-ignore>
       <p>
-        {pastMeetings.length} vergangene Sitzungen mit Tagesordnung, Unterlagen und
-        – wo veröffentlicht – Protokoll. Wählen Sie ein Jahr; dort lässt sich nach
-        Gremium, Ortschaft und Monat filtern.
+        {pastMeetings.length} vergangene Sitzungen mit Tagesordnung, Unterlagen
+        und – wo veröffentlicht – Protokoll. Wählen Sie ein Jahr; dort lässt
+        sich nach Gremium, Ortschaft und Monat filtern.
       </p>
     </div>
 
     <h2 class="section-header">Nach Jahr</h2>
     <ul class="year-grid" data-pagefind-ignore>
-      {
-        archiveYears.map((entry) => (
-          <li>
-            <a
-              class="year-card"
-              href={buildMeetingArchiveYearUrl(baseUrl, entry.year)}
-            >
-              <span class="year-label">{entry.year}</span>
-              <span class="year-count">{entry.count} Sitzungen</span>
-              <span
-                class="year-bar"
-                style={`--fill: ${Math.round((entry.count / maximumYearCount) * 100)}%`}
-                aria-hidden="true"
-              />
-            </a>
-          </li>
-        ))
-      }
+      {archiveYears.map((entry) => (
+        <li>
+          <a
+            class="year-card"
+            href={buildMeetingArchiveYearUrl(baseUrl, entry.year)}
+          >
+            <span class="year-label">{entry.year}</span>
+            <span class="year-count">{entry.count} Sitzungen</span>
+            <span
+              class="year-bar"
+              style={`--fill: ${Math.round((entry.count / maximumYearCount) * 100)}%`}
+              aria-hidden="true"
+            />
+          </a>
+        </li>
+      ))}
     </ul>
 
-    {
-      recentMeetings.length > 0 && (
-        <>
-          <h2 class="section-header">Zuletzt getagt</h2>
-          <ul class="recent-list" data-pagefind-ignore>
-            {recentMeetings.map((meeting) => {
-              const id = getOParlEntityId(meeting.id);
-              return (
-                <li>
-                  <span class="recent-date">
-                    {formatDateShort(meeting.start)}
-                  </span>
-                  <a href={buildMeetingDetailUrl(baseUrl, id)}>
-                    {meeting.name}
-                  </a>
-                  <span class="recent-organization">
-                    {valuesById[meeting.id]?.organizationLabel}
-                  </span>
-                </li>
-              );
-            })}
-          </ul>
-        </>
-      )
-    }
+    {recentMeetings.length > 0 && (
+      <>
+        <h2 class="section-header">Zuletzt getagt</h2>
+        <ul class="recent-list" data-pagefind-ignore>
+          {recentMeetings.map((meeting) => {
+            const id = getOParlEntityId(meeting.id);
+            return (
+              <li>
+                <span class="recent-date">
+                  {formatDateShort(meeting.start)}
+                </span>
+                <a href={buildMeetingDetailUrl(baseUrl, id)}>{meeting.name}</a>
+                <span class="recent-organization">
+                  {valuesById[meeting.id]?.organizationLabel}
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+      </>
+    )}
   </PageContainer>
 </Layout>
 

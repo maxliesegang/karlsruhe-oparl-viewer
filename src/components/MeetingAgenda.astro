@@ -12,36 +12,34 @@ const baseUrl = import.meta.env.BASE_URL;
 
 <section class="section-card" data-pagefind-ignore>
   <h2 class="section-heading">Öffentliche Tagesordnung</h2>
-  {
-    items.length > 0 ? (
-      <ol class="agenda-list">
-        {items.map(({ agendaItem, paper }) => (
-          <li class="agenda-item">
-            <span class="agenda-number">
-              {agendaItem.number ? `TOP ${agendaItem.number}` : "Hinweis"}
-            </span>
-            <div class="agenda-content">
-              {paper ? (
-                <a href={buildPaperDetailUrl(baseUrl, paper.routeReference)}>
-                  {agendaItem.name}
-                </a>
-              ) : (
-                <strong>{agendaItem.name}</strong>
-              )}
-              {paper && <span class="paper-reference">{paper.reference}</span>}
-              {agendaItem.result && (
-                <span class="agenda-result">Ergebnis: {agendaItem.result}</span>
-              )}
-            </div>
-          </li>
-        ))}
-      </ol>
-    ) : (
-      <p class="empty-agenda">
-        Die öffentliche Tagesordnung ist noch nicht veröffentlicht.
-      </p>
-    )
-  }
+  {items.length > 0 ? (
+    <ol class="agenda-list">
+      {items.map(({ agendaItem, paper }) => (
+        <li class="agenda-item">
+          <span class="agenda-number">
+            {agendaItem.number ? `TOP ${agendaItem.number}` : "Hinweis"}
+          </span>
+          <div class="agenda-content">
+            {paper ? (
+              <a href={buildPaperDetailUrl(baseUrl, paper.routeReference)}>
+                {agendaItem.name}
+              </a>
+            ) : (
+              <strong>{agendaItem.name}</strong>
+            )}
+            {paper && <span class="paper-reference">{paper.reference}</span>}
+            {agendaItem.result && (
+              <span class="agenda-result">Ergebnis: {agendaItem.result}</span>
+            )}
+          </div>
+        </li>
+      ))}
+    </ol>
+  ) : (
+    <p class="empty-agenda">
+      Die öffentliche Tagesordnung ist noch nicht veröffentlicht.
+    </p>
+  )}
 </section>
 
 <style>

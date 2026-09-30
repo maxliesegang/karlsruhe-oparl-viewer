@@ -29,52 +29,50 @@ function describeAgenda(count: number): string {
 ---
 
 <ul class="meeting-list" data-pagefind-ignore>
-  {
-    meetings.map((meeting) => {
-      const id = getOParlEntityId(meeting.id);
-      const filterValues = filterValuesById[meeting.id];
-      return (
-        <li data-meeting-item>
-          <article
-            class="meeting-card"
-            data-meeting-card
-            data-body-types={filterValues.bodyTypes.join("|")}
-            data-organizations={filterValues.organizations.join("|")}
-            data-districts={filterValues.districts.join("|")}
-            data-start={meeting.start}
-            data-month={filterValues.month}
-            data-has-public-agenda={String(filterValues.publicAgendaCount > 0)}
-            data-has-protocol={String(filterValues.hasProtocol)}
-            data-search={filterValues.searchText}
-          >
-            <div class="meeting-date">
-              <time datetime={meeting.start}>
-                {formatDateTime(meeting.start)} Uhr
-              </time>
-              <span>{meeting.location?.description || "Ort noch offen"}</span>
-            </div>
-            <h2>
-              <a href={buildMeetingDetailUrl(baseUrl, id)}>{meeting.name}</a>
-            </h2>
-            <p class="meeting-organization">{filterValues.organizationLabel}</p>
-            <div class="meeting-actions">
-              <span
-                class:list={[
-                  "agenda-status",
-                  filterValues.publicAgendaCount > 0 && "available",
-                ]}
-              >
-                {describeAgenda(filterValues.publicAgendaCount)}
-              </span>
-              {variant === "archive" && filterValues.hasProtocol && (
-                <span class="protocol-status">Protokoll vorhanden</span>
-              )}
-            </div>
-          </article>
-        </li>
-      );
-    })
-  }
+  {meetings.map((meeting) => {
+    const id = getOParlEntityId(meeting.id);
+    const filterValues = filterValuesById[meeting.id];
+    return (
+      <li data-meeting-item>
+        <article
+          class="meeting-card"
+          data-meeting-card
+          data-body-types={filterValues.bodyTypes.join("|")}
+          data-organizations={filterValues.organizations.join("|")}
+          data-districts={filterValues.districts.join("|")}
+          data-start={meeting.start}
+          data-month={filterValues.month}
+          data-has-public-agenda={String(filterValues.publicAgendaCount > 0)}
+          data-has-protocol={String(filterValues.hasProtocol)}
+          data-search={filterValues.searchText}
+        >
+          <div class="meeting-date">
+            <time datetime={meeting.start}>
+              {formatDateTime(meeting.start)} Uhr
+            </time>
+            <span>{meeting.location?.description || "Ort noch offen"}</span>
+          </div>
+          <h2>
+            <a href={buildMeetingDetailUrl(baseUrl, id)}>{meeting.name}</a>
+          </h2>
+          <p class="meeting-organization">{filterValues.organizationLabel}</p>
+          <div class="meeting-actions">
+            <span
+              class:list={[
+                "agenda-status",
+                filterValues.publicAgendaCount > 0 && "available",
+              ]}
+            >
+              {describeAgenda(filterValues.publicAgendaCount)}
+            </span>
+            {variant === "archive" && filterValues.hasProtocol && (
+              <span class="protocol-status">Protokoll vorhanden</span>
+            )}
+          </div>
+        </article>
+      </li>
+    );
+  })}
 </ul>
 
 <style>

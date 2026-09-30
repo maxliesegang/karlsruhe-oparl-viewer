@@ -17,11 +17,9 @@ const normalizedOptions = options.map((option) =>
   <label for={id}>{label}</label>
   <select id={id}>
     <option value="">{emptyLabel}</option>
-    {
-      normalizedOptions.map(({ value, label: optionLabel }) => (
-        <option value={value}>{optionLabel}</option>
-      ))
-    }
+    {normalizedOptions.map(({ value, label: optionLabel }) => (
+      <option value={value}>{optionLabel}</option>
+    ))}
   </select>
 </div>
 

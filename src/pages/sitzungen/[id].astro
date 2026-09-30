@@ -137,23 +137,21 @@ const structuredData = {
         <div>
           <dt>Beginn</dt>
           <dd>
-            <time datetime={meeting.start}
-              >{formatDateTime(meeting.start)} Uhr</time
-            >
+            <time datetime={meeting.start}>
+              {formatDateTime(meeting.start)} Uhr
+            </time>
           </dd>
         </div>
         <div>
           <dt>Ende</dt>
           <dd>
-            {
-              hasPublishedEnd ? (
-                <time datetime={meeting.end}>
-                  {formatDateTime(meeting.end)} Uhr
-                </time>
-              ) : (
-                "Nicht angegeben"
-              )
-            }
+            {hasPublishedEnd ? (
+              <time datetime={meeting.end}>
+                {formatDateTime(meeting.end)} Uhr
+              </time>
+            ) : (
+              "Nicht angegeben"
+            )}
           </dd>
         </div>
         <div>
@@ -165,11 +163,9 @@ const structuredData = {
         <div>
           <dt>Gremium</dt>
           <dd>
-            {
-              organizations
-                .map((organization) => organization.name)
-                .join(", ") || "Keine Angabe"
-            }
+            {organizations
+              .map((organization) => organization.name)
+              .join(", ") || "Keine Angabe"}
           </dd>
         </div>
       </dl>
@@ -184,26 +180,24 @@ const structuredData = {
 
     <MeetingAgenda items={agenda} />
 
-    {
-      documents.length > 0 && (
-        <section class="section-card" data-pagefind-ignore>
-          <h2 class="section-heading">Sitzungsunterlagen</h2>
-          <ul class="document-list">
-            {documents.map(({ label, file }) => (
-              <li>
-                <a
-                  href={normalizeOParlUrl(file.accessUrl)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {label}: {file.name}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )
-    }
+    {documents.length > 0 && (
+      <section class="section-card" data-pagefind-ignore>
+        <h2 class="section-heading">Sitzungsunterlagen</h2>
+        <ul class="document-list">
+          {documents.map(({ label, file }) => (
+            <li>
+              <a
+                href={normalizeOParlUrl(file.accessUrl)}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {label}: {file.name}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
   </PageContainer>
 </Layout>
 

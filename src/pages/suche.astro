@@ -17,21 +17,19 @@ const pagefind = resolvePagefindAvailability(import.meta.env.SKIP_PAGEFIND, {
 >
   <PageContainer class="search-results-page">
     <h1 class="page-header">Suchergebnisse</h1>
-    {
-      pagefind.enabled ? (
-        <>
-          <p class="subtitle">
-            Diese Seite ist für gespeicherte Suchlinks gedacht und führt die
-            Anfrage direkt aus — zuletzt geänderte Vorlagen zuerst.
-          </p>
-          <SearchPanel sortMode="modified" />
-        </>
-      ) : (
-        <p class="search-disabled" role="status">
-          {pagefind.disabledMessage}
+    {pagefind.enabled ? (
+      <>
+        <p class="subtitle">
+          Diese Seite ist für gespeicherte Suchlinks gedacht und führt die
+          Anfrage direkt aus — zuletzt geänderte Vorlagen zuerst.
         </p>
-      )
-    }
+        <SearchPanel sortMode="modified" />
+      </>
+    ) : (
+      <p class="search-disabled" role="status">
+        {pagefind.disabledMessage}
+      </p>
+    )}
   </PageContainer>
 </Layout>
 

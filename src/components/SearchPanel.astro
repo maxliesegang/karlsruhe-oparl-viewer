@@ -60,8 +60,10 @@ const baseUrl = import.meta.env.BASE_URL;
       class="search-clear"
       aria-label="Suche zurücksetzen"
       data-search-clear
-      hidden>×</button
+      hidden
     >
+      ×
+    </button>
   </form>
 
   <div class="search-toolbar">
@@ -70,29 +72,28 @@ const baseUrl = import.meta.env.BASE_URL;
       role="status"
       aria-live="polite"
       data-search-status
-    >
-    </p>
-    {
-      showSortToggle && (
-        <div class="search-sort" role="group" aria-label="Sortierung">
-          {sortOptions.map((option) => (
-            <button
-              type="button"
-              class="search-sort-option"
-              data-search-sort={option.mode}
-              aria-pressed={String(option.mode === sortMode)}
-            >
-              {option.label}
-            </button>
-          ))}
-        </div>
-      )
-    }
+    ></p>
+    {showSortToggle && (
+      <div class="search-sort" role="group" aria-label="Sortierung">
+        {sortOptions.map((option) => (
+          <button
+            type="button"
+            class="search-sort-option"
+            data-search-sort={option.mode}
+            aria-pressed={String(option.mode === sortMode)}
+          >
+            {option.label}
+          </button>
+        ))}
+      </div>
+    )}
   </div>
 
   <ol class="search-results" data-search-results></ol>
 
-  <p class="search-empty" data-search-empty hidden>{emptyHint}</p>
+  <p class="search-empty" data-search-empty hidden>
+    {emptyHint}
+  </p>
 
   <p class="search-load-trigger" data-search-load-trigger hidden>
     Weitere Treffer werden geladen …

@@ -37,35 +37,32 @@ const archiveUrl = buildMeetingArchiveUrl(baseUrl);
       <p>
         Öffentliche Termine und Tagesordnungen der Karlsruher Gremien. Neue
         Tagesordnungspunkte erscheinen, sobald sie veröffentlicht wurden.
-        Vergangene Sitzungen stehen im <a href={archiveUrl}>Archiv</a> ({
-          pastMeetings.length
-        } Sitzungen).
+        Vergangene Sitzungen stehen im <a href={archiveUrl}>Archiv</a> (
+        {pastMeetings.length} Sitzungen).
       </p>
       <CalendarSubscription />
     </div>
 
-    {
-      meetings.length > 0 ? (
-        <>
-          <MeetingFilters
-            filterOptions={meetingFilterOptions}
-            meetingCount={meetings.length}
-          />
-          <MeetingList
-            meetings={meetings}
-            filterValuesById={meetingFilterValuesById}
-          />
-          <p class="no-results" data-meeting-no-results hidden>
-            Keine Sitzungen für die gewählten Filter gefunden.
-          </p>
-        </>
-      ) : (
-        <p class="empty">
-          Derzeit sind keine kommenden Sitzungen verfügbar —{" "}
-          <a href={archiveUrl}>vergangene Sitzungen im Archiv</a>.
+    {meetings.length > 0 ? (
+      <>
+        <MeetingFilters
+          filterOptions={meetingFilterOptions}
+          meetingCount={meetings.length}
+        />
+        <MeetingList
+          meetings={meetings}
+          filterValuesById={meetingFilterValuesById}
+        />
+        <p class="no-results" data-meeting-no-results hidden>
+          Keine Sitzungen für die gewählten Filter gefunden.
         </p>
-      )
-    }
+      </>
+    ) : (
+      <p class="empty">
+        Derzeit sind keine kommenden Sitzungen verfügbar —{" "}
+        <a href={archiveUrl}>vergangene Sitzungen im Archiv</a>.
+      </p>
+    )}
   </PageContainer>
 </Layout>
 

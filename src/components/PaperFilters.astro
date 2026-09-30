@@ -28,15 +28,13 @@ const { filterOptions } = Astro.props;
     <p class="filter-count" id="filter-count"></p>
   </div>
   <div class="filter-row" data-filter-row>
-    {
-      PAPER_FILTER_FIELDS.map((field) => (
-        <FilterSelect
-          id={field.id}
-          label={field.label}
-          options={filterOptions[field.optionsKey] ?? []}
-        />
-      ))
-    }
+    {PAPER_FILTER_FIELDS.map((field) => (
+      <FilterSelect
+        id={field.id}
+        label={field.label}
+        options={filterOptions[field.optionsKey] ?? []}
+      />
+    ))}
   </div>
 </div>
 

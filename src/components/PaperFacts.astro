@@ -58,14 +58,14 @@ const linkedFacts: {
 ---
 
 <section class="section-card" aria-labelledby="paper-facts">
-  <h2 class="section-heading" id="paper-facts">Eckdaten</h2>
+  <h2 class="section-heading" id="paper-facts">
+    Eckdaten
+  </h2>
 
   <dl class="facts">
-    {
-      /* The paper's primary identifier, and the only place it appears as page
+    {/* The paper's primary identifier, and the only place it appears as page
         text — so this is what makes a search for "2025/0152" resolve. The
-        breadcrumb shows it too but is `data-pagefind-ignore`. */
-    }
+        breadcrumb shows it too but is `data-pagefind-ignore`. */}
     <dt>Vorlagen-Nr.</dt>
     <dd class="fact-reference" data-pagefind-meta="paper-reference">
       {paper.reference}
@@ -77,8 +77,9 @@ const linkedFacts: {
         datetime={paper.modified}
         data-pagefind-meta="paper-modified[datetime]"
         data-pagefind-sort={pagefindModifiedSortAtt}
-        >{formatDateShort(paper.modified)}</time
       >
+        {formatDateShort(paper.modified)}
+      </time>
       {/* Literal meta value — keeps the raw timestamp out of excerpts. */}
       <span data-pagefind-meta={`paper-created:${paper.created}`}></span>
     </dd>
@@ -91,29 +92,27 @@ const linkedFacts: {
       {organizationNames || "Keine Angaben"}
     </dd>
 
-    {
-      linkedFacts.map(({ term, meta, links }) => (
-        <Fragment>
-          <dt>{term}</dt>
-          <dd
-            data-pagefind-meta={links.length > 0 ? meta : undefined}
-            class:list={[links.length === 0 && "fact-empty"]}
-          >
-            {links.length > 0 ? (
-              <ul class="fact-links">
-                {links.map(({ name, href }) => (
-                  <li>
-                    {href ? <a href={href}>{name}</a> : <span>{name}</span>}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              "Keine Angaben"
-            )}
-          </dd>
-        </Fragment>
-      ))
-    }
+    {linkedFacts.map(({ term, meta, links }) => (
+      <Fragment>
+        <dt>{term}</dt>
+        <dd
+          data-pagefind-meta={links.length > 0 ? meta : undefined}
+          class:list={[links.length === 0 && "fact-empty"]}
+        >
+          {links.length > 0 ? (
+            <ul class="fact-links">
+              {links.map(({ name, href }) => (
+                <li>
+                  {href ? <a href={href}>{name}</a> : <span>{name}</span>}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            "Keine Angaben"
+          )}
+        </dd>
+      </Fragment>
+    ))}
   </dl>
 </section>
 

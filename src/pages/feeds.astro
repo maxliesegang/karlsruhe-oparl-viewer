@@ -45,8 +45,8 @@ const feedGroups = [
       <h2 id="calendar-feed-heading">Sitzungskalender</h2>
       <p class="section-intro">
         Alle kommenden Sitzungen in der eigenen Kalender-App. Das Abonnement
-        aktualisiert sich automatisch; vergangene Sitzungen bleiben noch 30
-        Tage sichtbar.
+        aktualisiert sich automatisch; vergangene Sitzungen bleiben noch 30 Tage
+        sichtbar.
       </p>
       <CalendarSubscription />
     </section>
@@ -59,21 +59,19 @@ const feedGroups = [
       />
     </section>
 
-    {
-      feedGroups.map((group) => (
-        <section class="feed-section" aria-labelledby={group.id}>
-          <h2 id={group.id}>{group.heading}</h2>
-          <ul class="feed-list">
-            {group.feeds.map((feed) => (
-              <li>
-                <span>{getSyndicationFeedLabel(feed)}</span>
-                <FeedSubscriptionLink href={feed.url} />
-              </li>
-            ))}
-          </ul>
-        </section>
-      ))
-    }
+    {feedGroups.map((group) => (
+      <section class="feed-section" aria-labelledby={group.id}>
+        <h2 id={group.id}>{group.heading}</h2>
+        <ul class="feed-list">
+          {group.feeds.map((feed) => (
+            <li>
+              <span>{getSyndicationFeedLabel(feed)}</span>
+              <FeedSubscriptionLink href={feed.url} />
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))}
   </PageContainer>
 </Layout>
 

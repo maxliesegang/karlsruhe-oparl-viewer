@@ -55,22 +55,20 @@ const canonicalUrl = buildCanonicalUrl(Astro.url, Astro.site);
     <meta property="og:title" content={pageTitle} />
     <meta property="og:description" content={metaDescription} />
     {canonicalUrl && <meta property="og:url" content={canonicalUrl} />}
-    {
-      /* X/Twitter falls back to the og:* tags, so only the card type is worth
-    the ~300 bytes it costs on each of the ~30k pages. */
-    }
+    {/* X/Twitter falls back to the og:* tags, so only the card type is worth
+    the ~300 bytes it costs on each of the ~30k pages. */}
     <meta name="twitter:card" content="summary" />
-    {
-      structuredData && (
-        <script
-          type="application/ld+json"
-          set:html={JSON.stringify(structuredData)}
-        />
-      )
-    }
+    {structuredData && (
+      <script
+        type="application/ld+json"
+        set:html={JSON.stringify(structuredData)}
+      />
+    )}
   </head>
   <body>
-    <a class="skip-link" href="#main-content">Zum Inhalt springen</a>
+    <a class="skip-link" href="#main-content">
+      Zum Inhalt springen
+    </a>
     <SiteNavigation currentSection={navigationSection} />
     <main id="main-content">
       <slot />

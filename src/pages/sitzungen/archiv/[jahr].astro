@@ -69,25 +69,21 @@ const archiveUrl = buildMeetingArchiveUrl(baseUrl);
     </div>
 
     <nav class="year-nav" aria-label="Jahre" data-pagefind-ignore>
-      {
-        olderYear ? (
-          <a href={buildMeetingArchiveYearUrl(baseUrl, olderYear)} rel="prev">
-            ← {olderYear}
-          </a>
-        ) : (
-          <span />
-        )
-      }
+      {olderYear ? (
+        <a href={buildMeetingArchiveYearUrl(baseUrl, olderYear)} rel="prev">
+          ← {olderYear}
+        </a>
+      ) : (
+        <span />
+      )}
       <a href={archiveUrl}>Alle Jahre</a>
-      {
-        newerYear ? (
-          <a href={buildMeetingArchiveYearUrl(baseUrl, newerYear)} rel="next">
-            {newerYear} →
-          </a>
-        ) : (
-          <span />
-        )
-      }
+      {newerYear ? (
+        <a href={buildMeetingArchiveYearUrl(baseUrl, newerYear)} rel="next">
+          {newerYear} →
+        </a>
+      ) : (
+        <span />
+      )}
     </nav>
 
     <MeetingFilters

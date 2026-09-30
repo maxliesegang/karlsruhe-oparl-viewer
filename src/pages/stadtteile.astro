@@ -22,24 +22,20 @@ const baseUrl = import.meta.env.BASE_URL;
 >
   <PageContainer class="stadtteile-page">
     <h1 class="page-header">Vorlagen nach Stadtteil</h1>
-    <p class="subtitle">
-      {districtNames.length} Stadtteile mit Vorlagen
-    </p>
+    <p class="subtitle">{districtNames.length} Stadtteile mit Vorlagen</p>
     <StadtteilHint />
     <div class="stadtteile-grid">
-      {
-        districtNames.map((districtName) => (
-          <a
-            href={buildDistrictUrl(baseUrl, districtName)}
-            class="stadtteil-card"
-          >
-            <span class="stadtteil-name">{districtName}</span>
-            <span class="stadtteil-count">
-              {paperCountsByDistrict.get(districtName) ?? 0} Vorlagen
-            </span>
-          </a>
-        ))
-      }
+      {districtNames.map((districtName) => (
+        <a
+          href={buildDistrictUrl(baseUrl, districtName)}
+          class="stadtteil-card"
+        >
+          <span class="stadtteil-name">{districtName}</span>
+          <span class="stadtteil-count">
+            {paperCountsByDistrict.get(districtName) ?? 0} Vorlagen
+          </span>
+        </a>
+      ))}
     </div>
   </PageContainer>
 </Layout>

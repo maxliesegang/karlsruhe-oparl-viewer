@@ -54,73 +54,71 @@ function buildPaperMetaText(
 }
 ---
 
-{
-  papers.length > 0 ? (
-    <div class="paper-list-panel" data-paper-list>
-      {hasFilters && filterOptions && (
-        <PaperFilters filterOptions={filterOptions} />
-      )}
-      <ul class="paper-list">
-        {papers.map((paper, i) => {
-          const filterValues = filterValuesById?.[paper.id];
-          const dateGroup = getPaperDateGroup(paper);
-          const previousGroupKey =
-            i > 0 ? getPaperDateGroup(papers[i - 1]).key : null;
-          const showHeader = dateGroup.key !== previousGroupKey;
-          const metaText = buildPaperMetaText(paper, filterValues);
-          const isInitiallyVisible = i < INITIAL_PAPER_BATCH_SIZE;
-          const showHeaderInitially = showHeader && isInitiallyVisible;
+{papers.length > 0 ? (
+  <div class="paper-list-panel" data-paper-list>
+    {hasFilters && filterOptions && (
+      <PaperFilters filterOptions={filterOptions} />
+    )}
+    <ul class="paper-list">
+      {papers.map((paper, i) => {
+        const filterValues = filterValuesById?.[paper.id];
+        const dateGroup = getPaperDateGroup(paper);
+        const previousGroupKey =
+          i > 0 ? getPaperDateGroup(papers[i - 1]).key : null;
+        const showHeader = dateGroup.key !== previousGroupKey;
+        const metaText = buildPaperMetaText(paper, filterValues);
+        const isInitiallyVisible = i < INITIAL_PAPER_BATCH_SIZE;
+        const showHeaderInitially = showHeader && isInitiallyVisible;
 
-          return (
-            <>
-              {showHeader && (
-                <li
-                  class:list={[
-                    "date-group-header",
-                    dateGroup.isArchive && "is-archive",
-                  ]}
-                  data-date={dateGroup.key}
-                  style={showHeaderInitially ? undefined : "display:none;"}
-                >
-                  {dateGroup.label}
-                </li>
-              )}
+        return (
+          <>
+            {showHeader && (
               <li
-                data-date-group={dateGroup.key}
-                style={isInitiallyVisible ? undefined : "display:none;"}
+                class:list={[
+                  "date-group-header",
+                  dateGroup.isArchive && "is-archive",
+                ]}
+                data-date={dateGroup.key}
+                style={showHeaderInitially ? undefined : "display:none;"}
               >
-                <a
-                  class="paper-card"
-                  href={buildPaperDetailUrl(baseUrl, paper.routeReference)}
-                  data-year={filterValues?.year ?? ""}
-                  data-paper-type={paper.paperType}
-                  data-organization={filterValues?.organization ?? ""}
-                  data-role={filterValues?.consultationRole ?? ""}
-                  data-result={filterValues?.consultationResult ?? ""}
-                  data-districts={filterValues?.districts ?? ""}
-                  data-submitters={filterValues?.submitters ?? ""}
-                >
-                  <span class="paper-title">{paper.name}</span>
-                  <span class="paper-meta" title={metaText}>
-                    {metaText}
-                  </span>
-                </a>
+                {dateGroup.label}
               </li>
-            </>
-          );
-        })}
-      </ul>
-      <p class="load-trigger" data-load-trigger hidden>
-        Weitere Vorlagen werden geladen...
-      </p>
-      <p class="no-results" id="no-results" style="display: none;">
-        Keine Vorlagen für die gewählten Filter gefunden.
-      </p>
-    </div>
-  ) : (
-    <p class="empty">Keine Vorlagen verfügbar.</p>
-  )
-}
+            )}
+            <li
+              data-date-group={dateGroup.key}
+              style={isInitiallyVisible ? undefined : "display:none;"}
+            >
+              <a
+                class="paper-card"
+                href={buildPaperDetailUrl(baseUrl, paper.routeReference)}
+                data-year={filterValues?.year ?? ""}
+                data-paper-type={paper.paperType}
+                data-organization={filterValues?.organization ?? ""}
+                data-role={filterValues?.consultationRole ?? ""}
+                data-result={filterValues?.consultationResult ?? ""}
+                data-districts={filterValues?.districts ?? ""}
+                data-submitters={filterValues?.submitters ?? ""}
+              >
+                <span class="paper-title">{paper.name}</span>
+                <span class="paper-meta" title={metaText}>
+                  {metaText}
+                </span>
+              </a>
+            </li>
+          </>
+        );
+      })}
+    </ul>
+    <p class="load-trigger" data-load-trigger hidden>
+      Weitere Vorlagen werden geladen...
+    </p>
+    <p class="no-results" id="no-results" style="display: none;">
+      Keine Vorlagen für die gewählten Filter gefunden.
+    </p>
+  </div>
+) : (
+  <p class="empty">Keine Vorlagen verfügbar.</p>
+)}
 
 <style>
   .paper-list-panel {

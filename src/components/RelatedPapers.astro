@@ -15,32 +15,30 @@ const groups = [
 ].filter((group) => group.papers.length > 0);
 ---
 
-{
-  groups.length > 0 && (
-    <section class="section-card" data-pagefind-ignore>
-      <h2 class="section-heading">Zusammengehörige Vorlagen</h2>
-      <div class="related-groups">
-        {groups.map((group) => (
-          <div>
-            <h3>{group.heading}</h3>
-            <ul>
-              {group.papers.map((paper) => (
-                <li>
-                  <a href={buildPaperDetailUrl(baseUrl, paper.routeReference)}>
-                    <span>{paper.name}</span>
-                    <small>
-                      {paper.reference} · {paper.paperType}
-                    </small>
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
-      </div>
-    </section>
-  )
-}
+{groups.length > 0 && (
+  <section class="section-card" data-pagefind-ignore>
+    <h2 class="section-heading">Zusammengehörige Vorlagen</h2>
+    <div class="related-groups">
+      {groups.map((group) => (
+        <div>
+          <h3>{group.heading}</h3>
+          <ul>
+            {group.papers.map((paper) => (
+              <li>
+                <a href={buildPaperDetailUrl(baseUrl, paper.routeReference)}>
+                  <span>{paper.name}</span>
+                  <small>
+                    {paper.reference} · {paper.paperType}
+                  </small>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </div>
+  </section>
+)}
 
 <style>
   .section-heading {

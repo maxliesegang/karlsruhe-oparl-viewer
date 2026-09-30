@@ -38,55 +38,53 @@ const structuredData = siteUrl
 >
   <PageContainer class="search-page">
     <h1 class="page-header">GemeinderatsRadar</h1>
-    {
-      pagefind.enabled ? (
-        <>
-          <div
-            class="saved-search-controls"
-            data-pagefind-ignore
-            data-saved-search-controls
-          >
-            <div class="saved-search-actions">
-              <button
-                type="button"
-                class="saved-search-button"
-                data-save-search-button
-                disabled
+    {pagefind.enabled ? (
+      <>
+        <div
+          class="saved-search-controls"
+          data-pagefind-ignore
+          data-saved-search-controls
+        >
+          <div class="saved-search-actions">
+            <button
+              type="button"
+              class="saved-search-button"
+              data-save-search-button
+              disabled
+            >
+              <svg
+                class="saved-search-icon"
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="currentColor"
+                aria-hidden="true"
               >
-                <svg
-                  class="saved-search-icon"
-                  width="16"
-                  height="16"
-                  viewBox="0 0 16 16"
-                  fill="currentColor"
-                  aria-hidden="true"
-                >
-                  <path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5V2z" />
-                </svg>
-                Suche speichern
-              </button>
-              <a
-                class="saved-search-link-button"
-                href={`${baseUrl}gespeicherte-suchen`}
-                data-saved-searches-link
-              >
-                Gespeicherte Suchen
-              </a>
-            </div>
-            <p
-              class="saved-search-status"
-              data-save-search-status
-              aria-live="polite"
-            />
+                <path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5V2z" />
+              </svg>
+              Suche speichern
+            </button>
+            <a
+              class="saved-search-link-button"
+              href={`${baseUrl}gespeicherte-suchen`}
+              data-saved-searches-link
+            >
+              Gespeicherte Suchen
+            </a>
           </div>
-          <SearchPanel sortMode="relevance" showSortToggle />
-        </>
-      ) : (
-        <p class="search-disabled" role="status">
-          {pagefind.disabledMessage}
-        </p>
-      )
-    }
+          <p
+            class="saved-search-status"
+            data-save-search-status
+            aria-live="polite"
+          />
+        </div>
+        <SearchPanel sortMode="relevance" showSortToggle />
+      </>
+    ) : (
+      <p class="search-disabled" role="status">
+        {pagefind.disabledMessage}
+      </p>
+    )}
   </PageContainer>
 </Layout>
 

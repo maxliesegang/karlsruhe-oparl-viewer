@@ -54,14 +54,12 @@ const { papers, valuesById, options } =
       />
       <div class="district-actions" data-pagefind-ignore>
         <p class="subtitle">{papers.length} Vorlagen</p>
-        {
-          districtFeed && (
-            <FeedSubscriptionLink
-              href={districtFeed.url}
-              label={`Aktualisierungen für ${districtName} abonnieren`}
-            />
-          )
-        }
+        {districtFeed && (
+          <FeedSubscriptionLink
+            href={districtFeed.url}
+            label={`Aktualisierungen für ${districtName} abonnieren`}
+          />
+        )}
       </div>
     </div>
     <StadtteilHint slot="intro" />
