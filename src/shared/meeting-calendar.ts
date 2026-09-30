@@ -1,4 +1,8 @@
-import { getEffectiveMeetingEnd, getOParlEntityId } from "./utils.ts";
+import {
+  buildOfficialMeetingUrl,
+  getEffectiveMeetingEnd,
+  getOParlEntityId,
+} from "./utils.ts";
 import type { Meeting } from "./types";
 
 const encoder = new TextEncoder();
@@ -102,7 +106,12 @@ function buildMeetingEventLines(
       ? `LOCATION:${escapeCalendarText(meeting.location.description)}`
       : undefined,
     `DESCRIPTION:${escapeCalendarText(
-      `Öffentliche Sitzung. Details und Tagesordnung: ${meetingUrl}`,
+      [
+        "Öffentliche Sitzung.",
+        "",
+        `Details und Tagesordnung: ${meetingUrl}`,
+        `Offizielles Ratsinformationssystem: ${buildOfficialMeetingUrl(meetingId)}`,
+      ].join("\n"),
     )}`,
     `URL:${meetingUrl}`,
     `CREATED:${formatCalendarDate(meeting.created)}`,

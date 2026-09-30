@@ -1,4 +1,4 @@
-import { SYNDICATION_BASE_URL } from "./constants.ts";
+import { OFFICIAL_RIS_BASE_URL, SYNDICATION_BASE_URL } from "./constants.ts";
 
 /**
  * Trims each entry, drops empties, and de-duplicates — accepting a single
@@ -84,6 +84,11 @@ export function buildFactionUrl(baseUrl: string, factionId: string): string {
 
 export function buildMeetingCalendarUrl(baseUrl: string, id: string): string {
   return `${baseUrl}sitzungen/kalender/${encodeURIComponent(id)}.ics`;
+}
+
+/** The meeting's page in the city's official Ratsinformationssystem. */
+export function buildOfficialMeetingUrl(id: string): string {
+  return `${OFFICIAL_RIS_BASE_URL}termin-${encodeURIComponent(id)}`;
 }
 
 /** The subscribable calendar with every upcoming meeting. */

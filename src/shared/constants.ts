@@ -13,3 +13,10 @@ export const BULK_MODIFIED_DATE = "2025-03-03";
  */
 export const SYNDICATION_BASE_URL =
   "https://maxliesegang.github.io/karlsruhe-oparl-syndication/";
+
+/**
+ * The city's own Ratsinformationssystem. Its meeting pages are `termin-{id}`,
+ * where the id is the same one the OParl meeting URL ends in.
+ */
+export const OFFICIAL_RIS_BASE_URL =
+  "https://sitzungskalender.karlsruhe.de/db/ratsinformation/";
