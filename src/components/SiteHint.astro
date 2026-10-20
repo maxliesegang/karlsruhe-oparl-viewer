@@ -1,19 +1,57 @@
 ---
 /*
  * Renders no markup: the hint is built client-side so its text can rotate per
- * load and the ~30k static pages carry no extra HTML or scoping attributes.
+ * visit and the ~30k static pages carry no extra HTML or scoping attributes.
  */
 ---
 
 <script>
-  import { pickSiteHint } from "../shared/site-hints";
+  import { isFreshSiteVisit, pickSiteHint } from "../shared/site-hints";
+
+  const STORAGE_KEY = "site-hint";
+
+  interface SiteHintState {
+    text: string;
+    dismissed: boolean;
+  }
+
+  function readState(): SiteHintState | undefined {
+    try {
+      const raw = sessionStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : undefined;
+    } catch {
+      return undefined;
+    }
+  }
+
+  function writeState(state: SiteHintState) {
+    try {
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch {
+      // Storage blocked: the hint simply behaves per page load.
+    }
+  }
 
   function showSiteHint() {
-    const text = pickSiteHint();
+    const navigation = performance.getEntriesByType("navigation")[0] as
+      PerformanceNavigationTiming | undefined;
+    const fresh = isFreshSiteVisit(
+      navigation?.type,
+      document.referrer,
+      location.origin,
+    );
+    const previous = fresh ? undefined : readState();
+    if (previous?.dismissed) return;
+
+    const text = previous?.text ?? pickSiteHint();
     if (!text) return;
+    writeState({ text, dismissed: false });
 
     const hint = document.createElement("aside");
     hint.className = "site-hint";
+    // Only animate in on a fresh visit, so the hint looks like it stays put
+    // while navigating.
+    if (!previous) hint.classList.add("site-hint-enter");
     hint.setAttribute("aria-label", "Hinweis");
     hint.setAttribute("data-pagefind-ignore", "");
 
@@ -28,7 +66,10 @@
     // rides on the font's baseline and drifts per font.
     close.innerHTML =
       '<svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true"><path d="M3 3l10 10M13 3L3 13" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></svg>';
-    close.addEventListener("click", () => hint.remove());
+    close.addEventListener("click", () => {
+      hint.remove();
+      writeState({ text, dismissed: true });
+    });
 
     hint.append(message, close);
     document.body.append(hint);
@@ -60,6 +101,9 @@
     font-family: var(--font-family);
     font-size: 0.85rem;
     line-height: 1.45;
+  }
+
+  .site-hint-enter {
     animation: site-hint-in 0.25s ease-out;
   }
 
@@ -102,7 +146,7 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .site-hint {
+    .site-hint-enter {
       animation: none;
     }
   }
