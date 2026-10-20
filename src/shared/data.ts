@@ -391,6 +391,13 @@ export async function resolvePaperSubmitters(
   });
 }
 
+/** Includes joint submissions, which `resolvePaperSubmitters` can't reveal for the hidden AfD. */
+export async function isPaperSubmittedByAfd(paper: Paper): Promise<boolean> {
+  const index = await loadPaperSubmitters();
+  const recordId = getOParlEntityId(paper.id);
+  return recordId ? (index.papers[recordId] ?? []).includes("afd") : false;
+}
+
 export async function resolveMeetingOrganizations(
   meeting: Meeting,
 ): Promise<Organization[]> {

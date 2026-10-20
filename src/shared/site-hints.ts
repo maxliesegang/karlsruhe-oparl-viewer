@@ -8,7 +8,6 @@ export const SITE_HINTS: readonly string[] = [
   "Transrechte sind Menschenrechte",
   "Dieser Service ist nicht für Faschisten",
   "Vielfalt ist unsere Stärke",
-  "Liebe ist Liebe",
   "Solidarität statt Spaltung",
   "Menschenwürde ist unverhandelbar",
 ];
@@ -39,4 +38,12 @@ export function isFreshSiteVisit(
   } catch {
     return true;
   }
+}
+
+/**
+ * Case-sensitive, whole-word match on the party name, so "afd" or words like
+ * "Schafdach" don't match.
+ */
+export function mentionsAfd(text: string): boolean {
+  return /\bA(?:fD|FD)\b|\bAlternative\s+für\s+Deutschland\b/.test(text);
 }

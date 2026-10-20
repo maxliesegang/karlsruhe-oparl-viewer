@@ -1,6 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { isFreshSiteVisit, pickSiteHint } from "../src/shared/site-hints.ts";
+import {
+  isFreshSiteVisit,
+  mentionsAfd,
+  pickSiteHint,
+} from "../src/shared/site-hints.ts";
 
 const origin = "https://example.org";
 
@@ -31,4 +35,14 @@ test("isFreshSiteVisit treats external or missing referrers as fresh", () => {
   );
   assert.equal(isFreshSiteVisit("navigate", "", origin), true);
   assert.equal(isFreshSiteVisit(undefined, "", origin), true);
+});
+
+test("mentionsAfd matches the party abbreviation as a whole word", () => {
+  assert.equal(mentionsAfd("Antrag der AfD-Fraktion"), true);
+  assert.equal(mentionsAfd("Stellungnahme (AfD)"), true);
+  assert.equal(mentionsAfd("Schafdach"), false);
+  assert.equal(mentionsAfd("AFD"), true);
+  assert.equal(mentionsAfd("Alternative für Deutschland"), true);
+  assert.equal(mentionsAfd("afd"), false);
+  assert.equal(mentionsAfd("Afd"), false);
 });

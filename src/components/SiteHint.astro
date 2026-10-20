@@ -6,7 +6,11 @@
 ---
 
 <script>
-  import { isFreshSiteVisit, pickSiteHint } from "../shared/site-hints";
+  import {
+    isFreshSiteVisit,
+    mentionsAfd,
+    pickSiteHint,
+  } from "../shared/site-hints";
 
   const STORAGE_KEY = "site-hint";
 
@@ -40,12 +44,23 @@
       document.referrer,
       location.origin,
     );
-    const previous = fresh ? undefined : readState();
-    if (previous?.dismissed) return;
+    const saved = fresh ? undefined : readState();
+    // Pages flagged at build time (AfD submissions) or paper pages mentioning
+    // the AfD show the hint despite a dismissal, without undoing it for the
+    // pages that follow.
+    const main = document.querySelector("main");
+    const forced =
+      saved?.dismissed === true &&
+      main !== null &&
+      (main.hasAttribute("data-site-hint-force") ||
+        (main.hasAttribute("data-site-hint-scan") &&
+          mentionsAfd(main.textContent ?? "")));
+    if (saved?.dismissed && !forced) return;
 
+    const previous = forced ? undefined : saved;
     const text = previous?.text ?? pickSiteHint();
     if (!text) return;
-    writeState({ text, dismissed: false });
+    if (!forced) writeState({ text, dismissed: false });
 
     const hint = document.createElement("aside");
     hint.className = "site-hint";

@@ -16,6 +16,7 @@ import {
   resolveRelatedPapers,
   resolvePaperSummary,
   getPaperYear,
+  isPaperSubmittedByAfd,
 } from "../../shared/data";
 import { derivePaperStatus } from "../../shared/paper-status";
 import { getPaperDetailStaticPaths } from "../../shared/paper-detail-paths";
@@ -40,6 +41,7 @@ const [
   auxiliaryFiles,
   relatedPapers,
   summary,
+  submittedByAfd,
 ] = await Promise.all([
   resolveOrganizations(paper),
   resolvePaperSubmitters(paper),
@@ -47,6 +49,7 @@ const [
   resolveAuxiliaryFiles(paper),
   resolveRelatedPapers(paper),
   resolvePaperSummary(paper),
+  isPaperSubmittedByAfd(paper),
 ]);
 
 const baseUrl = import.meta.env.BASE_URL;
@@ -86,6 +89,8 @@ const structuredData = {
   description={metaDescription}
   structuredData={structuredData}
   navigationSection="papers"
+  siteHintScan
+  siteHintForce={submittedByAfd}
 >
   <PageContainer>
     <Breadcrumbs
