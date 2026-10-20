@@ -8,6 +8,7 @@ Reusable UI components. Prefer extending existing components over creating new o
 | ---------------------------- | ----------------------------------------------------------------- |
 | `SiteNavigation.astro`       | Top nav — desktop/mobile + overlay                                |
 | `SiteFooter.astro`           | Site context and external data/source links                       |
+| `SiteHint.astro`             | Dismissible corner hint, text rotates from `shared/site-hints.ts` |
 | `Breadcrumbs.astro`          | Canonical hierarchy on detail and scoped list pages               |
 | `PageContainer.astro`        | Shared max-width wrapper (`width="wide" \| "narrow"`)             |
 | `PaperListPage.astro`        | Reusable list-page skeleton (title + intro slot + list)           |

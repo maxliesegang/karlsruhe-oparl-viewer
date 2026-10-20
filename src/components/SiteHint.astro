@@ -1,0 +1,122 @@
+---
+/*
+ * Renders no markup: the hint is built client-side so its text can rotate per
+ * load and the ~30k static pages carry no extra HTML or scoping attributes.
+ */
+---
+
+<script>
+  import { pickSiteHint } from "../shared/site-hints";
+
+  function showSiteHint() {
+    const text = pickSiteHint();
+    if (!text) return;
+
+    const hint = document.createElement("aside");
+    hint.className = "site-hint";
+    hint.setAttribute("aria-label", "Hinweis");
+    hint.setAttribute("data-pagefind-ignore", "");
+
+    const message = document.createElement("p");
+    message.textContent = text;
+
+    const close = document.createElement("button");
+    close.type = "button";
+    close.className = "site-hint-close";
+    close.setAttribute("aria-label", "Hinweis schließen");
+    // An SVG cross sits on the true centre of the button; the "×" glyph
+    // rides on the font's baseline and drifts per font.
+    close.innerHTML =
+      '<svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true"><path d="M3 3l10 10M13 3L3 13" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></svg>';
+    close.addEventListener("click", () => hint.remove());
+
+    hint.append(message, close);
+    document.body.append(hint);
+  }
+
+  showSiteHint();
+</script>
+
+<style is:global>
+  .site-hint {
+    position: fixed;
+    right: 16px;
+    bottom: 16px;
+    left: 16px;
+    width: fit-content;
+    margin-inline: auto;
+    z-index: 900;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    max-width: 420px;
+    padding: 8px 8px 8px 14px;
+    border: 1px solid var(--color-border);
+    border-left: 3px solid var(--color-primary);
+    border-radius: var(--radius);
+    background: #fff;
+    box-shadow: var(--shadow-card);
+    color: var(--color-text-muted);
+    font-family: var(--font-family);
+    font-size: 0.85rem;
+    line-height: 1.45;
+    animation: site-hint-in 0.25s ease-out;
+  }
+
+  .site-hint p {
+    flex: 1;
+    margin: 0;
+  }
+
+  .site-hint-close {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    transition:
+      background-color 0.15s,
+      color 0.15s;
+  }
+
+  .site-hint-close svg {
+    display: block;
+  }
+
+  .site-hint-close:hover {
+    background: var(--color-bg-card);
+    color: var(--color-text);
+  }
+
+  @keyframes site-hint-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .site-hint {
+      animation: none;
+    }
+  }
+
+  @media screen and (max-width: 480px) {
+    .site-hint {
+      width: auto;
+      max-width: none;
+    }
+  }
+
+  @media print {
+    .site-hint {
+      display: none;
+    }
+  }
+</style>

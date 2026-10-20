@@ -51,4 +51,12 @@ export default defineConfig({
     format: "file",
   },
   integrations,
+  vite: {
+    build: {
+      // Small scripts are inlined into every page by default. The site hint
+      // ships on all ~30k pages, so serve it as one cached file instead.
+      assetsInlineLimit: (filePath) =>
+        filePath.includes("SiteHint") ? false : undefined,
+    },
+  },
 });

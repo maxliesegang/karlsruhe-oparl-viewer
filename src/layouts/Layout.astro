@@ -1,6 +1,7 @@
 ---
 import SiteNavigation from "../components/SiteNavigation.astro";
 import SiteFooter from "../components/SiteFooter.astro";
+import SiteHint from "../components/SiteHint.astro";
 import type { NavigationSection } from "../shared/navigation";
 import { buildCanonicalUrl, truncateForMetaDescription } from "../shared/seo";
 
@@ -74,6 +75,7 @@ const canonicalUrl = buildCanonicalUrl(Astro.url, Astro.site);
       <slot />
     </main>
     <SiteFooter />
+    <SiteHint />
   </body>
 </html>
 
