@@ -15,7 +15,7 @@ const pagefind = resolvePagefindAvailability(import.meta.env.SKIP_PAGEFIND, {
   navigationSection="search"
   noindex
 >
-  <PageContainer class="search-results-page">
+  <PageContainer width="search">
     <h1 class="page-header">Suchergebnisse</h1>
     {pagefind.enabled ? (
       <>
@@ -34,10 +34,6 @@ const pagefind = resolvePagefindAvailability(import.meta.env.SKIP_PAGEFIND, {
 </Layout>
 
 <style>
-  .search-results-page {
-    max-width: 900px;
-  }
-
   .subtitle {
     margin: 0 auto 16px;
     text-align: center;

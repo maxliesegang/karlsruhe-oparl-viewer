@@ -158,12 +158,17 @@ const canonicalUrl = buildCanonicalUrl(Astro.url, Astro.site);
   }
 
   .page-header {
-    font-size: 2.5rem;
+    /* Scales down on phones, where a fixed 2.5rem single-word title like
+       "GemeinderatsRadar" is wider than the viewport. */
+    font-size: clamp(1.75rem, 1.25rem + 2.5vw, 2.5rem);
+    line-height: 1.2;
     color: var(--color-text);
     margin-bottom: 20px;
     font-family: var(--font-family);
     font-weight: bold;
     text-align: center;
+    text-wrap: balance;
+    overflow-wrap: break-word;
   }
 
   .section-card {

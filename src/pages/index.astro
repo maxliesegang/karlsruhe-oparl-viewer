@@ -36,12 +36,19 @@ const structuredData = siteUrl
   structuredData={structuredData}
   navigationSection="search"
 >
-  <PageContainer class="search-page">
-    <h1 class="page-header">GemeinderatsRadar</h1>
+  <PageContainer class="search-page" width="search">
+    <header class="search-intro">
+      <h1 class="page-header">GemeinderatsRadar</h1>
+      <p class="search-tagline">
+        Volltextsuche über Vorlagen, Tagesordnungspunkte und Dokumente des
+        Karlsruher Gemeinderats.
+      </p>
+    </header>
     {pagefind.enabled ? (
-      <>
+      <SearchPanel sortMode="relevance" showSortToggle>
         <div
           class="saved-search-controls"
+          slot="actions"
           data-pagefind-ignore
           data-saved-search-controls
         >
@@ -78,8 +85,7 @@ const structuredData = siteUrl
             aria-live="polite"
           />
         </div>
-        <SearchPanel sortMode="relevance" showSortToggle />
-      </>
+      </SearchPanel>
     ) : (
       <p class="search-disabled" role="status">
         {pagefind.disabledMessage}
@@ -94,6 +100,25 @@ const structuredData = siteUrl
     gap: 14px;
   }
 
+  .search-intro {
+    display: grid;
+    gap: 8px;
+    margin-bottom: 6px;
+    text-align: center;
+  }
+
+  .search-intro .page-header {
+    margin: 0;
+  }
+
+  .search-tagline {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: clamp(0.95rem, 0.9rem + 0.3vw, 1.05rem);
+    line-height: 1.45;
+    text-wrap: balance;
+  }
+
   .search-disabled {
     margin: 16px auto 0;
     max-width: 760px;
@@ -106,8 +131,6 @@ const structuredData = siteUrl
   }
 
   .saved-search-controls {
-    margin: 0 auto;
-    width: min(760px, 100%);
     display: grid;
     gap: 6px;
   }
@@ -119,20 +142,29 @@ const structuredData = siteUrl
     gap: 10px;
   }
 
-  .saved-search-button {
+  .saved-search-button,
+  .saved-search-link-button {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 6px;
+    min-height: 38px;
+    box-sizing: border-box;
     border: 1px solid var(--color-border);
     border-radius: var(--radius);
-    background: var(--color-primary);
     color: var(--color-text);
     padding: 8px 14px;
+    font-family: var(--font-family);
     font-size: 0.9rem;
     font-weight: 600;
-    cursor: pointer;
+    white-space: nowrap;
     text-decoration: none;
     transition: background 0.2s;
+  }
+
+  .saved-search-button {
+    background: var(--color-primary);
+    cursor: pointer;
   }
 
   .saved-search-button:hover:not(:disabled) {
@@ -149,22 +181,27 @@ const structuredData = siteUrl
   }
 
   .saved-search-link-button {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius);
     background: #fff;
-    color: var(--color-text);
-    padding: 8px 14px;
-    font-size: 0.9rem;
-    font-weight: 600;
-    text-decoration: none;
-    transition: background 0.2s;
   }
 
   .saved-search-link-button:hover {
     background: #f3f3f3;
+  }
+
+  /* On phones the two actions share a row where it fits (~375px and up) and
+     otherwise take a full row each, rather than wrapping into a ragged stack. */
+  @media screen and (max-width: 600px) {
+    .saved-search-actions {
+      gap: 8px;
+    }
+
+    .saved-search-button,
+    .saved-search-link-button {
+      flex: 1 1 auto;
+      min-height: 44px;
+      padding-inline: 10px;
+      font-size: 0.85rem;
+    }
   }
 
   .saved-search-status {

@@ -62,9 +62,18 @@ const baseUrl = import.meta.env.BASE_URL;
       data-search-clear
       hidden
     >
-      ×
+      <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+        <path
+          d="M3 3l10 10M13 3L3 13"
+          stroke="currentColor"
+          stroke-width="1.75"
+          stroke-linecap="round"
+        ></path>
+      </svg>
     </button>
   </form>
+
+  <slot name="actions" />
 
   <div class="search-toolbar">
     <p
@@ -144,22 +153,37 @@ const baseUrl = import.meta.env.BASE_URL;
     display: none;
   }
 
+  /* An SVG cross centres reliably; a 32px circle keeps it tappable. */
   .search-clear {
     flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    margin: -4px -6px -4px 0;
+    padding: 0;
     border: none;
+    border-radius: 50%;
     background: transparent;
     color: #999;
-    font-size: 1.4rem;
-    line-height: 1;
     cursor: pointer;
-    padding: 0 4px;
+  }
+
+  .search-clear[hidden] {
+    display: none;
   }
 
   .search-clear:hover {
+    background: var(--color-bg-card);
     color: var(--color-text);
   }
 
   /* --- Status / sort toggle / empty state --- */
+
+  /* Nothing to report or sort before the first query. */
+  .search-toolbar:has(.search-status:empty) {
+    display: none;
+  }
 
   .search-toolbar {
     display: flex;
@@ -196,6 +220,13 @@ const baseUrl = import.meta.env.BASE_URL;
   .search-sort-option[aria-pressed="true"] {
     background: var(--color-primary);
     color: var(--color-text);
+  }
+
+  @media (pointer: coarse) {
+    .search-sort-option {
+      min-height: 36px;
+      padding-inline: 16px;
+    }
   }
 
   .search-status {
