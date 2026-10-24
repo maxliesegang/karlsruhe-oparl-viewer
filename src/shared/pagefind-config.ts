@@ -7,6 +7,9 @@ export type PagefindSort = Readonly<Record<string, PagefindSortDirection>>;
 export const SEARCH_PANEL_SELECTOR = "[data-search-panel]";
 export const SEARCH_INPUT_SELECTOR = "[data-search-input]";
 
+/** Newest papers first, by the date the paper was submitted. */
+export const PAGEFIND_DATE_FIRST_SORT = { date: "desc" } as const;
+
 /** Saved searches behave as a "what changed since I last looked" feed. */
 export const PAGEFIND_MODIFIED_FIRST_SORT = { modified: "desc" } as const;
 

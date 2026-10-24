@@ -123,6 +123,8 @@ use title variants as the primary organization source.
   a dominant match cannot be displaced while a plateau of near-equal scores is
   ordered by date outright. Raising `RECENCY_WEIGHT` past ~0.6 starts costing
   genuine top hits; measure against a built index before changing it
+- Main search toggle "Neueste": `PAGEFIND_DATE_FIRST_SORT` (`{ date: "desc" }`,
+  the paper date), no relevance blend; the date chip on each card is emphasised
 - Saved search results (`/suche`): `PAGEFIND_MODIFIED_FIRST_SORT`
   (`{ modified: "desc" }`), so the page reads as a "what changed" feed
 - Results render in batches of `SEARCH_RESULT_BATCH_SIZE` (20) with

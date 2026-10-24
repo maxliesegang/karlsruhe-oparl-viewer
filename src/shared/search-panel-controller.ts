@@ -5,6 +5,7 @@ import {
   type PagefindSearchResult,
 } from "./pagefind-client";
 import {
+  PAGEFIND_DATE_FIRST_SORT,
   PAGEFIND_MODIFIED_FIRST_SORT,
   SEARCH_INPUT_SELECTOR,
   SEARCH_PANEL_SELECTOR,
@@ -16,8 +17,21 @@ import {
 import { rankResultsByPaperDate } from "./search-ranking";
 import { formatDateShort } from "./utils";
 
-/** Main search blends relevance with paper date; saved-search feeds use edits. */
-export type SearchSortMode = "relevance" | "modified";
+/**
+ * Main search blends relevance with paper date; `date` is the plain
+ * newest-paper-first order; saved-search feeds use edits.
+ */
+export type SearchSortMode = "relevance" | "date" | "modified";
+
+const SEARCH_SORT_MODES: readonly SearchSortMode[] = [
+  "relevance",
+  "date",
+  "modified",
+];
+
+function parseSortMode(value: string | undefined): SearchSortMode {
+  return SEARCH_SORT_MODES.find((mode) => mode === value) ?? "relevance";
+}
 
 export const SEARCH_RESULT_BATCH_SIZE = 20;
 const SEARCH_DEBOUNCE_MS = 160;
@@ -49,9 +63,14 @@ interface SearchPanelContext extends SearchPanelElements {
 }
 
 function getSortLabel(sortMode: SearchSortMode): string {
-  return sortMode === "modified"
-    ? "sortiert nach letzter Änderung"
-    : "sortiert nach Relevanz und Vorlagendatum";
+  switch (sortMode) {
+    case "modified":
+      return "sortiert nach letzter Änderung";
+    case "date":
+      return "sortiert nach Vorlagendatum, neueste zuerst";
+    default:
+      return "sortiert nach Relevanz und Vorlagendatum";
+  }
 }
 
 function getMeaningfulValue(value: string | undefined): string | undefined {
@@ -86,6 +105,26 @@ function buildMetaChips(meta: Record<string, string | undefined>): string[] {
   ].filter((value): value is string => Boolean(value));
 }
 
+function buildMetaLine(
+  meta: Record<string, string | undefined>,
+  sortMode: SearchSortMode,
+): HTMLElement | undefined {
+  const chips = buildMetaChips(meta);
+  if (chips.length === 0) return undefined;
+
+  const date = formatDateShort(getMeaningfulValue(meta["paper-date"]));
+  const metaLine = createElement("span", "search-result-meta");
+  for (const chip of chips) {
+    const element = createElement("span", "search-result-chip", chip);
+    // Point at the value the list is ordered by, as the footer does for edits.
+    if (sortMode === "date" && date && chip === date) {
+      element.dataset.emphasis = "date";
+    }
+    metaLine.append(element);
+  }
+  return metaLine;
+}
+
 function buildResultCard(
   data: PagefindResultData,
   sortMode: SearchSortMode,
@@ -106,14 +145,8 @@ function buildResultCard(
     ),
   );
 
-  const chips = buildMetaChips(meta);
-  if (chips.length > 0) {
-    const metaLine = createElement("span", "search-result-meta");
-    for (const chip of chips) {
-      metaLine.append(createElement("span", "search-result-chip", chip));
-    }
-    link.append(metaLine);
-  }
+  const metaLine = buildMetaLine(meta, sortMode);
+  if (metaLine) link.append(metaLine);
 
   if (data.excerpt) {
     const excerpt = createElement("span", "search-result-excerpt");
@@ -203,9 +236,14 @@ function initLoadTriggerObserver(context: SearchPanelContext): void {
 let dateRankingAvailable = true;
 
 function buildSearchOptions(sortMode: SearchSortMode) {
-  return sortMode === "modified"
-    ? { sort: { ...PAGEFIND_MODIFIED_FIRST_SORT } }
-    : {};
+  switch (sortMode) {
+    case "modified":
+      return { sort: { ...PAGEFIND_MODIFIED_FIRST_SORT } };
+    case "date":
+      return { sort: { ...PAGEFIND_DATE_FIRST_SORT } };
+    default:
+      return {};
+  }
 }
 
 async function runSearch(
@@ -247,7 +285,9 @@ async function runSearch(
       dateRankingAvailable
     ) {
       try {
-        const byDate = await pagefind.search(query, { sort: { date: "desc" } });
+        const byDate = await pagefind.search(query, {
+          sort: { ...PAGEFIND_DATE_FIRST_SORT },
+        });
         if (token !== context.searchToken) return;
         results = rankResultsByPaperDate(results, byDate.results ?? []);
       } catch (error) {
@@ -321,8 +361,7 @@ function initSortToggle(
 ): void {
   for (const button of context.sortButtons) {
     button.addEventListener("click", () => {
-      const sortMode: SearchSortMode =
-        button.dataset.searchSort === "modified" ? "modified" : "relevance";
+      const sortMode = parseSortMode(button.dataset.searchSort);
       if (sortMode === context.sortMode) return;
 
       context.sortMode = sortMode;
@@ -348,7 +387,7 @@ export function initSearchPanel(): void {
   const context: SearchPanelContext = {
     ...elements,
     baseUrl: root.dataset.baseUrl ?? "/",
-    sortMode: root.dataset.sortMode === "modified" ? "modified" : "relevance",
+    sortMode: parseSortMode(root.dataset.sortMode),
     results: [],
     renderedCount: 0,
     query: "",
