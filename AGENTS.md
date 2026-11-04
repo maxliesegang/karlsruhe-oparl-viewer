@@ -54,7 +54,11 @@ Do **not** edit generated artifacts: `dist/`, `.astro/`, `node_modules/`.
 ## Deployment
 
 - Workflow: `.github/workflows/deploy.yml`
-- Triggers: push to `main`; scheduled 03:17 and 15:17 UTC
+- Triggers: push to `main`; `repository_dispatch` (`syndication-updated`), sent by
+  the syndication repo's feed workflow after each data push; daily 04:47 UTC cron
+  as a safety net; manual. Do not time-match the syndication schedule: the
+  dispatch makes rebuilds follow the data. Scheduled and dispatched runs skip when
+  the viewer/data revision pair was already deployed.
 - Uses explicit Node/npm/build/upload steps + `actions/deploy-pages@v5`
 - Deploy runs `npm run build:quiet` and verifies Pagefind plus an 850 MiB size budget
 - **Never commit `dist/`**

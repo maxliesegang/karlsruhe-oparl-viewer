@@ -5,10 +5,15 @@ on:
   # Using a different branch name? Replace `main` with your branch’s name
   push:
     branches: [main]
-  # Runs at 03:17 and 15:17 UTC every day. Avoid the start-of-hour Actions peak.
+  # Sent by karlsruhe-oparl-syndication's feed workflow after it pushes new data,
+  # so the site follows the data without matching its schedule.
+  repository_dispatch:
+    types: [syndication-updated]
+  # Safety net for a lost or failed dispatch: the site is never more than a day
+  # behind. Usually a no-op thanks to the successful-build marker below. Odd
+  # minute to avoid the start-of-hour Actions peak.
   schedule:
-    - cron: "17 3 * * *"
-    - cron: "17 15 * * *"
+    - cron: "47 4 * * *"
   # Allows you to run this workflow manually from the Actions tab on GitHub.
   workflow_dispatch:
 
@@ -48,11 +53,13 @@ jobs:
           test -n "$revision"
           echo "revision=$revision" >> "$GITHUB_OUTPUT"
 
-      # Scheduled runs are often no-ops. Remember successful viewer/data revision
-      # pairs so they can skip the large data checkout and full static rebuild.
-      - name: Check for an already successful scheduled build
+      # Scheduled and dispatched runs are often no-ops (the cron after a dispatch
+      # already deployed, or a dispatch whose data a newer run already built).
+      # Remember successful viewer/data revision pairs so they can skip the large
+      # data checkout and full static rebuild.
+      - name: Check for an already successful build
         id: successful-build
-        if: github.event_name == 'schedule'
+        if: github.event_name == 'schedule' || github.event_name == 'repository_dispatch'
         uses: actions/cache/restore@v6
         with:
           path: .build-markers
@@ -62,7 +69,7 @@ jobs:
       - name: Decide whether to build
         id: changes
         run: |
-          if [[ "${{ github.event_name }}" == "schedule" && "${{ steps.successful-build.outputs.cache-hit }}" == "true" ]]; then
+          if [[ "${{ steps.successful-build.outputs.cache-hit }}" == "true" ]]; then
             echo "should-deploy=false" >> "$GITHUB_OUTPUT"
             echo "Viewer and council data revisions were already deployed; skipping."
           else
