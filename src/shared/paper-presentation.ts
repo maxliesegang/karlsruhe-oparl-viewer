@@ -77,3 +77,38 @@ export function getMeaningfulModified(file: {
     ? ""
     : modified;
 }
+
+export interface KeyPointSourceLink {
+  /** `accessUrl`, plus `#page=N` when the page is known. */
+  href: string;
+  /** "Stellungnahme, S. 2" — the attachment's own label. */
+  label: string;
+  quote: string;
+}
+
+/**
+ * One link per key point, index-aligned, `undefined` where there is no source
+ * or the file is not (or no longer) among the paper's attachments.
+ *
+ * `accessUrl`, never `downloadUrl`: Karlsruhe serves the download with
+ * `Content-Disposition: attachment`, so the browser saves the file and drops
+ * `#page=`, while `accessUrl` opens inline at that page.
+ */
+export function buildKeyPointSourceLinks(
+  sources:
+    | readonly ({ file: string; page?: number; quote: string } | null)[]
+    | undefined,
+  files: readonly { id: string; name?: string; accessUrl?: string }[],
+): (KeyPointSourceLink | undefined)[] {
+  return (sources ?? []).map((source) => {
+    if (!source) return undefined;
+    const file = files.find((candidate) => candidate.id === source.file);
+    if (!file?.accessUrl) return undefined;
+    const page = source.page && source.page > 0 ? source.page : undefined;
+    return {
+      href: page ? `${file.accessUrl}#page=${page}` : file.accessUrl,
+      label: `${file.name || "Dokument"}${page ? `, S. ${page}` : ""}`,
+      quote: source.quote,
+    };
+  });
+}

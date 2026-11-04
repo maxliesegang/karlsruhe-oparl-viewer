@@ -142,7 +142,7 @@ const structuredData = {
         is why the header carries the facts a reader needs first. */}
     <div class="detail-layout">
       <div class="detail-main">
-        <PaperSummary summary={summary} />
+        <PaperSummary summary={summary} files={paper.auxiliaryFile ?? []} />
         <PaperTimeline paper={paper} consultations={consultations} />
         <AuxiliaryFiles auxiliaryFiles={auxiliaryFiles} />
         <PaperHistory

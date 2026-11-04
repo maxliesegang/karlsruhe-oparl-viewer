@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
+  buildKeyPointSourceLinks,
   getConsultationRoleLabel,
   getMeaningfulModified,
   getPaperTimelineStart,
@@ -69,4 +70,57 @@ test("a file's change date is shown only when it says something", () => {
     }),
     "2026-09-08T15:00:00+02:00",
   );
+});
+
+const sourceFiles = [
+  {
+    id: "https://web2.karlsruhe.de/ris/oparl/bodies/0001/files/681496",
+    name: "Stellungnahme Antrag",
+    accessUrl:
+      "https://web2.karlsruhe.de/ris/oparl/bodies/0001/downloadfiles/a/00681496.pdf",
+  },
+];
+
+test("a key point source links the inline PDF at its page", () => {
+  assert.deepEqual(
+    buildKeyPointSourceLinks(
+      [
+        {
+          file: sourceFiles[0].id,
+          page: 2,
+          quote: "Eine Benennung mit zwei Nachnamen ist nicht vorgesehen",
+        },
+        null,
+      ],
+      sourceFiles,
+    ),
+    [
+      {
+        href: `${sourceFiles[0].accessUrl}#page=2`,
+        label: "Stellungnahme Antrag, S. 2",
+        quote: "Eine Benennung mit zwei Nachnamen ist nicht vorgesehen",
+      },
+      undefined,
+    ],
+  );
+});
+
+test("a key point source without a page links the file itself", () => {
+  const [link] = buildKeyPointSourceLinks(
+    [{ file: sourceFiles[0].id, quote: "Zitat" }],
+    sourceFiles,
+  );
+  assert.equal(link?.href, sourceFiles[0].accessUrl);
+  assert.equal(link?.label, "Stellungnahme Antrag");
+});
+
+test("a source whose file is no longer attached gets no link", () => {
+  assert.deepEqual(
+    buildKeyPointSourceLinks(
+      [{ file: "https://example.test/files/gone", page: 1, quote: "Zitat" }],
+      sourceFiles,
+    ),
+    [undefined],
+  );
+  assert.deepEqual(buildKeyPointSourceLinks(undefined, sourceFiles), []);
 });

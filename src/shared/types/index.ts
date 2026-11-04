@@ -18,7 +18,10 @@ export type {
   PaperDistrictEntry,
   PaperDistrictIndex,
 } from "./paper-districts.ts";
-export type { PaperSummary } from "./paper-summary.ts";
+export type {
+  PaperSummary,
+  PaperSummaryKeyPointSource,
+} from "./paper-summary.ts";
 export type { PaperSimilarityIndex } from "./paper-similarity.ts";
 export type {
   PaperSubmitter,

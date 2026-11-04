@@ -1,13 +1,21 @@
 ---
-import type { PaperSummary } from "../shared/types";
-import { formatDateLong } from "../shared/utils";
+import type { AuxiliaryFile, PaperSummary } from "../shared/types";
+import { buildKeyPointSourceLinks } from "../shared/paper-presentation";
+import { formatDateLong, normalizeOParlUrl } from "../shared/utils";
 
 interface Props {
   summary: PaperSummary | undefined;
+  /** The paper's attachments, to resolve each key point's source file. */
+  files: AuxiliaryFile[];
 }
 
-const { summary } = Astro.props;
-const keyPoints = summary?.keyPoints?.filter(Boolean) ?? [];
+const { summary, files } = Astro.props;
+/* Sources are index-aligned with the stored key points, so pair them before
+   dropping empty points rather than after. */
+const sourceLinks = buildKeyPointSourceLinks(summary?.keyPointSources, files);
+const keyPoints = (summary?.keyPoints ?? [])
+  .map((text, index) => ({ text, source: sourceLinks[index] }))
+  .filter(({ text }) => Boolean(text));
 
 /* Model and prompt version are what makes a summary reproducible, so they go on
    the record — folded into the footnote's `title` rather than spelled out, since
@@ -41,13 +49,29 @@ const provenance = [summary?.model, summary?.promptVersion, summary?.provider]
               rows rather than bullets — at that length a plain list reads as
               one block of prose and stops being scannable. */}
         <ol class="summary-points">
-          {keyPoints.map((keyPoint, index) => (
+          {keyPoints.map(({ text, source }, index) => (
             <li>
               <span class="point-number" aria-hidden="true">
                 {index + 1}
               </span>
-              <span class="point-text" data-pagefind-weight="2">
-                {keyPoint}
+              <span class="point-body">
+                <span class="point-text" data-pagefind-weight="2">
+                  {text}
+                </span>
+                {/* The quote is what the link was found by, so it is the
+                      tooltip: a reader sees which sentence to look for. */}
+                {source && (
+                  <a
+                    class="point-source"
+                    href={normalizeOParlUrl(source.href)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title={`„${source.quote}“`}
+                    data-pagefind-ignore
+                  >
+                    Quelle: {source.label}
+                  </a>
+                )}
               </span>
             </li>
           ))}
@@ -146,6 +170,22 @@ const provenance = [summary?.model, summary?.promptVersion, summary?.provider]
     color: #333;
     font-size: 0.75rem;
     font-weight: 700;
+  }
+
+  .point-body {
+    display: grid;
+    gap: 3px;
+  }
+
+  .point-source {
+    justify-self: start;
+    font-size: 0.8125rem;
+    color: var(--color-text-muted);
+  }
+
+  .point-source:hover,
+  .point-source:focus-visible {
+    color: var(--color-text);
   }
 
   .summary-note {
