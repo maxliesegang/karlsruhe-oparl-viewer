@@ -81,7 +81,7 @@ const sourceFiles = [
   },
 ];
 
-test("a key point source links the inline PDF at its page", () => {
+test("a key point source names its attachment and links the PDF page", () => {
   assert.deepEqual(
     buildKeyPointSourceLinks(
       [
@@ -96,22 +96,25 @@ test("a key point source links the inline PDF at its page", () => {
     ),
     [
       {
-        href: `${sourceFiles[0].accessUrl}#page=2`,
-        label: "Stellungnahme Antrag, S. 2",
+        file: sourceFiles[0].id,
+        name: "Stellungnahme Antrag",
         quote: "Eine Benennung mit zwei Nachnamen ist nicht vorgesehen",
+        page: 2,
+        pageHref: `${sourceFiles[0].accessUrl}#page=2`,
       },
       undefined,
     ],
   );
 });
 
-test("a key point source without a page links the file itself", () => {
+test("a key point source without a page has no PDF page link", () => {
   const [link] = buildKeyPointSourceLinks(
     [{ file: sourceFiles[0].id, quote: "Zitat" }],
     sourceFiles,
   );
-  assert.equal(link?.href, sourceFiles[0].accessUrl);
-  assert.equal(link?.label, "Stellungnahme Antrag");
+  assert.equal(link?.file, sourceFiles[0].id);
+  assert.equal(link?.page, undefined);
+  assert.equal(link?.pageHref, undefined);
 });
 
 test("a source whose file is no longer attached gets no link", () => {

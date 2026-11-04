@@ -79,16 +79,25 @@ export function getMeaningfulModified(file: {
 }
 
 export interface KeyPointSourceLink {
-  /** `accessUrl`, plus `#page=N` when the page is known. */
-  href: string;
-  /** "Stellungnahme, S. 2" — the attachment's own label. */
-  label: string;
+  /** OParl `File` id — the attachment card on the page carries it as `data-id`. */
+  file: string;
+  /** The attachment's own label, e.g. "Stellungnahme". */
+  name: string;
+  /** The located passage, highlighted in the attachment's text on click. */
   quote: string;
+  /** 1-based PDF page, when the extracted text had page markers. */
+  page?: number;
+  /** `accessUrl#page=N`, only when both are known. */
+  pageHref?: string;
 }
 
 /**
- * One link per key point, index-aligned, `undefined` where there is no source
+ * One source per key point, index-aligned, `undefined` where there is no source
  * or the file is not (or no longer) among the paper's attachments.
+ *
+ * The primary target is the passage itself in the attachment's extracted text
+ * on the same page — that works whether or not the page is known (most archive
+ * texts have no page markers). The PDF page is a secondary link.
  *
  * `accessUrl`, never `downloadUrl`: Karlsruhe serves the download with
  * `Content-Disposition: attachment`, so the browser saves the file and drops
@@ -103,12 +112,16 @@ export function buildKeyPointSourceLinks(
   return (sources ?? []).map((source) => {
     if (!source) return undefined;
     const file = files.find((candidate) => candidate.id === source.file);
-    if (!file?.accessUrl) return undefined;
+    if (!file) return undefined;
     const page = source.page && source.page > 0 ? source.page : undefined;
     return {
-      href: page ? `${file.accessUrl}#page=${page}` : file.accessUrl,
-      label: `${file.name || "Dokument"}${page ? `, S. ${page}` : ""}`,
+      file: file.id,
+      name: file.name || "Dokument",
       quote: source.quote,
+      ...(page ? { page } : {}),
+      ...(page && file.accessUrl
+        ? { pageHref: `${file.accessUrl}#page=${page}` }
+        : {}),
     };
   });
 }

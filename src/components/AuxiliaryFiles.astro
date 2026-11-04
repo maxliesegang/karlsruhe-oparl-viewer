@@ -135,6 +135,8 @@ const { auxiliaryFiles } = Astro.props;
   }
 
   .file-item {
+    /* `showFilePassage` scrolls a card into view. */
+    scroll-margin-top: calc(var(--site-header-height) + 16px);
     border: 1px solid var(--color-border);
     border-radius: var(--radius);
     padding: 12px 14px;
@@ -256,6 +258,16 @@ const { auxiliaryFiles } = Astro.props;
 
   .file-text[data-file-text-state="error"] {
     border-left-color: var(--color-text-muted);
+  }
+
+  /* The passage a summary key point rests on. `file-text-loader.ts` inserts
+     it at runtime, so it carries no scope attribute. */
+  .file-text :global(mark.source-passage) {
+    background: var(--color-highlight);
+    color: inherit;
+    border-radius: 2px;
+    box-shadow: 0 0 0 2px var(--color-highlight);
+    outline: none;
   }
 </style>
 

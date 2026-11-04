@@ -1,3 +1,4 @@
+import { findQuoteRange } from "./quote-match";
 import { buildFileTextUrl } from "./utils";
 
 /**
@@ -16,6 +17,9 @@ import { buildFileTextUrl } from "./utils";
 
 const TEXT_SELECTOR = "[data-file-text]";
 const DETAILS_SELECTOR = "[data-file-text-details]";
+/** An attachment card; `data-id` holds the OParl `File` id. */
+const CARD_SELECTOR = "#paper-files .file-item";
+const PASSAGE_CLASS = "source-passage";
 
 const LOADING_MESSAGE = "Text wird geladen …";
 const ERROR_MESSAGE =
@@ -35,31 +39,91 @@ function isAlreadyInlined(target: HTMLElement): boolean {
   );
 }
 
-async function loadFileText(target: HTMLElement): Promise<void> {
+const pendingLoads = new WeakMap<HTMLElement, Promise<void>>();
+
+/** Resolves once the text is in place (or the load failed); never rejects. */
+function loadFileText(target: HTMLElement): Promise<void> {
   const fileId = target.dataset.fileId;
   const state = target.dataset.fileTextState;
 
-  if (!fileId || state === "loading" || state === "loaded") return;
-  if (isAlreadyInlined(target)) return;
+  if (state === "loading") return pendingLoads.get(target) ?? Promise.resolve();
+  if (!fileId || state === "loaded") return Promise.resolve();
+  if (isAlreadyInlined(target)) return Promise.resolve();
 
   setState(target, "loading");
   target.textContent = LOADING_MESSAGE;
 
   const source = buildFileTextUrl(fileId);
-  try {
-    const response = await fetch(source);
-    if (!response.ok) {
-      throw new Error(`Request failed with status ${response.status}`);
+  const load = (async () => {
+    try {
+      const response = await fetch(source);
+      if (!response.ok) {
+        throw new Error(`Request failed with status ${response.status}`);
+      }
+      // `textContent` keeps this plain text: the response is a third-party
+      // document and must never be parsed as HTML.
+      target.textContent = await response.text();
+      setState(target, "loaded");
+    } catch (error) {
+      console.warn(`Could not load extracted text from ${source}`, error);
+      target.textContent = ERROR_MESSAGE;
+      setState(target, "error");
     }
-    // `textContent` keeps this plain text: the response is a third-party
-    // document and must never be parsed as HTML.
-    target.textContent = await response.text();
-    setState(target, "loaded");
-  } catch (error) {
-    console.warn(`Could not load extracted text from ${source}`, error);
-    target.textContent = ERROR_MESSAGE;
-    setState(target, "error");
+  })();
+  pendingLoads.set(target, load);
+  return load;
+}
+
+/**
+ * Wraps `quote` in a `<mark>`, replacing an earlier one. The container holds
+ * plain text only, so it is rebuilt from its own text rather than patched.
+ */
+function markPassage(target: HTMLElement, quote: string): HTMLElement | null {
+  const text = target.textContent ?? "";
+  const range = findQuoteRange(text, quote);
+  if (!range) {
+    target.textContent = text;
+    return null;
   }
+  const mark = document.createElement("mark");
+  mark.className = PASSAGE_CLASS;
+  mark.tabIndex = -1;
+  mark.textContent = text.slice(range.start, range.end);
+  target.replaceChildren(
+    text.slice(0, range.start),
+    mark,
+    text.slice(range.end),
+  );
+  return mark;
+}
+
+/**
+ * Shows the passage a summary key point rests on: scrolls to the attachment's
+ * card, opens its text, and highlights `quote` in it. Resolves `false` when the
+ * page has no card for `fileId`. A failed load or a quote that is not in the
+ * text leaves the reader at the opened card.
+ */
+export async function showFilePassage(
+  fileId: string,
+  quote: string,
+): Promise<boolean> {
+  const card = document.querySelector<HTMLElement>(
+    `${CARD_SELECTOR}[data-id="${CSS.escape(fileId)}"]`,
+  );
+  const details = card?.querySelector<HTMLDetailsElement>(DETAILS_SELECTOR);
+  const target = details?.querySelector<HTMLElement>(TEXT_SELECTOR);
+  if (!card || !details || !target) return false;
+
+  // Scroll first so the click has a visible effect while the text loads.
+  card.scrollIntoView({ block: "start" });
+  details.open = true;
+  await loadFileText(target);
+  if (target.dataset.fileTextState === "error") return true;
+
+  const mark = markPassage(target, quote);
+  mark?.scrollIntoView({ block: "center" });
+  mark?.focus({ preventScroll: true });
+  return true;
 }
 
 /**

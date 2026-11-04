@@ -58,19 +58,37 @@ const provenance = [summary?.model, summary?.promptVersion, summary?.provider]
                 <span class="point-text" data-pagefind-weight="2">
                   {text}
                 </span>
-                {/* The quote is what the link was found by, so it is the
-                      tooltip: a reader sees which sentence to look for. */}
+                {/* "Quelle" highlights the quoted passage in the attachment's
+                      text below (see `showFilePassage`), which works for the
+                      many archive texts without page numbers; the PDF page is
+                      a second link when known. The quote is stored once, as a
+                      data attribute — no tooltip copy, since it would double
+                      the bytes on every summarized paper. Without JS the link
+                      lands on the attachment list. */}
                 {source && (
-                  <a
-                    class="point-source"
-                    href={normalizeOParlUrl(source.href)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    title={`„${source.quote}“`}
-                    data-pagefind-ignore
-                  >
-                    Quelle: {source.label}
-                  </a>
+                  <span class="point-source" data-pagefind-ignore>
+                    Quelle:{" "}
+                    <a
+                      href="#paper-files"
+                      data-source-file={source.file}
+                      data-source-quote={source.quote}
+                    >
+                      {source.name}
+                    </a>
+                    {source.pageHref && (
+                      <>
+                        {" · "}
+                        <a
+                          href={normalizeOParlUrl(source.pageHref)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label={`${source.name} als PDF auf Seite ${source.page} öffnen`}
+                        >
+                          PDF S.&nbsp;{source.page}
+                        </a>
+                      </>
+                    )}
+                  </span>
                 )}
               </span>
             </li>
@@ -178,14 +196,21 @@ const provenance = [summary?.model, summary?.promptVersion, summary?.provider]
   }
 
   .point-source {
-    justify-self: start;
     font-size: 0.8125rem;
     color: var(--color-text-muted);
   }
 
-  .point-source:hover,
-  .point-source:focus-visible {
+  .point-source a {
+    color: inherit;
+    text-decoration: underline;
+    text-decoration-color: var(--color-border);
+    text-underline-offset: 2px;
+  }
+
+  .point-source a:hover,
+  .point-source a:focus-visible {
     color: var(--color-text);
+    text-decoration-color: currentColor;
   }
 
   .summary-note {
@@ -202,3 +227,30 @@ const provenance = [summary?.model, summary?.promptVersion, summary?.provider]
     flex-shrink: 0;
   }
 </style>
+
+<script>
+  import { showFilePassage } from "../shared/file-text-loader";
+
+  for (const link of document.querySelectorAll<HTMLAnchorElement>(
+    "a[data-source-file]",
+  )) {
+    link.addEventListener("click", (event) => {
+      // Modified clicks keep the browser's own behaviour.
+      if (
+        event.button !== 0 ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.shiftKey ||
+        event.altKey
+      ) {
+        return;
+      }
+      event.preventDefault();
+      const { sourceFile = "", sourceQuote = "" } = link.dataset;
+      void showFilePassage(sourceFile, sourceQuote).then((shown) => {
+        // No card for this file: behave like the plain anchor.
+        if (!shown) location.hash = "paper-files";
+      });
+    });
+  }
+</script>

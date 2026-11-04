@@ -55,6 +55,19 @@ meetings, and related papers the current record references, keyed by
 body-relative path. Unresolved references render as "Sitzung 1284", never as
 raw OParl URLs. Revisions without a visible change collapse into one row.
 
+**Key point sources** — `keyPointSources` (scraper prompt `paper-de-v9`+) give
+each key point a file and a verbatim quote, a page only when the extracted text
+had page markers (~15% today; archive texts mostly have none). "Quelle:
+<Anhang>" therefore targets the passage, not the PDF: `PaperSummary` passes the
+link's `data-source-file` / `data-source-quote` to `showFilePassage()`
+(`file-text-loader.ts`), which finds the `AuxiliaryFiles` card by `data-id`,
+opens and loads its text, and wraps the quote in `mark.source-passage` via
+`findQuoteRange()` (`quote-match.ts`, the scraper's folding of line breaks,
+hyphenation and page markers). A "PDF S. N" link to `accessUrl#page=N` is added
+only when the page is known. The quote is stored once per link (no tooltip
+copy) because it is repeated on every summarized paper. Without JS, or when the
+quote is not found, the reader lands on the attachment card.
+
 **Related papers** — OParl parent/child links stay visible. Optional topical
 recommendations from `paper-similar.json` live in the same card behind a native
 "Thematisch ähnlich" disclosure, collapsed by default. Keep their upstream rank

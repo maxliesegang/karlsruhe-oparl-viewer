@@ -8,6 +8,7 @@ Data fetching, caching, filtering logic, utilities, and TypeScript types.
 | ------------------------------- | -------------------------------------------------------- |
 | `constants.ts`                  | `BULK_MODIFIED_DATE`, `SYNDICATION_BASE_URL`             |
 | `file-text-loader.ts`           | Fetches extracted PDF text when a disclosure is opened   |
+| `quote-match.ts`                | Locates a key point's source quote in extracted text     |
 | `data-source.ts`                | Reads the local data checkout (single files and shards)  |
 | `data.ts`                       | All build-time loaders, caches, and entity resolvers     |
 | `search-index.ts`               | Canonical paper filter values and options                |
