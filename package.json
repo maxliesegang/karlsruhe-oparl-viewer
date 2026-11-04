@@ -20,7 +20,8 @@
     "test:search-index": "node scripts/verify-search-index.mjs",
     "preview": "astro preview",
     "astro": "astro",
-    "format": "npx prettier . --write"
+    "format": "npx prettier . --write",
+    "eval:search": "node scripts/eval-search.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.4",

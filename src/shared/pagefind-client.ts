@@ -5,7 +5,8 @@ import {
   referenceKey,
   type SearchState,
 } from "./search-state.ts";
-import { rankResultsByPaperDate } from "./search-ranking.ts";
+import { fuseQueryResults, rankResultsByPaperDate } from "./search-ranking.ts";
+import { expandQuery } from "./search-synonyms.ts";
 import { BULK_MODIFIED_DATE } from "./constants.ts";
 import { getDateTimestamp } from "./utils.ts";
 
@@ -103,6 +104,9 @@ export async function searchPapers(
   if (exactReference) filters.reference = reference;
   const term = exactReference ? null : state.q || null;
   const sort = effectiveSort(state);
+  const variants = term ? expandQuery(term) : [];
+  if (term && variants.length)
+    return searchExpanded(pagefind, [term, ...variants], filters, sort);
   const response = await pagefind.search(term, {
     filters,
     ...(sort === "date"
@@ -119,6 +123,45 @@ export async function searchPapers(
     sort: { date: "desc" },
   });
   return rankResultsByPaperDate(results, byDate.results ?? []);
+}
+
+/**
+ * Searches the query and its synonym variants, then merges them into one
+ * list (see `search-synonyms.ts`). Pagefind cannot OR terms or sort a merged
+ * set, so the order comes from one browse search over the same filters,
+ * sorted the requested way. That list holds only ids and scores, no
+ * fragments. For relevance it supplies the recency ranks of the blend, just
+ * as the date-sorted text search does on the single-query path.
+ */
+async function searchExpanded(
+  pagefind: PagefindModule,
+  terms: readonly string[],
+  filters: NonNullable<PagefindSearchOptions["filters"]>,
+  sort: ReturnType<typeof effectiveSort>,
+): Promise<PagefindSearchResult[]> {
+  const lists = await Promise.all(
+    terms.map(async (term) => {
+      const response = await pagefind.search(term, { filters });
+      return response.results ?? [];
+    }),
+  );
+  const fused = fuseQueryResults(lists);
+  if (sort === "relevance" && fused.length < 2) return fused;
+
+  const ordered = await pagefind.search(null, {
+    filters,
+    sort: sort === "modified" ? { changed: "asc" } : { date: "desc" },
+  });
+  const byId = new Map(fused.map((result) => [result.id, result]));
+  const sorted = (ordered.results ?? []).flatMap((result) => {
+    const match = byId.get(result.id);
+    return match ? [match] : [];
+  });
+  if (sort === "relevance") return rankResultsByPaperDate(fused, sorted);
+  // Fused results the browse search did not return (none expected with
+  // identical filters) are kept at the end rather than dropped.
+  const seen = new Set(sorted);
+  return [...sorted, ...fused.filter((result) => !seen.has(result))];
 }
 
 export async function getPagefindFreshnessStats(

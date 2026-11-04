@@ -26,6 +26,78 @@ interface RankableResult {
   score?: number;
 }
 
+/**
+ * How much a match found only through a synonym counts against a match of the
+ * query as typed.
+ */
+export const VARIANT_WEIGHT = 0.8;
+
+/**
+ * Merges the results of a query and its synonym variants into one list.
+ *
+ * Raw Pagefind scores are kept and only discounted by `VARIANT_WEIGHT` for
+ * matches that came from a variant; a paper found by several queries keeps
+ * its best value. The returned objects carry that fused score, so
+ * `rankResultsByPaperDate` can blend it with recency as usual.
+ *
+ * An earlier revision divided each list by its own 10th-best score, because
+ * scores differ a lot between queries ("Kita" tops out at ~26,
+ * "Kindertagesstätte" at ~131). That broke whenever the query as typed only
+ * matched weakly: for "Turnhalle Oberreut" (incidental hits, ~21–35) it
+ * inflated those hits to the level of the strong "Sporthalle Oberreut"
+ * matches (63–79) and buried them at #27. With raw scores the strong matches
+ * win, and on the eval on-topic@10 rose from 0.83 to 0.89. The cost is that a
+ * variant with high scores can lead the list; for these synonyms its matches
+ * are relevant by construction.
+ *
+ * Without positive scores there is nothing to compare, so the lists are
+ * concatenated: the query as typed first, then whatever the variants add.
+ */
+export function fuseQueryResults<T extends RankableResult>(
+  lists: readonly (readonly T[])[],
+  variantWeight = VARIANT_WEIGHT,
+): T[] {
+  const scored = lists.every((list) =>
+    list.every((result) => (result.score ?? 0) > 0),
+  );
+  const best = new Map<
+    string,
+    { result: T; score: number; list: number; rank: number }
+  >();
+  const unkeyed: T[] = [];
+
+  lists.forEach((list, listIndex) => {
+    const weight = listIndex === 0 ? 1 : variantWeight;
+    list.forEach((result, rank) => {
+      if (!result.id) {
+        if (listIndex === 0) unkeyed.push(result);
+        return;
+      }
+      const score = scored ? (result.score ?? 0) * weight : 0;
+      const current = best.get(result.id);
+      if (!current || score > current.score)
+        best.set(result.id, {
+          result,
+          score,
+          list: current?.list ?? listIndex,
+          rank: current?.rank ?? rank,
+        });
+    });
+  });
+
+  return [
+    ...[...best.values()]
+      .sort(
+        (left, right) =>
+          right.score - left.score ||
+          left.list - right.list ||
+          left.rank - right.rank,
+      )
+      .map(({ result, score }) => (scored ? { ...result, score } : result)),
+    ...unkeyed,
+  ];
+}
+
 export function rankResultsByPaperDate<T extends RankableResult>(
   relevanceResults: readonly T[],
   dateResults: readonly T[],

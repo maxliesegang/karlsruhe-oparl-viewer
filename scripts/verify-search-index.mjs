@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { readFile, readdir } from "node:fs/promises";
 import { resolve } from "node:path";
-import { pathToFileURL } from "node:url";
+import { loadNodePagefind } from "./lib/pagefind-node.mjs";
 import {
   parseSearchState,
   calendarDate,
@@ -27,20 +27,7 @@ const shards = async (dir) =>
       .sort()
       .map((name) => json(resolve(docs, dir, name))),
   );
-const originalFetch = globalThis.fetch;
-globalThis.fetch = async (url, options) =>
-  String(url).startsWith("file:")
-    ? new Response(await readFile(new URL(url)))
-    : originalFetch(url, options);
-const pf = await import(
-  pathToFileURL(resolve(root, "dist/pagefind/pagefind.js"))
-);
-const base = pathToFileURL(resolve(root, "dist") + "/").href;
-await pf.options({
-  bundlePath: `${base}pagefind/`,
-  baseUrl: "/karlsruhe-oparl-viewer/",
-});
-await pf.init("de");
+const { pagefind: pf, base } = await loadNodePagefind(root);
 const [rawPapers, rawMeetings, rawOrganizations, districts, submitters] =
   await Promise.all([
     shards("papers"),

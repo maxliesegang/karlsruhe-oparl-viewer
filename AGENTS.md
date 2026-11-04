@@ -21,7 +21,14 @@ npm run build:quick       # fast build, skips Pagefind (SKIP_PAGEFIND=1)
 npm run preview           # preview built site
 npm run format            # Prettier
 npm test                  # node --test over tests/ — pure logic, no build needed
+npm run test:search-index # search contract checks against the existing dist/ index
+npm run eval:search       # search relevance eval against the existing dist/ index
 ```
+
+Search changes must not lower `npm run eval:search -- --baseline
+scripts/search-eval-baseline.json` (exits 1 on a drop). After an intended
+improvement, re-save the baseline with `--save` in the same commit. Judgments
+live in `scripts/search-judgments.json`; see `docs/search-quality-plan.md`.
 
 **Always prefer `build:quiet` over `build`.** The site generates ~30,000 pages
 and `astro build` logs one line per page: ~30,000 lines / 1.5 MB (~370k tokens)

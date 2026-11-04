@@ -1,0 +1,247 @@
+{
+  "about": "Judgments for `npm run eval:search`, seeded 2026-11-03 from paper titles in the raw data (not from search results). `onTopic` is a case-insensitive regex on paper titles, synonyms included. It drives on-topic@10 (share of the top 10 whose title matches) and coverage (share of all title-matching papers that the search returns at any rank). `knownItems` are specific papers a searcher would expect near the top; they are only set on specific queries, because on a broad query (hundreds of relevant papers) the rank of one picked paper says little; they drive known-item recall@10 and reciprocal rank. `kind` only groups the report. Review the patterns and known items with someone who knows the council papers.",
+  "queries": [
+    {
+      "q": "Kita",
+      "kind": "synonym",
+      "onTopic": "kita|kindertagesst|kindergarten"
+    },
+    {
+      "q": "fehlende Kitaplätze",
+      "kind": "combined",
+      "onTopic": "fehl.*(kita|betreuungs).?pl",
+      "knownItems": ["2023/0492", "2016/0674", "2016/0675", "2017/0693"],
+      "note": "2016/0675 says Betreuungsplätze instead of Kita-Plätze."
+    },
+    {
+      "q": "ÖPNV",
+      "kind": "synonym",
+      "onTopic": "öpnv|nahverkehr|kvv|\\bvbk\\b|buslinie|stadtbahn|straßenbahn"
+    },
+    {
+      "q": "Nahverkehr",
+      "kind": "synonym",
+      "onTopic": "öpnv|nahverkehr|kvv|\\bvbk\\b|buslinie|stadtbahn|straßenbahn"
+    },
+    {
+      "q": "Schwimmbad",
+      "kind": "synonym",
+      "onTopic": "schwimm|hallenbad|freibad|bäder|strandbad",
+      "knownItems": ["2025/0647", "2025/0926", "2026/0826"],
+      "note": "Hallenbad, Freibad; none of the three says Schwimmbad."
+    },
+    {
+      "q": "Obdachlosigkeit",
+      "kind": "synonym",
+      "onTopic": "obdachlos|wohnungslos",
+      "knownItems": ["2026/0455", "2026/0115", "DHH/2025/5035"],
+      "note": "DHH/2025/5035 only says Wohnungslosenhilfe."
+    },
+    {
+      "q": "Radweg",
+      "kind": "compound",
+      "onTopic": "radweg|fahrradweg|radverkehr|radroute|radschnell|fahrrad"
+    },
+    {
+      "q": "Spielplatz",
+      "kind": "compound",
+      "onTopic": "spielpl"
+    },
+    {
+      "q": "Schulsanierung",
+      "kind": "compound",
+      "onTopic": "sanier.*schul|schul.*sanier",
+      "knownItems": ["2021/0258", "2019/1233", "29326"],
+      "note": "Only the first uses the compound."
+    },
+    {
+      "q": "Baumfällung",
+      "kind": "topic",
+      "onTopic": "baum.?fäll|fällung|baumschutz",
+      "knownItems": ["2023/0701", "2014/0501"]
+    },
+    {
+      "q": "Baumschutzsatzung",
+      "kind": "topic",
+      "onTopic": "baumschutz",
+      "knownItems": ["2019/1237", "2019/1078"]
+    },
+    {
+      "q": "Kombilösung",
+      "kind": "topic",
+      "onTopic": "kombilösung|stadtbahntunnel|u-strab"
+    },
+    {
+      "q": "Wildparkstadion",
+      "kind": "topic",
+      "onTopic": "wildpark|stadion"
+    },
+    {
+      "q": "Klimaschutzkonzept",
+      "kind": "topic",
+      "onTopic": "klimaschutz|ksk2030"
+    },
+    {
+      "q": "Digitalisierung",
+      "kind": "topic",
+      "onTopic": "digital"
+    },
+    {
+      "q": "Bebauungsplan Durlach",
+      "kind": "combined",
+      "onTopic": "(bebauungspl|b-plan).*durlach|durlach.*(bebauungspl|b-plan)",
+      "knownItems": ["2021/1308", "24282", "2020/1235"]
+    },
+    {
+      "q": "Tempo 30 Durlach",
+      "kind": "combined",
+      "knownItems": ["27889", "24444"],
+      "note": "24444 is the B 3/Badener Straße through Durlach."
+    },
+    {
+      "q": "Glasfaser Stadtwerke",
+      "kind": "combined",
+      "knownItems": ["2024/0858"]
+    },
+    {
+      "q": "Aufsichtsrat Klinikum",
+      "kind": "combined",
+      "onTopic": "aufsichtsrat.*klinikum|klinikum.*aufsichtsrat",
+      "knownItems": ["2024/0808", "2023/0881"]
+    },
+    {
+      "q": "Kita Weinbrennerplatz",
+      "kind": "synonym",
+      "knownItems": ["2024/0727"],
+      "note": "Title says Kindertagesstätte."
+    },
+    {
+      "q": "ÖPNV Grötzingen",
+      "kind": "synonym",
+      "knownItems": ["2025/0236"],
+      "note": "Title says öffentlicher Nahverkehr."
+    },
+    {
+      "q": "Nahverkehrsplan 2026",
+      "kind": "topic",
+      "knownItems": ["2026/0036"]
+    },
+    {
+      "q": "Hallenbad Grötzingen",
+      "kind": "topic",
+      "knownItems": ["2025/0647", "2025/0647/1"]
+    },
+    {
+      "q": "Schwimmbad Grötzingen",
+      "kind": "synonym",
+      "knownItems": ["2025/0647", "2025/0647/1"],
+      "note": "Title says Hallenbad."
+    },
+    {
+      "q": "Radweg Ottostraße",
+      "kind": "compound",
+      "knownItems": ["2026/0373"],
+      "note": "Title says Fahrradweg."
+    },
+    {
+      "q": "Spielplatz Jasminweg",
+      "kind": "compound",
+      "knownItems": ["2024/1366"],
+      "note": "Title says Kinderspielplatz."
+    },
+    {
+      "q": "Ampel",
+      "kind": "synonym",
+      "onTopic": "ampel|lichtsignal"
+    },
+    {
+      "q": "Zebrastreifen",
+      "kind": "synonym",
+      "onTopic": "zebrastreifen|fußgängerüberweg"
+    },
+    {
+      "q": "Flüchtlinge",
+      "kind": "synonym",
+      "onTopic": "flüchtling|geflüchtet|asyl"
+    },
+    {
+      "q": "Ladesäule",
+      "kind": "synonym",
+      "onTopic": "ladesäule|ladestation|ladeinfrastruktur|ladepunkt"
+    },
+    {
+      "q": "Turnhalle",
+      "kind": "synonym",
+      "onTopic": "turnhalle|sporthalle"
+    },
+    {
+      "q": "Photovoltaik",
+      "kind": "synonym",
+      "onTopic": "photovoltaik|\\bpv\\b|pv-|solar"
+    },
+    {
+      "q": "Müll",
+      "kind": "synonym",
+      "onTopic": "müll(?!er)|abfall"
+    },
+    {
+      "q": "Parkplatz",
+      "kind": "synonym",
+      "onTopic": "parkpl|stellpl"
+    },
+    {
+      "q": "Ampel Wettersbach",
+      "kind": "synonym",
+      "knownItems": ["28142"],
+      "note": "Title says Lichtsignalanlagen."
+    },
+    {
+      "q": "Zebrastreifen Battstraße",
+      "kind": "synonym",
+      "knownItems": ["16746"],
+      "note": "Title says Fußgängerüberweg."
+    },
+    {
+      "q": "Zebrastreifen Rommelstraße",
+      "kind": "synonym",
+      "knownItems": ["2023/0661"],
+      "note": "Title says Fußgängerüberweg."
+    },
+    {
+      "q": "Flüchtlinge Übergangsunterkünfte",
+      "kind": "synonym",
+      "knownItems": ["2025/1033"],
+      "note": "Title says Geflüchtete."
+    },
+    {
+      "q": "Ladesäulen Durlach",
+      "kind": "synonym",
+      "knownItems": ["2022/2171"],
+      "note": "Title says E-Ladestationen."
+    },
+    {
+      "q": "Turnhalle Oberreut",
+      "kind": "synonym",
+      "knownItems": ["2023/0906", "2024/0238", "2018/0214"],
+      "note": "Titles say Sporthalle. About ten papers share the title 'Sporthalle Oberreut, Neubau …'; any of them is a correct answer, so the newest ones are listed."
+    },
+    {
+      "q": "Grünfläche Ölmühlen",
+      "kind": "synonym",
+      "knownItems": ["2021/0331"],
+      "note": "Title says Grünanlage."
+    },
+    {
+      "q": "Solaranlage Deponie",
+      "kind": "synonym",
+      "knownItems": ["2025/0793"],
+      "note": "Title says PV-Anlage."
+    },
+    {
+      "q": "Parkplatz Satzung",
+      "kind": "synonym",
+      "knownItems": ["2022/0589"],
+      "note": "Title says Stellplatzsatzung."
+    }
+  ]
+}

@@ -1,0 +1,481 @@
+{
+  "ranking": null,
+  "summary": {
+    "all": {
+      "queries": 43,
+      "onTopic10": 0.888,
+      "coverage": 0.839300253220793,
+      "known10": 0.9230769230769231,
+      "knownRR": 0.7397435897435897
+    },
+    "combined": {
+      "queries": 5,
+      "onTopic10": 0.6,
+      "coverage": 1,
+      "known10": 0.8666666666666666,
+      "knownRR": 0.6333333333333334
+    },
+    "compound": {
+      "queries": 5,
+      "onTopic10": 0.7999999999999999,
+      "coverage": 0.5557032825967357,
+      "known10": 0.7777777777777777,
+      "knownRR": 0.6666666666666666
+    },
+    "synonym": {
+      "queries": 25,
+      "onTopic10": 0.9923076923076923,
+      "coverage": 0.8937363565522086,
+      "known10": 0.9523809523809523,
+      "knownRR": 0.7547619047619047
+    },
+    "topic": {
+      "queries": 8,
+      "onTopic10": 0.85,
+      "coverage": 0.7828039745918179,
+      "known10": 1,
+      "knownRR": 0.875
+    }
+  },
+  "rows": [
+    {
+      "q": "Kita",
+      "kind": "synonym",
+      "hits": 1519,
+      "onTopic10": 1,
+      "coverage": 0.9581749049429658,
+      "coverageCounts": "252/263"
+    },
+    {
+      "q": "fehlende Kitaplätze",
+      "kind": "combined",
+      "hits": 57,
+      "onTopic10": 0.3,
+      "coverage": 1,
+      "coverageCounts": "3/3",
+      "knownRanks": [
+        1,
+        2,
+        6,
+        4
+      ],
+      "known10": 1,
+      "knownRR": 1
+    },
+    {
+      "q": "ÖPNV",
+      "kind": "synonym",
+      "hits": 1251,
+      "onTopic10": 1,
+      "coverage": 0.5714285714285714,
+      "coverageCounts": "136/238"
+    },
+    {
+      "q": "Nahverkehr",
+      "kind": "synonym",
+      "hits": 1251,
+      "onTopic10": 1,
+      "coverage": 0.5714285714285714,
+      "coverageCounts": "136/238"
+    },
+    {
+      "q": "Schwimmbad",
+      "kind": "synonym",
+      "hits": 401,
+      "onTopic10": 1,
+      "coverage": 0.8305084745762712,
+      "coverageCounts": "98/118",
+      "knownRanks": [
+        5,
+        15,
+        10
+      ],
+      "known10": 0.6666666666666666,
+      "knownRR": 0.2
+    },
+    {
+      "q": "Obdachlosigkeit",
+      "kind": "synonym",
+      "hits": 266,
+      "onTopic10": 1,
+      "coverage": 1,
+      "coverageCounts": "44/44",
+      "knownRanks": [
+        10,
+        3,
+        16
+      ],
+      "known10": 0.6666666666666666,
+      "knownRR": 0.3333333333333333
+    },
+    {
+      "q": "Radweg",
+      "kind": "compound",
+      "hits": 830,
+      "onTopic10": 1,
+      "coverage": 0.6052631578947368,
+      "coverageCounts": "161/266"
+    },
+    {
+      "q": "Spielplatz",
+      "kind": "compound",
+      "hits": 550,
+      "onTopic10": 1,
+      "coverage": 0.9642857142857143,
+      "coverageCounts": "54/56"
+    },
+    {
+      "q": "Schulsanierung",
+      "kind": "compound",
+      "hits": 36,
+      "onTopic10": 0.4,
+      "coverage": 0.0975609756097561,
+      "coverageCounts": "4/41",
+      "knownRanks": [
+        2,
+        null,
+        null
+      ],
+      "known10": 0.3333333333333333,
+      "knownRR": 0.5
+    },
+    {
+      "q": "Baumfällung",
+      "kind": "topic",
+      "hits": 69,
+      "onTopic10": 0.7,
+      "coverage": 0.5384615384615384,
+      "coverageCounts": "7/13",
+      "knownRanks": [
+        1,
+        3
+      ],
+      "known10": 1,
+      "knownRR": 1
+    },
+    {
+      "q": "Baumschutzsatzung",
+      "kind": "topic",
+      "hits": 245,
+      "onTopic10": 0.4,
+      "coverage": 1,
+      "coverageCounts": "4/4",
+      "knownRanks": [
+        2,
+        3
+      ],
+      "known10": 1,
+      "knownRR": 0.5
+    },
+    {
+      "q": "Kombilösung",
+      "kind": "topic",
+      "hits": 610,
+      "onTopic10": 1,
+      "coverage": 0.9196428571428571,
+      "coverageCounts": "103/112"
+    },
+    {
+      "q": "Wildparkstadion",
+      "kind": "topic",
+      "hits": 266,
+      "onTopic10": 1,
+      "coverage": 0.8156028368794326,
+      "coverageCounts": "115/141"
+    },
+    {
+      "q": "Klimaschutzkonzept",
+      "kind": "topic",
+      "hits": 398,
+      "onTopic10": 1,
+      "coverage": 0.7368421052631579,
+      "coverageCounts": "70/95"
+    },
+    {
+      "q": "Digitalisierung",
+      "kind": "topic",
+      "hits": 492,
+      "onTopic10": 1,
+      "coverage": 0.6862745098039216,
+      "coverageCounts": "35/51"
+    },
+    {
+      "q": "Bebauungsplan Durlach",
+      "kind": "combined",
+      "hits": 549,
+      "onTopic10": 1,
+      "coverage": 1,
+      "coverageCounts": "84/84",
+      "knownRanks": [
+        6,
+        68,
+        12
+      ],
+      "known10": 0.3333333333333333,
+      "knownRR": 0.16666666666666666
+    },
+    {
+      "q": "Tempo 30 Durlach",
+      "kind": "combined",
+      "hits": 398,
+      "knownRanks": [
+        4,
+        2
+      ],
+      "known10": 1,
+      "knownRR": 0.5
+    },
+    {
+      "q": "Glasfaser Stadtwerke",
+      "kind": "combined",
+      "hits": 106,
+      "knownRanks": [
+        1
+      ],
+      "known10": 1,
+      "knownRR": 1
+    },
+    {
+      "q": "Aufsichtsrat Klinikum",
+      "kind": "combined",
+      "hits": 118,
+      "onTopic10": 0.5,
+      "coverage": 1,
+      "coverageCounts": "5/5",
+      "knownRanks": [
+        2,
+        3
+      ],
+      "known10": 1,
+      "knownRR": 0.5
+    },
+    {
+      "q": "Kita Weinbrennerplatz",
+      "kind": "synonym",
+      "hits": 36,
+      "knownRanks": [
+        3
+      ],
+      "known10": 1,
+      "knownRR": 0.3333333333333333
+    },
+    {
+      "q": "ÖPNV Grötzingen",
+      "kind": "synonym",
+      "hits": 234,
+      "knownRanks": [
+        2
+      ],
+      "known10": 1,
+      "knownRR": 0.5
+    },
+    {
+      "q": "Nahverkehrsplan 2026",
+      "kind": "topic",
+      "hits": 7,
+      "knownRanks": [
+        1
+      ],
+      "known10": 1,
+      "knownRR": 1
+    },
+    {
+      "q": "Hallenbad Grötzingen",
+      "kind": "topic",
+      "hits": 82,
+      "knownRanks": [
+        2,
+        1
+      ],
+      "known10": 1,
+      "knownRR": 1
+    },
+    {
+      "q": "Schwimmbad Grötzingen",
+      "kind": "synonym",
+      "hits": 148,
+      "knownRanks": [
+        2,
+        1
+      ],
+      "known10": 1,
+      "knownRR": 1
+    },
+    {
+      "q": "Radweg Ottostraße",
+      "kind": "compound",
+      "hits": 44,
+      "knownRanks": [
+        2
+      ],
+      "known10": 1,
+      "knownRR": 0.5
+    },
+    {
+      "q": "Spielplatz Jasminweg",
+      "kind": "compound",
+      "hits": 4,
+      "knownRanks": [
+        1
+      ],
+      "known10": 1,
+      "knownRR": 1
+    },
+    {
+      "q": "Ampel",
+      "kind": "synonym",
+      "hits": 291,
+      "onTopic10": 1,
+      "coverage": 0.875,
+      "coverageCounts": "28/32"
+    },
+    {
+      "q": "Zebrastreifen",
+      "kind": "synonym",
+      "hits": 120,
+      "onTopic10": 1,
+      "coverage": 1,
+      "coverageCounts": "13/13"
+    },
+    {
+      "q": "Flüchtlinge",
+      "kind": "synonym",
+      "hits": 459,
+      "onTopic10": 1,
+      "coverage": 0.9878048780487805,
+      "coverageCounts": "81/82"
+    },
+    {
+      "q": "Ladesäule",
+      "kind": "synonym",
+      "hits": 200,
+      "onTopic10": 0.9,
+      "coverage": 0.9428571428571428,
+      "coverageCounts": "33/35"
+    },
+    {
+      "q": "Turnhalle",
+      "kind": "synonym",
+      "hits": 385,
+      "onTopic10": 1,
+      "coverage": 1,
+      "coverageCounts": "48/48"
+    },
+    {
+      "q": "Photovoltaik",
+      "kind": "synonym",
+      "hits": 740,
+      "onTopic10": 1,
+      "coverage": 1,
+      "coverageCounts": "79/79"
+    },
+    {
+      "q": "Müll",
+      "kind": "synonym",
+      "hits": 2336,
+      "onTopic10": 1,
+      "coverage": 0.9766081871345029,
+      "coverageCounts": "167/171"
+    },
+    {
+      "q": "Parkplatz",
+      "kind": "synonym",
+      "hits": 1486,
+      "onTopic10": 1,
+      "coverage": 0.9047619047619048,
+      "coverageCounts": "114/126"
+    },
+    {
+      "q": "Ampel Wettersbach",
+      "kind": "synonym",
+      "hits": 26,
+      "knownRanks": [
+        1
+      ],
+      "known10": 1,
+      "knownRR": 1
+    },
+    {
+      "q": "Zebrastreifen Battstraße",
+      "kind": "synonym",
+      "hits": 4,
+      "knownRanks": [
+        1
+      ],
+      "known10": 1,
+      "knownRR": 1
+    },
+    {
+      "q": "Zebrastreifen Rommelstraße",
+      "kind": "synonym",
+      "hits": 5,
+      "knownRanks": [
+        1
+      ],
+      "known10": 1,
+      "knownRR": 1
+    },
+    {
+      "q": "Flüchtlinge Übergangsunterkünfte",
+      "kind": "synonym",
+      "hits": 20,
+      "knownRanks": [
+        1
+      ],
+      "known10": 1,
+      "knownRR": 1
+    },
+    {
+      "q": "Ladesäulen Durlach",
+      "kind": "synonym",
+      "hits": 80,
+      "knownRanks": [
+        1
+      ],
+      "known10": 1,
+      "knownRR": 1
+    },
+    {
+      "q": "Turnhalle Oberreut",
+      "kind": "synonym",
+      "hits": 109,
+      "knownRanks": [
+        1,
+        3,
+        5
+      ],
+      "known10": 1,
+      "knownRR": 1
+    },
+    {
+      "q": "Grünfläche Ölmühlen",
+      "kind": "synonym",
+      "hits": 4,
+      "knownRanks": [
+        1
+      ],
+      "known10": 1,
+      "knownRR": 1
+    },
+    {
+      "q": "Solaranlage Deponie",
+      "kind": "synonym",
+      "hits": 72,
+      "knownRanks": [
+        1
+      ],
+      "known10": 1,
+      "knownRR": 1
+    },
+    {
+      "q": "Parkplatz Satzung",
+      "kind": "synonym",
+      "hits": 403,
+      "knownRanks": [
+        5
+      ],
+      "known10": 1,
+      "knownRR": 0.2
+    }
+  ]
+}

@@ -82,6 +82,23 @@ The compact next-meeting link is a single text line in the page intro. It uses t
 The page carries the next three sessions; an inline script shows the first
 that has not ended, so a stale build never advertises a past session.
 
+## Synonym expansion
+
+`search-synonyms.ts` expands a few whole words in the query (Kita ↔
+Kindertagesstätte, ÖPNV ↔ Nahverkehr, Schwimmbad → Hallenbad/Freibad,
+Radweg → Fahrradweg, …). `searchPapers()` runs each variant with the same
+filters and merges them (`fuseQueryResults`). The order of the merged set
+comes from one browse search: date or `changed` order, which is also the
+recency input for relevance. Exact reference lookups and queries without an
+entry are unchanged. Excerpts highlight whichever word matched, so a
+"Nahverkehr" highlight explains an "ÖPNV" result. There is no extra UI.
+
+Saved searches use the same path, so after this change their totals include
+synonym matches. Freshness still compares exact creation and modification
+timestamps, so older papers that newly match never count as new or updated.
+Change the list only with `npm run eval:search` (see
+`docs/search-quality-plan.md`).
+
 ## Validation on the local snapshot
 
 `npm test` passes 51 tests. Both `build:quick:quiet` and `build:quiet` pass,
