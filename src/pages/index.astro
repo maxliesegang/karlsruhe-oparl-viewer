@@ -89,7 +89,7 @@ const structuredData = siteUrl
       </script>
     </header>
     {pagefind.enabled ? (
-      <SearchPanel />
+      <SearchPanel snapshot />
     ) : (
       <p class="empty-state" role="status">
         {pagefind.disabledMessage}

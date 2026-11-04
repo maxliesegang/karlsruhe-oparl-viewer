@@ -10,8 +10,14 @@ import { access, readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
-export async function loadNodePagefind(root = process.cwd()) {
-  const entry = resolve(root, "dist/pagefind/pagefind.js");
+export async function loadNodePagefind(
+  root = process.cwd(),
+  {
+    distDir = resolve(root, "dist"),
+    baseUrl = "/karlsruhe-oparl-viewer/",
+  } = {},
+) {
+  const entry = resolve(distDir, "pagefind/pagefind.js");
   try {
     await access(entry);
   } catch {
@@ -27,11 +33,8 @@ export async function loadNodePagefind(root = process.cwd()) {
       : originalFetch(url, options);
 
   const pagefind = await import(pathToFileURL(entry).href);
-  const base = pathToFileURL(resolve(root, "dist") + "/").href;
-  await pagefind.options({
-    bundlePath: `${base}pagefind/`,
-    baseUrl: "/karlsruhe-oparl-viewer/",
-  });
+  const base = pathToFileURL(resolve(distDir) + "/").href;
+  await pagefind.options({ bundlePath: `${base}pagefind/`, baseUrl });
   await pagefind.init("de");
   return { pagefind, base };
 }

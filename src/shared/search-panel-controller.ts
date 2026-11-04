@@ -24,7 +24,12 @@ import {
   markSavedSearchViewed,
   isSameSavedSearchQuery,
 } from "./saved-searches";
-import { BULK_MODIFIED_DATE } from "./constants";
+import { BULK_MODIFIED_DATE, SEARCH_RESULT_BATCH_SIZE } from "./constants";
+import {
+  isSnapshotView,
+  readSearchSnapshot,
+  type SearchSnapshot,
+} from "./search-snapshot";
 import {
   excerptBodyStart,
   compactDistricts,
@@ -37,7 +42,9 @@ import {
 } from "./search-presentation";
 import { formatDateShort } from "./utils";
 export type { SearchSortMode } from "./search-state";
-export const SEARCH_RESULT_BATCH_SIZE = 20;
+/** Pagefind's data, or a snapshot card whose summary is already extracted. */
+type CardData = PagefindResultData & { summary?: string };
+type CardResult = { data?: () => Promise<CardData> };
 function element(tag: string, className: string, text: string): HTMLElement {
   const el = document.createElement(tag);
   el.className = className;
@@ -56,10 +63,7 @@ function dropLeadingText(el: HTMLElement, count: number): void {
 }
 /** Pagefind's highlighted excerpt when a body match remains, otherwise the AI
  * summary; one muted line either way, so cards stay uniform. */
-function cardText(
-  data: PagefindResultData,
-  state: SearchState,
-): HTMLElement | undefined {
+function cardText(data: CardData, state: SearchState): HTMLElement | undefined {
   const meta = data.meta ?? {};
   if (
     state.q &&
@@ -89,7 +93,8 @@ function cardText(
       return excerpt;
     }
   }
-  const summary = summaryFromContent(data.content ?? "", data.anchors ?? []);
+  const summary =
+    data.summary ?? summaryFromContent(data.content ?? "", data.anchors ?? []);
   if (!summary) return undefined;
   const text = element("span", "search-result-excerpt", "");
   text.title = "KI-generierte Zusammenfassung – kann Fehler enthalten";
@@ -99,7 +104,7 @@ function cardText(
   text.append(badge, summary);
   return text;
 }
-function card(data: PagefindResultData, state: SearchState): HTMLElement {
+function card(data: CardData, state: SearchState): HTMLElement {
   const meta = data.meta ?? {};
   const li = element("li", "search-result", "");
   const link = document.createElement("a");
@@ -183,7 +188,8 @@ export function initSearchPanel(): void {
       `#search-${field}`,
     )!;
   let state = parseSearchState(new URLSearchParams(location.search));
-  let results: PagefindSearchResult[] = [],
+  const snapshot = readSearchSnapshot(root);
+  let results: CardResult[] = [],
     rendered = 0,
     token = 0,
     loading = false,
@@ -200,6 +206,30 @@ export function initSearchPanel(): void {
   let pagefind = loadPagefindModule(root.dataset.baseUrl ?? "/");
   // Attach immediately: missing bundles must not produce unhandled rejections.
   void pagefind.catch(() => {});
+  /** The build-time first batch, then stand-ins for the rest of the list.
+   * They share one Pagefind search, started only once a later batch is
+   * requested, and forgotten on failure so a retry searches again. */
+  function snapshotResults(
+    { total, results: cards }: SearchSnapshot,
+    view: SearchState,
+  ): CardResult[] {
+    let live: Promise<PagefindSearchResult[]> | undefined;
+    const later = (index: number) => async () => {
+      live ??= pagefind
+        .then((module) => searchPapers(module, view))
+        .catch((error: unknown) => {
+          live = undefined;
+          throw error;
+        });
+      const result = (await live)[index];
+      if (!result?.data) throw new Error("Index changed since the build");
+      return result.data();
+    };
+    return Array.from({ length: total }, (_, index) => {
+      const card = cards[index];
+      return { data: card ? async () => card : later(index) };
+    });
+  }
   /** The visible status updates at once; screen readers hear only the result
    * that is still current once typing settles. */
   function announce(text: string, delay = 900) {
@@ -392,8 +422,11 @@ export function initSearchPanel(): void {
       status.textContent = "Vorlagen werden geladen …";
     root.setAttribute("aria-busy", "true");
     try {
-      const module = await pagefind;
-      const found = await searchPapers(module, { ...state });
+      const view = { ...state };
+      const fromSnapshot = snapshot && isSnapshotView(view);
+      const found = fromSnapshot
+        ? snapshotResults(snapshot, view)
+        : await searchPapers(await pagefind, view);
       if (current !== token) return;
       results = found;
       rendered = 0;
@@ -410,6 +443,9 @@ export function initSearchPanel(): void {
           markSavedSearchViewed(readSavedSearches(storage), state),
         );
       syncSave();
+      // Nothing above touched Pagefind: load it now, so typing is quick.
+      if (fromSnapshot)
+        pagefind.then((module) => module.init?.()).catch(() => {});
     } catch (error) {
       if (current !== token) return;
       console.warn("Search failed", error);

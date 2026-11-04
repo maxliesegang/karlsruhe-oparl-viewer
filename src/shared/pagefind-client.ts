@@ -48,6 +48,8 @@ export interface PagefindModule {
   ) => Promise<PagefindSearchResponse>;
   filters: () => Promise<Record<string, Record<string, number>>>;
   options?: (options: Record<string, unknown>) => Promise<void>;
+  /** Loads the metadata and WASM ahead of the first search. */
+  init?: () => Promise<void>;
 }
 
 const pagefindModulePromises = new Map<string, Promise<PagefindModule>>();
@@ -85,7 +87,13 @@ export async function searchPapers(
   extraFilters: NonNullable<PagefindSearchOptions["filters"]> = {},
 ): Promise<PagefindSearchResult[]> {
   if (invalidDateRange(state)) throw new Error("Ungültiger Datumsbereich");
-  const available = await pagefind.filters();
+  // `filters()` loads every filter chunk (~280 KB), while a search loads only
+  // the ones it filters on. Only a date range or a possible reference number
+  // needs the full lists; every reference has a digit and no whitespace.
+  const mayBeReference = /\d/.test(state.q) && !/\s/.test(state.q);
+  let available: Record<string, Record<string, number>> = {};
+  if (state.from || state.to || mayBeReference)
+    available = await pagefind.filters();
   const filters: NonNullable<PagefindSearchOptions["filters"]> = {
     ...extraFilters,
   };

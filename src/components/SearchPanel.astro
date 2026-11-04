@@ -4,8 +4,10 @@ import { loadSearchIndex } from "../shared/search-index";
 import type { SearchState } from "../shared/search-state";
 interface Props {
   scope?: Partial<SearchState>;
+  /** Reserve room for the build-time first batch (`search-snapshot.ts`). */
+  snapshot?: boolean;
 }
-const { scope = {} } = Astro.props;
+const { scope = {}, snapshot = false } = Astro.props;
 const { options } = await loadSearchIndex();
 ---
 
@@ -207,6 +209,9 @@ const { options } = await loadSearchIndex();
     </a>
   </div>
   <p class="visually-hidden" role="status" data-search-announce></p>
+  {snapshot && (
+    <script is:inline type="application/json" data-search-snapshot></script>
+  )}
   <ol class="search-results" data-search-results></ol>
   <p class="search-progress" data-search-progress hidden></p>
   <button

@@ -1,7 +1,9 @@
+import { execFile } from "node:child_process";
 import { createReadStream } from "node:fs";
 import { readFile, readdir, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { promisify } from "node:util";
 import { close, createIndex } from "pagefind";
 
 /**
@@ -65,10 +67,19 @@ const CONTENT_TYPES = {
   ".wasm": "application/wasm",
 };
 
+const SNAPSHOT_SCRIPT = fileURLToPath(
+  new URL("../scripts/write-search-snapshot.mjs", import.meta.url),
+);
+
 export default function pagefindLean() {
+  let base = "/";
   return {
     name: "pagefind-lean",
     hooks: {
+      "astro:config:done": ({ config }) => {
+        base = config.base;
+      },
+
       /**
        * `astro dev` never runs a build, so the index it searches is whatever
        * `scripts/ensure-pagefind-index.mjs` last wrote into `dist/`. Serve that
@@ -158,6 +169,16 @@ export default function pagefindLean() {
         }
         logger.info(`Pagefind wrote the index to ${outputPath}`);
         await close();
+
+        // The start page's first batch comes from the finished index; see
+        // `src/shared/search-snapshot.ts`. A child process, so the browser
+        // bundle loads in plain Node rather than through Vite's config loader.
+        const { stdout } = await promisify(execFile)(process.execPath, [
+          SNAPSHOT_SCRIPT,
+          outDir,
+          base,
+        ]);
+        logger.info(stdout.trim());
       },
     },
   };

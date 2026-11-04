@@ -137,6 +137,11 @@ in `buildMeetingFilterModel`, an attribute on the card, and a branch in
   where practical — the "Eckdaten" card carries the reference number instead
   of leaving it only in the (Pagefind-ignored) breadcrumb
 - Panel selectors and events are owned by `search-panel-controller.ts`.
+- The start page's first batch (no query, no filter) is inlined at build time:
+  `<SearchPanel snapshot />` renders an empty `data-search-snapshot` script,
+  which `scripts/write-search-snapshot.mjs` fills from the finished index (run
+  by `pagefind-lean.mjs`). The cards render without touching Pagefind; later
+  batches and every other view still search it. See `search-snapshot.ts`
 - Detail pages emit categorical/date filters and a numeric `changed` rank from
   the canonical paper inventory. These carry no searchable text.
 

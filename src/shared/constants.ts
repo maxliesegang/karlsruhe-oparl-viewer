@@ -20,3 +20,6 @@ export const SYNDICATION_BASE_URL =
  */
 export const OFFICIAL_RIS_BASE_URL =
   "https://sitzungskalender.karlsruhe.de/db/ratsinformation/";
+
+/** Result cards per batch; the start page's build-time snapshot holds one. */
+export const SEARCH_RESULT_BATCH_SIZE = 20;
