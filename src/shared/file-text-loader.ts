@@ -75,6 +75,20 @@ function loadFileText(target: HTMLElement): Promise<void> {
 }
 
 /**
+ * The full extracted text behind a `[data-file-text]` container, loading it if
+ * needed — shared with the full-screen reader so both views fetch once.
+ * Resolves `null` when the load failed.
+ */
+export async function readFileText(
+  target: HTMLElement,
+): Promise<string | null> {
+  await loadFileText(target);
+  if (target.dataset.fileTextState === "error") return null;
+  // `textContent` also flattens a highlighted `mark.source-passage`.
+  return target.textContent ?? "";
+}
+
+/**
  * Wraps `quote` in a `<mark>`, replacing an earlier one. The container holds
  * plain text only, so it is rebuilt from its own text rather than patched.
  */

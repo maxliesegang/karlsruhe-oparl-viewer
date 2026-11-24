@@ -1,6 +1,7 @@
 ---
 import type { ResolvedAuxiliaryFile } from "../shared/types";
 import { getMeaningfulModified } from "../shared/paper-presentation";
+import { buildFileTextHash } from "../shared/file-text-segments";
 import {
   formatDateLong,
   getOParlEntityId,
@@ -12,6 +13,11 @@ interface Props {
 }
 
 const { auxiliaryFiles } = Astro.props;
+
+/* The full-screen reader only serves files whose text the mirror publishes. */
+const hasReadableText = auxiliaryFiles.some(
+  ({ content }) => content?.extractedText,
+);
 ---
 
 <section
@@ -94,6 +100,33 @@ const { auxiliaryFiles } = Astro.props;
               {/* prettier-ignore */}
               <p class="file-text" data-file-text data-file-id={fileId} data-pagefind-weight="0.75">{fileText}</p>
             </details>
+
+            {/* A real link to the deep-link hash, so it can be copied or
+                  shared as is; `file-text-reader.ts` opens the dialog on it.
+                  It sits on the summary row, beside the disclosure toggle. */}
+            {fileId && (
+              <a
+                class="file-text-expand"
+                href={buildFileTextHash(fileId)}
+                aria-label={`Text von ${file.name} in der Vollansicht lesen`}
+                data-pagefind-ignore
+              >
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.25"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+                </svg>
+                Vollansicht
+              </a>
+            )}
           </li>
         );
       })}
@@ -102,6 +135,106 @@ const { auxiliaryFiles } = Astro.props;
     <p class="no-files-msg">Keine zusätzlichen Dateien verfügbar.</p>
   )}
 </section>
+
+{hasReadableText && (
+  <dialog
+    class="file-reader"
+    data-file-reader
+    aria-labelledby="file-reader-title"
+    data-pagefind-ignore
+  >
+    <div class="reader-shell">
+      <header class="reader-header">
+        <div class="reader-heading">
+          <p class="reader-kicker">Extrahierter Text</p>
+          <h2
+            class="reader-title"
+            id="file-reader-title"
+            data-reader-title
+          ></h2>
+          <p class="reader-meta" data-reader-meta></p>
+        </div>
+        <button
+          type="button"
+          class="reader-close"
+          aria-label="Vollansicht schließen"
+          data-reader-close
+        >
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.25"
+            stroke-linecap="round"
+            aria-hidden="true"
+          >
+            <path d="M6 6l12 12M18 6L6 18" />
+          </svg>
+        </button>
+      </header>
+
+      <div class="reader-toolbar">
+        <div class="reader-search" role="search">
+          <input
+            type="search"
+            class="reader-search-input"
+            placeholder="Im Text suchen"
+            aria-label="Im Text suchen"
+            enterkeyhint="search"
+            data-reader-search
+          />
+          <span
+            class="reader-count"
+            aria-live="polite"
+            data-reader-count
+          ></span>
+          <button
+            type="button"
+            class="reader-step"
+            aria-label="Vorheriger Treffer"
+            data-reader-previous
+          >
+            ↑
+          </button>
+          <button
+            type="button"
+            class="reader-step"
+            aria-label="Nächster Treffer"
+            data-reader-next
+          >
+            ↓
+          </button>
+        </div>
+        <div class="reader-actions">
+          <button type="button" class="reader-action" data-reader-copy>
+            Link kopieren
+          </button>
+          <a
+            class="reader-action"
+            target="_blank"
+            rel="noopener noreferrer"
+            data-reader-original
+          >
+            Original öffnen
+          </a>
+        </div>
+      </div>
+
+      {/* Focusable so arrow keys and space scroll the text on open. */}
+      <div class="reader-body" tabindex="0" data-reader-body>
+        {/* prettier-ignore */}
+        <div class="reader-text" data-reader-text></div>
+      </div>
+
+      <p class="reader-note">
+        Automatisch aus der Datei extrahiert — Tabellen und Layout können
+        abweichen. Maßgeblich ist das Original.
+      </p>
+    </div>
+  </dialog>
+)}
 
 <style>
   /* Deep-link target (`…#paper-files`) — clears the sticky nav. */
@@ -135,6 +268,11 @@ const { auxiliaryFiles } = Astro.props;
   }
 
   .file-item {
+    /* Two columns only so "Vollansicht" can share the disclosure's row: both
+       sit in row 2, the toggle is inline and leaves the right end free, and
+       the opened text starts below the 32px summary line. */
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
     /* `showFilePassage` scrolls a card into view. */
     scroll-margin-top: calc(var(--site-header-height) + 16px);
     border: 1px solid var(--color-border);
@@ -177,8 +315,34 @@ const { auxiliaryFiles } = Astro.props;
     gap: 2px 14px;
   }
 
+  .file-details,
   .file-text-details {
+    grid-column: 1 / -1;
+  }
+
+  .file-text-details {
+    grid-row: 2;
     margin-top: 4px;
+  }
+
+  .file-text-expand {
+    grid-column: 2;
+    grid-row: 2;
+    align-self: start;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    min-height: 32px;
+    margin-top: 4px;
+    font-size: 0.85rem;
+    color: var(--color-link);
+    text-decoration: none;
+  }
+
+  .file-text-expand:hover {
+    color: var(--color-link-hover);
+    text-decoration: underline;
+    text-underline-offset: 3px;
   }
 
   /* A secondary action, so a quiet link with a disclosure caret — four solid
@@ -269,10 +433,275 @@ const { auxiliaryFiles } = Astro.props;
     box-shadow: 0 0 0 2px var(--color-highlight);
     outline: none;
   }
+
+  /* ── Full-screen reader ─────────────────────────────────────────────── */
+
+  /* The page behind must not scroll along with the text. */
+  :global(html:has(dialog.file-reader[open])) {
+    overflow: hidden;
+  }
+
+  .file-reader {
+    /* No padding: a click on the element itself is then the backdrop. */
+    padding: 0;
+    border: none;
+    border-radius: var(--radius);
+    width: min(60rem, calc(100vw - 32px));
+    height: min(56rem, calc(100dvh - 32px));
+    max-width: none;
+    max-height: none;
+    background: #fff;
+    color: var(--color-text);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+  }
+
+  .file-reader::backdrop {
+    background: rgba(20, 20, 20, 0.55);
+  }
+
+  .reader-shell {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  .reader-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 16px 20px 12px;
+    /* Same brand accent as the summary card it is linked from. */
+    border-top: 4px solid var(--color-primary);
+  }
+
+  .reader-heading {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .reader-kicker {
+    margin: 0 0 2px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-text-muted);
+  }
+
+  .reader-title {
+    margin: 0;
+    font-size: 1.25rem;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+  }
+
+  .reader-meta {
+    margin: 4px 0 0;
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+  }
+
+  .reader-meta:empty {
+    display: none;
+  }
+
+  .reader-close {
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    margin: -4px -8px 0 0;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--color-text-muted);
+    cursor: pointer;
+  }
+
+  .reader-close:hover {
+    background: var(--color-bg-card);
+    color: var(--color-text);
+  }
+
+  .reader-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 16px;
+    padding: 10px 20px;
+    border-block: 1px solid var(--color-border);
+    background: var(--color-bg-card);
+  }
+
+  .reader-search {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex: 1 1 18rem;
+    max-width: 28rem;
+  }
+
+  .reader-search-input {
+    flex: 1;
+    min-width: 0;
+    height: 36px;
+    padding: 0 10px;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    background: #fff;
+    font-size: 0.95rem;
+  }
+
+  .reader-search-input:focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 1px;
+  }
+
+  .reader-count {
+    min-width: 4.5rem;
+    padding: 0 4px;
+    font-size: 0.8125rem;
+    color: var(--color-text-muted);
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  .reader-step {
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    background: #fff;
+    color: var(--color-text);
+    cursor: pointer;
+  }
+
+  .reader-step:disabled {
+    color: var(--color-border);
+    cursor: default;
+  }
+
+  .reader-actions {
+    display: flex;
+    gap: 16px;
+  }
+
+  .reader-action {
+    padding: 0;
+    border: none;
+    background: none;
+    font: inherit;
+    font-size: 0.85rem;
+    color: var(--color-link);
+    text-decoration: none;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .reader-action:hover {
+    color: var(--color-link-hover);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .reader-action[hidden] {
+    display: none;
+  }
+
+  .reader-body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 20px;
+    overscroll-behavior: contain;
+  }
+
+  .reader-body:focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: -2px;
+  }
+
+  /* Same pre-wrap treatment as the card's text, at a reading size and measure. */
+  .reader-text {
+    max-width: 78ch;
+    margin: 0 auto;
+    font-size: 0.975rem;
+    line-height: 1.65;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
+  .reader-text[data-state] {
+    white-space: normal;
+    color: var(--color-text-muted);
+    font-style: italic;
+  }
+
+  /* Runtime-inserted nodes carry no scope attribute, hence `:global`. */
+  .reader-text :global(.reader-match) {
+    background: var(--color-highlight);
+    color: inherit;
+    border-radius: 2px;
+  }
+
+  .reader-text :global(.reader-match.is-active) {
+    background: var(--color-primary);
+    box-shadow: 0 0 0 2px var(--color-primary);
+  }
+
+  .reader-text :global(.reader-page-break) {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 4px 0;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--color-text-muted);
+    white-space: nowrap;
+  }
+
+  .reader-text :global(.reader-page-break)::after {
+    content: "";
+    flex: 1;
+    border-top: 1px dashed var(--color-border);
+  }
+
+  .reader-note {
+    margin: 0;
+    padding: 8px 20px;
+    border-top: 1px solid var(--color-border);
+    font-size: 0.78rem;
+    color: var(--color-text-muted);
+  }
+
+  /* Phones: the reader takes the whole screen. */
+  @media (max-width: 640px) {
+    .file-reader {
+      width: 100vw;
+      height: 100dvh;
+      border-radius: 0;
+    }
+
+    .reader-header,
+    .reader-toolbar,
+    .reader-body,
+    .reader-note {
+      padding-inline: 16px;
+    }
+
+    .reader-search {
+      max-width: none;
+    }
+  }
 </style>
 
 <script>
   import { initFileTextLoaders } from "../shared/file-text-loader";
+  import { initFileTextReader } from "../shared/file-text-reader";
 
   initFileTextLoaders();
+  initFileTextReader();
 </script>

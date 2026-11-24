@@ -23,7 +23,7 @@ Reusable UI components. Prefer extending existing components over creating new o
 | `PaperHeader.astro`          | Detail-page title block: reference, type, date, title, status bar   |
 | `PaperFacts.astro`           | "Eckdaten" sidebar card — modified, bodies, submitters, districts   |
 | `PaperSummary.astro`         | LLM summary + key points, one per full-width row; only if present   |
-| `AuxiliaryFiles.astro`       | File attachments — detail page                                      |
+| `AuxiliaryFiles.astro`       | File attachments + linkable full-screen text reader — detail page   |
 | `StadtteilHint.astro`        | One-line, expandable classifier caveat — district pages             |
 | `MeetingDigest.astro`        | Generated sitting preview — shell only, filled at runtime           |
 | `MeetingAgenda.astro`        | Public agenda with links to matching papers                         |
@@ -163,6 +163,21 @@ ranking and excerpt choice. Do not reorder those two steps, and keep this markup
   what keeps the "Kein Text verfügbar" placeholder out of the lazy path
 - An **empty** container is the signal that stripping ran. `astro dev` does not
   strip, so the text stays inlined there and nothing is fetched
+
+**Full-screen text reader ("Vollansicht")**
+
+Each card with extracted text gets a "Vollansicht" link to `#text-<fileId>`
+(`buildFileTextHash`, the same mirror id as `data-file-id`). The hash _is_ the
+state: `file-text-reader.ts` opens the single `<dialog data-file-reader>` on
+load and on `hashchange`, so the view is directly linkable and the back button
+closes it. Closing pops the entry the link pushed, or — after landing on a deep
+link — replaces it, so a reload does not reopen the reader. The text comes from
+`readFileText()` (`file-text-loader.ts`), i.e. the card's own fetch and dev-mode
+inlining; never add a second fetch path. Search, page dividers (from the
+`-- N of M --` markers) and stats are derived in the pure, tested
+`file-text-segments.ts`. Fetched text is written only as text nodes. An unknown
+id in the hash is ignored. The dialog is rendered only when at least one file
+has text, and is `data-pagefind-ignore` — it must never carry `data-file-text`.
 
 **Generated sitting previews — fetched at runtime, never built in**
 
